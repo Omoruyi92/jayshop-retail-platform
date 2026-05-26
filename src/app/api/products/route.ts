@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const category = searchParams.get('category')
+  const q = searchParams.get('q')
+  const brand = searchParams.get('brand')
+  const includeArchived = searchParams.get('includeArchived') === 'true'
+
+  const products = await prisma.product.findMany({
+    where: {
+      ...(!includeArchived && { status: { not: 'ARCHIVED' } }),
+      ...(category && category !== 'all' && { category }),
+      ...(brand && { brand }),
+      ...(q && {
+        OR: [
+          { name: { contains: q } },
+          { brand: { contains: q } },
+          { description: { contains: q } },
+          { category: { contains: q } },
+          { subcategory: { contains: q } },
+        ],
+      }),
+    },
+    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    include: {
+      sizeInventories: { select: { size: true, quantity: true, heldQuantity: true } },
+      ...(includeArchived && { _count: { select: { holds: true } } }),
+    },
+  })
+
+  // Compute available stock and all-sizes-OOS flag
+  const productsWithRemaining = products.map((p) => {
+    const hasSizes = p.sizeInventories.length > 0
+
+    // When size inventory rows exist, sum their available quantities for a
+    // meaningful "remaining" count; otherwise fall back to the product-level field.
+    const remaining = hasSizes
+      ? p.sizeInventories.reduce((sum, s) => sum + Math.max(0, s.quantity - s.heldQuantity), 0)
+      : Math.max(0, p.quantity - p.heldQuantity)
+
+    // allSizesOos: only true when there ARE size rows and every one is OOS
+    const allSizesOos =
+      hasSizes &&
+      p.sizeInventories.every((s) => s.quantity - s.heldQuantity <= 0)
+
+    return {
+      ...p,
+      remaining,
+      hasSizes,
+      allSizesOos,
+    }
+  })
+
+  return NextResponse.json({ products: productsWithRemaining })
+}

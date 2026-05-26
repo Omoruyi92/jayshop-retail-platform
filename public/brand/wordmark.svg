@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" fill="none">
+  <!-- Wordmark: JAYS SHOP -->
+  <text x="0" y="30"
+    font-family="'Oswald', Arial Narrow, sans-serif"
+    font-weight="700"
+    font-size="28"
+    letter-spacing="2"
+    text-transform="uppercase"
+  >
+    <tspan fill="#E8291C">JAYS</tspan><tspan fill="#134A8E"> SHOP</tspan>
+  </text>
+</svg>

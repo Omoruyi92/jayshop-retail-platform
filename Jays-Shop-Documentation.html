@@ -1,0 +1,404 @@
+<style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;line-height:1.6;color:#333}h1{color:#134A8E;border-bottom:3px solid #E8291C;padding-bottom:10px}h2{color:#1D2D5C;border-bottom:1px solid #ddd;padding-bottom:5px}table{border-collapse:collapse;width:100%;margin:20px 0}th,td{border:1px solid #ddd;padding:12px;text-align:left}th{background:#134A8E;color:white}tr:nth-child(even){background:#f9f9f9}code{background:#f4f4f4;padding:2px 6px;border-radius:3px}pre{background:#f4f4f4;padding:15px;border-radius:5px;overflow-x:auto}</style><h1>Jays Shop — Project Documentation</h1>
+<p><strong>Merchandise Reservation System for Toronto Blue Jays Store</strong></p>
+<hr />
+<h2>Executive Summary</h2>
+<p>Jays Shop is a mobile-first web application that enables customers to browse merchandise, place free 48-hour holds, and pick up items in-store using a QR code — all without requiring payment or account creation. The system includes a comprehensive admin dashboard for staff to manage holds, track inventory, and generate reports.</p>
+<hr />
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#problem-statement">Problem Statement</a></li>
+<li><a href="#solution-overview">Solution Overview</a></li>
+<li><a href="#key-features">Key Features</a></li>
+<li><a href="#user-flows">User Flows</a></li>
+<li><a href="#technical-architecture">Technical Architecture</a></li>
+<li><a href="#business-impact">Business Impact</a></li>
+<li><a href="#future-roadmap">Future Roadmap</a></li>
+</ol>
+<hr />
+<h2>Problem Statement</h2>
+<p>The Toronto Blue Jays store faced several operational challenges:</p>
+<ul>
+<li><strong>No reservation system</strong>: Customers couldn't hold items before visiting, leading to missed sales when popular items sold out</li>
+<li><strong>Manual tracking</strong>: Staff managed holds via phone calls and paper notes, creating confusion and double-booking</li>
+<li><strong>Inventory opacity</strong>: No real-time visibility into what was held vs. available</li>
+<li><strong>Poor customer experience</strong>: Customers arrived to find their desired items already sold</li>
+</ul>
+<hr />
+<h2>Solution Overview</h2>
+<p>Jays Shop provides a complete digital reservation platform with two primary interfaces:</p>
+<h3>Customer-Facing (Public)</h3>
+<ul>
+<li>Browse the product catalog with category filters</li>
+<li>View product details with real-time availability status</li>
+<li>Place holds with name and phone number (no account required)</li>
+<li>Receive a QR code receipt for in-store pickup</li>
+<li>Look up existing holds by phone number</li>
+</ul>
+<h3>Staff-Facing (Admin)</h3>
+<ul>
+<li>Secure login with role-based access</li>
+<li>Live dashboard showing active holds and alerts</li>
+<li>Manage holds: confirm full/partial pickup or release</li>
+<li>View complete hold history and sales history</li>
+<li>Export CSV reports for analysis</li>
+<li>Product management: add, edit, archive products</li>
+</ul>
+<hr />
+<h2>Key Features</h2>
+<h3>Customer Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product Catalog</td>
+<td>Browse all merchandise with images, prices, and availability</td>
+</tr>
+<tr>
+<td>Category Filters</td>
+<td>Filter by category (jerseys, hats, accessories, etc.)</td>
+</tr>
+<tr>
+<td>Hold Placement</td>
+<td>Free 48-hour hold with automatic expiry</td>
+</tr>
+<tr>
+<td>QR Code Receipt</td>
+<td>Unique reservation code with scannable QR code</td>
+</tr>
+<tr>
+<td>Order Lookup</td>
+<td>Retrieve hold details using phone number</td>
+</tr>
+<tr>
+<td>PWA Support</td>
+<td>Installable as a mobile app on iOS/Android</td>
+</tr>
+</tbody>
+</table>
+<h3>Admin Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Live Dashboard</td>
+<td>Real-time view of active holds with expiry alerts</td>
+</tr>
+<tr>
+<td>Hold Management</td>
+<td>Confirm pickup (full or partial), release, or extend</td>
+</tr>
+<tr>
+<td>History Tracking</td>
+<td>Complete audit trail of all hold transactions</td>
+</tr>
+<tr>
+<td>Sales Reports</td>
+<td>Metrics, analytics, and CSV export</td>
+</tr>
+<tr>
+<td>Product CRUD</td>
+<td>Add, edit, archive, and manage product inventory</td>
+</tr>
+<tr>
+<td>Slack Integration</td>
+<td>Automatic notifications for new holds</td>
+</tr>
+</tbody>
+</table>
+<h3>System Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Atomic Transactions</td>
+<td>Prevents race conditions and double-booking</td>
+</tr>
+<tr>
+<td>Auto-Expiry Cron</td>
+<td>Releases holds automatically after 48 hours</td>
+</tr>
+<tr>
+<td>Audit Logging</td>
+<td>Every action logged with timestamp and actor</td>
+</tr>
+<tr>
+<td>AI Chatbot</td>
+<td>Birdie assistant for customer support</td>
+</tr>
+<tr>
+<td>CSV Export</td>
+<td>History and reports exportable for analysis</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>User Flows</h2>
+<h3>Customer Journey</h3>
+<pre><code>1. Visit jays-shop.vercel.app
+2. Browse /shop catalog
+3. Click product → view details
+4. Select quantity → click &quot;Hold&quot;
+5. Enter name + phone → submit
+6. Receive QR code receipt
+7. Visit store → show QR code
+8. Staff confirms pickup
+</code></pre>
+<h3>Admin Journey</h3>
+<pre><code>1. Login at /admin/login
+2. View dashboard → see active holds
+3. Navigate to /admin/holds
+4. Locate customer hold
+5. Click &quot;Pick Up&quot; → enter quantity
+6. Confirm → inventory updates
+7. Check /admin/history for record
+</code></pre>
+<hr />
+<h2>Technical Architecture</h2>
+<h3>Tech Stack</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Framework</td>
+<td>Next.js 14 App Router + TypeScript</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind CSS + shadcn/ui components</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Prisma ORM + SQLite (dev) / PostgreSQL (prod)</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>NextAuth with bcrypt password hashing</td>
+</tr>
+<tr>
+<td>QR Codes</td>
+<td>qrcode.react (client-side generation)</td>
+</tr>
+<tr>
+<td>PWA</td>
+<td>next-pwa with Workbox</td>
+</tr>
+<tr>
+<td>AI Chat</td>
+<td>OpenAI GPT-4o-mini (Birdie assistant)</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Slack Block Kit webhooks</td>
+</tr>
+<tr>
+<td>Hosting</td>
+<td>Vercel (frontend) + Supabase (database)</td>
+</tr>
+<tr>
+<td>Cron Jobs</td>
+<td>Vercel Cron (48h expiry)</td>
+</tr>
+</tbody>
+</table>
+<h3>Database Schema</h3>
+<p><strong>Core Tables:</strong>
+- <code>Product</code> — merchandise catalog with inventory counters
+- <code>Customer</code> — phone-based identity (no accounts)
+- <code>Hold</code> — reservation records with status tracking
+- <code>Admin</code> — staff accounts with role-based access
+- <code>HoldHistory</code> — immutable snapshot of resolved holds
+- <code>SalesHistory</code> — transaction records for reporting
+- <code>AuditLog</code> — complete action audit trail</p>
+<p><strong>Key Design Decisions:</strong>
+- <code>heldQuantity</code> and <code>pickedQuantity</code> counters on Product for real-time availability
+- Atomic transactions prevent race conditions during hold creation
+- History tables store snapshots (not references) for data integrity
+- 48-hour expiry via cron job with Slack notifications</p>
+<hr />
+<h2>Business Impact</h2>
+<h3>Immediate Benefits</h3>
+<ul>
+<li><strong>Reduced lost sales</strong>: Customers can reserve items before visiting</li>
+<li><strong>Improved operations</strong>: Centralized dashboard replaces manual tracking</li>
+<li><strong>Better customer experience</strong>: No more arriving to find items sold out</li>
+<li><strong>Data visibility</strong>: Sales history and analytics for management</li>
+</ul>
+<h3>Efficiency Gains</h3>
+<ul>
+<li>Staff no longer manually track holds via phone/paper</li>
+<li>Automatic inventory synchronization prevents overselling</li>
+<li>QR code pickup reduces checkout time</li>
+<li>CSV exports simplify reporting</li>
+</ul>
+<h3>Scalability</h3>
+<ul>
+<li>PWA support means customers can "install" the app</li>
+<li>Atomic transactions handle high-traffic periods</li>
+<li>Modular architecture supports future features</li>
+</ul>
+<hr />
+<h2>Future Roadmap</h2>
+<h3>Phase 1 — Foundation (Complete)</h3>
+<ul>
+<li>Scaffold, design tokens, PWA, layout, landing page</li>
+</ul>
+<h3>Phase 2 — Catalog (Complete)</h3>
+<ul>
+<li>Prisma schema, product CRUD, /shop, /shop/[slug]</li>
+</ul>
+<h3>Phase 3 — Holds (Complete)</h3>
+<ul>
+<li>Atomic hold creation, QR receipt, /account lookup</li>
+</ul>
+<h3>Phase 4 — Admin Dashboard (Complete)</h3>
+<ul>
+<li>Live feed, Slack integration, /admin/history + CSV export</li>
+</ul>
+<h3>Phase 4.5 — Reports (Complete)</h3>
+<ul>
+<li>/admin/reports metrics + CSV</li>
+</ul>
+<h3>Phase 5 — Expiry + AI (Complete)</h3>
+<ul>
+<li>48h auto-expiry cron, Birdie AI chatbot</li>
+</ul>
+<h3>Phase 6 — Production Deploy (Next)</h3>
+<ul>
+<li>Vercel production deploy</li>
+<li>PWA smoke test on iOS/Android</li>
+<li>End-to-end testing</li>
+<li>Performance optimization</li>
+</ul>
+<h3>Future Enhancements</h3>
+<ul>
+<li>Payment integration (pre-pay for holds)</li>
+<li>SMS notifications for expiry reminders</li>
+<li>Multi-location support</li>
+<li>Customer loyalty program</li>
+<li>Advanced analytics dashboard</li>
+</ul>
+<hr />
+<h2>Demo Information</h2>
+<h3>Startup</h3>
+<pre><code class="language-bash">npm run clean-start
+</code></pre>
+<p>App available at http://localhost:3000</p>
+<h3>Admin Login</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>URL</td>
+<td>http://localhost:3000/admin/login</td>
+</tr>
+<tr>
+<td>Email</td>
+<td>any (e.g., admin@demo.com)</td>
+</tr>
+<tr>
+<td>Password</td>
+<td>any (e.g., demo)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Dev mode accepts any credentials for demonstration purposes.</p>
+</blockquote>
+<h3>Demo Flow</h3>
+<ol>
+<li><strong>Public</strong>: Browse /shop → place a hold → receive QR code</li>
+<li><strong>Admin</strong>: Login → /admin/holds → confirm pickup</li>
+<li><strong>Admin</strong>: /admin/history → verify record</li>
+<li><strong>Admin</strong>: /admin/products → check inventory updated</li>
+<li><strong>Dashboard</strong>: Confirm active hold count decreased</li>
+</ol>
+<hr />
+<h2>Known Limitations</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth</td>
+<td>Dev mode accepts any credentials — intentional for demo</td>
+</tr>
+<tr>
+<td>Slack</td>
+<td>Stub only — requires SLACK_WEBHOOK_URL in .env</td>
+</tr>
+<tr>
+<td>Cloudinary</td>
+<td>Image uploads use local fallback</td>
+</tr>
+<tr>
+<td>Supabase</td>
+<td>Dashboard polls every 5s (no WebSocket)</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>SQLite path is absolute (machine-specific)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DB / Prisma error</td>
+<td><code>npm run db:reset &amp;&amp; npm run db:seed</code></td>
+</tr>
+<tr>
+<td>Port 3000 in use</td>
+<td><code>npm run clean-start</code></td>
+</tr>
+<tr>
+<td>Module error</td>
+<td><code>rm -rf .next &amp;&amp; npm run dev</code></td>
+</tr>
+<tr>
+<td>Prisma out of sync</td>
+<td><code>npx prisma generate &amp;&amp; npm run dev</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Contact</h2>
+<p>For questions or feedback about Jays Shop, refer to the project repository or contact the development team.</p>
+<hr />
+<p><em>Document generated for manager presentation. Jays Shop — Toronto Blue Jays Merchandise Reservation System.</em></p>

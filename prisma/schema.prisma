@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:/Users/idehenomoruyi/projects/jays-shop/prisma/dev.db"
+}
+
+model Product {
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  description     String?
+  priceCents      Int
+  imageUrl        String
+  category        String          @default("accessories")
+  subcategory     String          @default("")
+  quantity        Int             @default(1)
+  heldQuantity    Int             @default(0)
+  pickedQuantity  Int             @default(0)
+  sizes           String          @default("")
+  brand           String          @default("")
+  status          String          @default("AVAILABLE")
+  isLicensed      Boolean         @default(false)
+  isChampion      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  holds           Hold[]
+  sizeInventories SizeInventory[]
+
+  @@index([status])
+  @@index([category])
+  @@index([brand])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  fullName  String
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  holds     Hold[]
+
+  @@index([phone])
+}
+
+model Hold {
+  id              String    @id @default(cuid())
+  reservationCode String    @unique
+  productId       String
+  customerId      String
+  size            String?
+  holdQuantity    Int       @default(1)
+  totalPriceCents Int       @default(0)
+  status          String    @default("ACTIVE")
+  placedAt        DateTime  @default(now())
+  expiresAt       DateTime
+  pickedUpAt      DateTime?
+  releasedAt      DateTime?
+  notifiedStaffAt DateTime?
+  isStadiumHold   Boolean   @default(false)
+  pickupQueueAt   DateTime?
+  queuePosition   Int?
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  product         Product   @relation(fields: [productId], references: [id])
+
+  @@index([productId, status])
+  @@index([status, expiresAt])
+  @@index([customerId])
+}
+
+model SizeInventory {
+  id             String   @id @default(cuid())
+  productId      String
+  size           String
+  quantity       Int      @default(0)
+  heldQuantity   Int      @default(0)
+  pickedQuantity Int      @default(0)
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+  @@index([productId])
+}
+
+model Admin {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          String         @default("STAFF")
+  createdAt     DateTime       @default(now())
+  auditLogs     AuditLog[]
+  resolvedHolds HoldHistory[]
+  sales         SalesHistory[]
+}
+
+model SlackSettings {
+  id                 String  @id @default(cuid())
+  webhookUrl         String
+  channelName        String
+  interactiveEnabled Boolean @default(false)
+}
+
+model HoldHistory {
+  id                        String    @id @default(cuid())
+  holdId                    String?   @unique
+  reservationCode           String
+  productId                 String?
+  productNameSnapshot       String
+  productBrandSnapshot      String    @default("")
+  productPriceCentsSnapshot Int
+  productImageUrlSnapshot   String
+  customerId                String?
+  customerNameSnapshot      String
+  customerPhoneSnapshot     String
+  holdQuantity              Int       @default(1)
+  fulfilledQuantity         Int       @default(1)
+  totalPriceCentsSnapshot   Int       @default(0)
+  finalTotalCents           Int       @default(0)
+  placedAt                  DateTime
+  expiresAt                 DateTime
+  finalStatus               String
+  resolvedAt                DateTime
+  resolvedByAdminId         String?
+  notes                     String?
+  archivedAt                DateTime?
+  resolvedBy                Admin?    @relation(fields: [resolvedByAdminId], references: [id])
+
+  @@index([finalStatus])
+  @@index([resolvedAt])
+  @@index([customerPhoneSnapshot])
+  @@index([productId])
+  @@index([resolvedByAdminId])
+  @@index([archivedAt])
+}
+
+model SalesHistory {
+  id                     String   @id @default(cuid())
+  holdId                 String
+  reservationCode        String
+  productId              String?
+  productNameSnapshot    String
+  salePriceCentsSnapshot Int
+  holdQuantity           Int      @default(1)
+  fulfilledQuantity      Int      @default(1)
+  customerId             String?
+  customerPhoneSnapshot  String
+  soldAt                 DateTime
+  soldByAdminId          String?
+  soldBy                 Admin?   @relation(fields: [soldByAdminId], references: [id])
+
+  @@index([soldAt])
+  @@index([soldByAdminId])
+  @@index([productId])
+  @@index([customerPhoneSnapshot])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  actorId    String?
+  actorType  String?
+  payload    String   @default("{}")
+  createdAt  DateTime @default(now())
+  actor      Admin?   @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([actorId])
+}
