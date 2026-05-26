@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "clean-start": "lsof -ti:3000 | xargs kill -9 2>/dev/null; npm run dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
