@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { resolveHold } from '@/lib/holds/resolveHold'
 import { requireAdminSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }

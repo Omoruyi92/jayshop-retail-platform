@@ -3,6 +3,8 @@ import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { resolveHold } from '@/lib/holds/resolveHold'
 
+export const dynamic = 'force-dynamic'
+
 function verifySlackSignature(body: string, timestamp: string, signature: string): boolean {
   const secret = process.env.SLACK_SIGNING_SECRET
   if (!secret) return false

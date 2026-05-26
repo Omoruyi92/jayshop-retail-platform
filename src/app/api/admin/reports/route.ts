@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 function getPeriodDates(period: string, dateFrom?: string | null, dateTo?: string | null) {
   if (dateFrom && dateTo) return { from: new Date(dateFrom), to: new Date(dateTo) }
   const to = new Date()

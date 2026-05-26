@@ -5,6 +5,8 @@ import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireAdminSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }

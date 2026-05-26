@@ -7,6 +7,8 @@ import {
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
 
+export const dynamic = 'force-dynamic'
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const { error } = await requireAdminSession()
   if (error) return error

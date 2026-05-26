@@ -9,6 +9,8 @@ import {
   uploadFileExists,
 } from '@/lib/media/cleanup'
 
+export const dynamic = 'force-dynamic'
+
 const UPLOADS_DIR = join(process.cwd(), 'public', 'uploads')
 
 export async function GET() {

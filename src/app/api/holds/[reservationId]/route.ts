@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { resolveHold } from '@/lib/holds/resolveHold'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: Request, { params }: { params: { reservationId: string } }) {
   const hold = await prisma.hold.findUnique({
     where: { reservationCode: params.reservationId },

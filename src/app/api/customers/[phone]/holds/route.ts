@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // Simple in-memory rate limiter: 10 requests per IP per minute
 const rateLimitMap = new Map<string, number[]>()
 

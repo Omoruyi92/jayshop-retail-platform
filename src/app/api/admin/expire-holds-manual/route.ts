@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/auth'
 import { expireAllOverdueHolds } from '@/lib/holds/expireHolds'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST() {
   const { error } = await requireAdminSession()
   if (error) return error

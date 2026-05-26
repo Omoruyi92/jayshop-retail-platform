@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createHold } from '@/lib/holds/createHold'
 import { sendSlackNewHold } from '@/lib/slack'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

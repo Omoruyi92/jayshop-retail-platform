@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { expireAllOverdueHolds } from '@/lib/holds/expireHolds'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: Request) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {

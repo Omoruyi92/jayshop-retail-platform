@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 function formatCAD(cents: number) {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(cents / 100)
 }
