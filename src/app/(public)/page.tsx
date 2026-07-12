@@ -2,6 +2,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import UpcomingMatchCard from '@/components/home/UpcomingMatchCard'
+import FanTestimonials from '@/components/home/FanTestimonials'
+import BrandWatermarks from '@/components/ui/BrandWatermarks'
+import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 
 export default function HomePage() {
   const { t } = useLanguage()
@@ -58,42 +62,101 @@ export default function HomePage() {
   return (
     <div>
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative bg-jays-navy text-white overflow-hidden">
-        {/* Subtle diagonal accent */}
+      <section className="relative overflow-hidden bg-jays-navy text-white sm:-mt-14">
         <div
           aria-hidden="true"
-          className="absolute inset-0 opacity-10"
+          className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full opacity-[0.12]"
+          style={{ background: 'radial-gradient(circle, #C2440C 0%, #8B1A1A 40%, transparent 70%)' }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full opacity-[0.08]"
+          style={{ background: 'radial-gradient(circle, #D4540A 0%, #7B1818 50%, transparent 75%)' }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
             background:
-              'repeating-linear-gradient(-45deg, #E8291C 0, #E8291C 1px, transparent 0, transparent 50%)',
+              'repeating-linear-gradient(-45deg, #C2440C 0, #C2440C 1px, transparent 0, transparent 50%)',
             backgroundSize: '40px 40px',
           }}
         />
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-amber-600/40 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-x-0 top-[2px] h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-30"
+          style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 55%, rgba(30, 39, 97, 0.8) 0%, transparent 100%)' }}
+        />
 
-        <div className="relative max-w-3xl mx-auto px-4 py-10 sm:py-14 text-center">
-          {/* Brand icon */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Image
-              src="/brand/logo.png"
-              alt="Blue Jays logo"
-              width={128}
-              height={128}
-              className="w-16 h-16 sm:w-24 sm:h-24 rounded-full object-contain"
-              priority
-            />
+        <BrandWatermarks className="z-0" />
+        <LetsGoJaysWatermark className="z-0" />
+
+        <div className="group absolute right-3 top-3 z-10 flex items-center gap-2 sm:right-5 sm:top-5">
+          <div className="absolute -top-1 right-12 animate-pulse text-xs text-yellow-300">✦</div>
+          <div className="absolute -right-1 bottom-0 animate-pulse text-[8px] text-yellow-300/60" style={{ animationDelay: '0.5s' }}>✦</div>
+
+          <div className="hidden rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-md transition-all duration-300 group-hover:bg-white/15 sm:block">
+            <p className="text-[9px] font-medium uppercase leading-tight tracking-[0.12em] text-blue-200/80">American League</p>
+            <p className="font-display text-sm font-bold uppercase leading-tight tracking-wide text-white">Champions</p>
+            <p className="text-[10px] font-semibold text-yellow-300/90">2025 ⚾</p>
           </div>
 
-          <h1 className="font-display text-3xl sm:text-5xl font-bold uppercase tracking-wide leading-tight mb-3">
+          <div className="relative">
+            <div className="absolute -inset-1.5 rounded-full border border-dashed border-yellow-300/20 animate-spin" style={{ animationDuration: '20s' }} />
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/25 bg-white/10 shadow-xl backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-yellow-300/30 sm:h-24 sm:w-24">
+              <Image
+                src="/brand/alcs-2025-round.png"
+                alt="2025 ALCS Champions"
+                width={120}
+                height={120}
+                className="h-full w-full rounded-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-3xl px-4 pb-14 pt-16 text-center sm:pb-20 sm:pt-28">
+          <div className="mb-3">
+            <div className="inline-flex max-w-full items-center gap-2 px-2">
+              <span className="h-px w-4 shrink-0 bg-gradient-to-r from-transparent to-amber-400/70 sm:w-6" aria-hidden="true" />
+              <span
+                className="whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-[10px] font-semibold uppercase tracking-[0.15em] text-transparent drop-shadow-sm sm:text-xs sm:tracking-[0.25em]"
+                style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: 'italic' }}
+              >
+                The Fanatic Experience
+              </span>
+              <span className="h-px w-4 shrink-0 bg-gradient-to-l from-transparent to-amber-400/70 sm:w-6" aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-sm sm:px-4">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-jays-red animate-pulse" />
+              <span className="font-display text-[10px] uppercase tracking-[0.1em] text-blue-200 whitespace-nowrap sm:text-xs sm:tracking-[0.2em]">
+                Live Inventory · Rogers Centre
+              </span>
+            </div>
+          </div>
+
+          <h1 className="mb-4 font-display text-4xl font-bold uppercase tracking-wide leading-[1.1] sm:text-6xl">
             {h.heroTitle1}
             <br />
-            <span className="text-jays-red">{h.heroTitle2}</span>
+            <span className="bg-gradient-to-r from-orange-500 via-jays-red to-amber-500 bg-clip-text text-transparent">
+              {h.heroTitle2}
+            </span>
           </h1>
 
-          <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto mb-6 leading-relaxed">
+          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-blue-100 sm:text-lg">
             {h.heroSubtitle}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="mx-auto mb-8 max-w-md">
+            <UpcomingMatchCard />
+          </div>
+
+          <div className="mb-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/shop"
               className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-base px-8 py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
@@ -110,6 +173,28 @@ export default function HomePage() {
               {h.viewMyHolds}
             </Link>
           </div>
+
+          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-3 text-left text-xs text-blue-100/85 sm:grid-cols-3 sm:text-sm">
+            <div className="flex items-center gap-1.5">
+              <span>🏟️</span>
+              <span>12 store locations</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>⏰</span>
+              <span>3-hr express holds</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>💳</span>
+              <span>Free to reserve</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0">
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-[6px] h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent sm:bottom-[10px]" />
+          <svg viewBox="0 0 1440 48" fill="none" className="h-6 w-full sm:h-10">
+            <path d="M0 48L1440 48L1440 0C1200 40 240 40 0 0L0 48Z" fill="white" />
+          </svg>
         </div>
       </section>
 
@@ -176,6 +261,8 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      <FanTestimonials />
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section className="bg-jays-royal text-white px-4 py-12">

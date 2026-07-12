@@ -5,6 +5,8 @@ export const translations = {
     header: {
       shop: 'Shop',
       myHolds: 'My Holds',
+      popularPlayers: 'Popular Players',
+      about: 'About Us',
       staff: 'Staff',
     },
     footer: {
@@ -192,6 +194,8 @@ export const translations = {
     header: {
       shop: 'Boutique',
       myHolds: 'Mes R\u00e9servations',
+      popularPlayers: 'Joueurs populaires',
+      about: 'À propos',
       staff: 'Personnel',
     },
     footer: {
@@ -333,6 +337,8 @@ export const translations = {
       faq5A: 'Non \u2014 chaque article est en un seul exemplaire. Une fois r\u00e9serv\u00e9, il est retir\u00e9 du catalogue disponible jusqu\u2019\u00e0 ce que la r\u00e9servation soit r\u00e9solue.',
       stadiumPolicyTitle: 'Politique de r\u00e9servation au stade',
       stadiumPolicyBody: 'Les r\u00e9servations plac\u00e9es pendant un match au stade sont limit\u00e9es \u00e0 24\u00a0heures maximum. Le moment du ramassage et la priorit\u00e9 en file sont bas\u00e9s sur l\u2019horodatage de votre commande.',
+      testimonialsTitle: 'Ce que disent les fans',
+      testimonialsSubtitle: 'De vrais avis et commentaires de fans des Blue Jays ayant magasiné chez nous.',
     },
   },
 
@@ -340,6 +346,8 @@ export const translations = {
     header: {
       shop: 'Tienda',
       myHolds: 'Mis Reservas',
+      popularPlayers: 'Jugadores populares',
+      about: 'Sobre nosotros',
       staff: 'Personal',
     },
     footer: {
@@ -481,6 +489,8 @@ export const translations = {
       faq5A: 'No \u2014 cada art\u00edculo es de una sola pieza. Una vez reservado, se retira del cat\u00e1logo disponible hasta que la reserva se resuelva.',
       stadiumPolicyTitle: 'Pol\u00edtica de reserva en el estadio',
       stadiumPolicyBody: 'Las reservas realizadas mientras ves un partido en el estadio est\u00e1n limitadas a un m\u00e1ximo de 24\u00a0horas. El tiempo de recogida y la prioridad en la cola se basan en la marca de tiempo de tu pedido.',
+      testimonialsTitle: 'Lo que dicen los fans',
+      testimonialsSubtitle: 'Reseñas y comentarios reales de fanáticos de los Blue Jays que compraron con nosotros.',
     },
   },
 } as const

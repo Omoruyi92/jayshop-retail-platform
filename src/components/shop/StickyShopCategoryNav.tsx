@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
 const CATEGORY_ORDER = [
+  'All',
   'Men',
   'Women',
   'Kids',
@@ -27,7 +28,7 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
   for (const p of products) {
     if (p.category) categories.add(p.category)
   }
-  const availableCategories = CATEGORY_ORDER.filter((cat) => categories.has(cat))
+  const availableCategories = CATEGORY_ORDER.filter((cat) => cat === 'All' || categories.has(cat))
 
   return (
     <div className="sticky top-14 sm:top-[5.5rem] xl:top-14 z-20 bg-jays-ice/95 backdrop-blur border-y border-gray-200/60">
@@ -36,7 +37,7 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
           {availableCategories.map((cat) => (
             <Link
               key={cat}
-              href={`/shop?category=${encodeURIComponent(cat)}`}
+              href={cat === 'All' ? '/shop' : `/shop?category=${encodeURIComponent(cat)}`}
               className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-display font-semibold uppercase tracking-wide transition-all duration-200 ${
                 activeCategory === cat
                   ? 'bg-gradient-to-r from-jays-navy to-jays-royal text-white shadow-md shadow-jays-navy/20'
