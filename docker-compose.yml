@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: jays-shop-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: jays
+      POSTGRES_PASSWORD: jays
+      POSTGRES_DB: jays_shop
+    volumes:
+      - jays_shop_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jays -d jays_shop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  jays_shop_pgdata:

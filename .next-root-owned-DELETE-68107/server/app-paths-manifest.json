@@ -1,0 +1,7 @@
+{
+  "/api/health/route": "app/api/health/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/(public)/page": "app/(public)/page.js",
+  "/(public)/brands/page": "app/(public)/brands/page.js",
+  "/(public)/brands/[slug]/page": "app/(public)/brands/[slug]/page.js"
+}
