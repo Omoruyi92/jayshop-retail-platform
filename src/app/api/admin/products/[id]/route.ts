@@ -6,6 +6,7 @@ import {
   getImageReferences,
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,14 +59,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     // Expected shape: sizeInventories: { size: string; quantity: number }[]
     if (Array.isArray(body.sizeInventories)) {
       const entries = body.sizeInventories as { size: string; quantity: number }[]
+      const locationId = await getMainStoreLocationId()
       await Promise.all(
         entries.map((entry) =>
           prisma.sizeInventory.upsert({
-            where: { productId_size: { productId: params.id, size: entry.size } },
+            where: { productId_size_locationId: { productId: params.id, size: entry.size, locationId } },
             update: { quantity: Number(entry.quantity) },
             create: {
               productId: params.id,
               size: entry.size,
+              locationId,
               quantity: Number(entry.quantity),
             },
           })

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { generateReservationCode } from '@/lib/utils'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export async function createHold(
   productId: string,
@@ -71,8 +72,9 @@ export async function createHold(
           throw Object.assign(new Error('SIZE_NOT_AVAILABLE'), { code: 'SIZE_NOT_AVAILABLE' })
         }
         // Reserve at size level atomically
+        const locationId = await getMainStoreLocationId()
         await tx.sizeInventory.update({
-          where: { productId_size: { productId, size: customerData.size } },
+          where: { productId_size_locationId: { productId, size: customerData.size, locationId } },
           data: { heldQuantity: { increment: qty } },
         })
       }

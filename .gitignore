@@ -11,6 +11,7 @@
 
 # next.js
 /.next/
+/.next-root-owned-DELETE-68107/
 /out/
 
 # production

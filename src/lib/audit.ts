@@ -40,6 +40,14 @@ export type AuditAction =
   | 'promotion.created'
   | 'promotion.updated'
   | 'promotion.archived'
+  | 'feedback.approved'
+  | 'feedback.rejected'
+  | 'review.approved'
+  | 'review.rejected'
+  | 'review.deleted'
+  | 'gallery.created'
+  | 'gallery.updated'
+  | 'gallery.archived'
 
 type AuditInput = {
   tx: Prisma.TransactionClient | PrismaClient

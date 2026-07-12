@@ -70,33 +70,33 @@ export default function HomePage() {
           }}
         />
 
-        <div className="relative max-w-3xl mx-auto px-4 py-20 text-center">
+        <div className="relative max-w-3xl mx-auto px-4 py-10 sm:py-14 text-center">
           {/* Brand icon */}
-          <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex items-center justify-center gap-3 mb-4">
             <Image
               src="/brand/logo.png"
               alt="Blue Jays logo"
               width={128}
               height={128}
-              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-contain"
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-full object-contain"
               priority
             />
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl font-bold uppercase tracking-wide leading-tight mb-5">
+          <h1 className="font-display text-3xl sm:text-5xl font-bold uppercase tracking-wide leading-tight mb-3">
             {h.heroTitle1}
             <br />
             <span className="text-jays-red">{h.heroTitle2}</span>
           </h1>
 
-          <p className="text-blue-100 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto mb-6 leading-relaxed">
             {h.heroSubtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/shop"
-              className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-lg px-10 py-4 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
+              className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-base px-8 py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
             >
               {h.browseShop}
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +105,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/my-holds"
-              className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-base px-8 py-4 rounded-xl hover:border-white hover:bg-white/10 transition-all"
+              className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-sm px-6 py-3 rounded-xl hover:border-white hover:bg-white/10 transition-all"
             >
               {h.viewMyHolds}
             </Link>
@@ -114,11 +114,11 @@ export default function HomePage() {
       </section>
 
       {/* ── How It Works ─────────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-4 py-14">
+      <section className="max-w-4xl mx-auto px-4 py-10">
         <h2 className="font-display text-2xl font-bold uppercase text-jays-navy text-center mb-2">
           {h.howItWorksTitle}
         </h2>
-        <p className="text-jays-steel text-center text-sm mb-10">
+        <p className="text-jays-steel text-center text-sm mb-6">
           {h.howItWorksSubtitle}
         </p>
 
@@ -155,7 +155,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="text-center mt-10">
+        <div className="text-center mt-6">
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 border-2 border-jays-navy text-jays-navy font-display font-semibold uppercase tracking-wide px-7 py-3 rounded-xl hover:bg-jays-navy hover:text-white transition-colors"

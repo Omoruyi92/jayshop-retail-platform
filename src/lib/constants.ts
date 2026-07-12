@@ -1,5 +1,9 @@
 export const MAIN_CATEGORIES = ['men', 'women', 'kids', 'accessories'] as const
 
+export function brandToSlug(name: string): string {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
+
 export const SUBS_BY_CAT: Record<string, string[]> = {
   men:         ['jerseys', 'fleece', 't-shirts', 'hats', 'accessories'],
   women:       ['jerseys', 'fleece', 't-shirts', 'hats', 'accessories'],

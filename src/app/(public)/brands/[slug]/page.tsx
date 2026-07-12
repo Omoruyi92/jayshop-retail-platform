@@ -88,9 +88,7 @@ export default async function BrandPage({
               <ProductCard
                 key={product.id}
                 product={product}
-                isSoldOut={availability.status === 'out-of-stock'}
-                status={availability.status}
-                displayText={availability.displayText}
+                remaining={availability.availableBalance}
               />
             ))}
           </div>

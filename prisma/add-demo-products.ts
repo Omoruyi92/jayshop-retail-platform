@@ -179,6 +179,8 @@ const PRODUCTS = [
 ]
 
 async function main() {
+  const tenant = await prisma.tenant.findFirst({ where: { isDefault: true } }) ?? await prisma.tenant.findFirstOrThrow()
+  const location = await prisma.storeLocation.findFirst({ where: { isMainStore: true } }) ?? await prisma.storeLocation.findFirstOrThrow()
   let added = 0
   for (const p of PRODUCTS) {
     const { sizesData, ...productData } = p
@@ -187,10 +189,10 @@ async function main() {
       console.log(`Already exists: ${productData.name}`)
       continue
     }
-    const product = await prisma.product.create({ data: productData })
+    const product = await prisma.product.create({ data: { ...productData, tenantId: tenant.id } })
     for (const { size, qty } of sizesData) {
       await prisma.sizeInventory.create({
-        data: { productId: product.id, size, quantity: qty, heldQuantity: 0, pickedQuantity: 0 },
+        data: { productId: product.id, size, locationId: location.id, quantity: qty, heldQuantity: 0, pickedQuantity: 0 },
       })
     }
     console.log(`Created: ${product.name}`)

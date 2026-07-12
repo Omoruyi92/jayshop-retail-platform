@@ -4,7 +4,6 @@ import { formatCAD } from '@/lib/utils'
 import StatusChip from '@/components/ui/StatusChip'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import type { Product } from '@prisma/client'
 import { saveShopState } from '@/lib/shop/shopState'
 
 interface CurrentFilters {
@@ -14,6 +13,16 @@ interface CurrentFilters {
   search: string
 }
 
+type ProductCardProduct = {
+  name: string
+  slug: string
+  imageUrl: string
+  status: string
+  isLicensed: boolean
+  isChampion: boolean
+  priceCents: number
+}
+
 export default function ProductCard({
   product,
   remaining,
@@ -21,7 +30,7 @@ export default function ProductCard({
   allSizesOos,
   currentFilters,
 }: {
-  product: Product
+  product: ProductCardProduct
   remaining: number
   hasSizes?: boolean
   allSizesOos?: boolean

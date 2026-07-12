@@ -3,7 +3,27 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-async function seedAdmin() {
+async function getOrCreateDefaultTenant() {
+  const existing = await prisma.tenant.findFirst({ where: { isDefault: true } })
+  if (existing) return existing
+  const first = await prisma.tenant.findFirst()
+  if (first) return first
+  return prisma.tenant.create({
+    data: { name: "Jay's Shop", slug: 'jays-shop', isDefault: true },
+  })
+}
+
+async function getOrCreateMainLocation(tenantId: string) {
+  const existing = await prisma.storeLocation.findFirst({ where: { isMainStore: true } })
+  if (existing) return existing
+  const first = await prisma.storeLocation.findFirst()
+  if (first) return first
+  return prisma.storeLocation.create({
+    data: { tenantId, code: 'MAIN', name: 'Main Store', isMainStore: true },
+  })
+}
+
+async function seedAdmin(tenantId: string) {
   const existing = await prisma.admin.findUnique({ where: { email: 'admin@jays.shop' } })
   if (existing) {
     console.log('Admin already exists, skipping.')
@@ -16,6 +36,7 @@ async function seedAdmin() {
       email: 'admin@jays.shop',
       passwordHash,
       role: 'OWNER',
+      tenantId,
     },
   })
   console.log('Admin created: admin@jays.shop')
@@ -225,7 +246,7 @@ const SIZE_QTY_MAP: Record<string, number> = {
   '7 3/4': 2,
 }
 
-async function seedDemoProducts() {
+async function seedDemoProducts(tenantId: string, locationId: string) {
   const count = await prisma.product.count()
   if (count > 0) {
     console.log(`Products already exist (${count} found), skipping product seeding.`)
@@ -233,7 +254,7 @@ async function seedDemoProducts() {
   }
 
   for (const p of DEMO_PRODUCTS) {
-    const product = await prisma.product.create({ data: p })
+    const product = await prisma.product.create({ data: { ...p, tenantId } })
 
     // Seed SizeInventory rows for products with sizes
     if (p.sizes) {
@@ -244,6 +265,7 @@ async function seedDemoProducts() {
           data: {
             productId: product.id,
             size,
+            locationId,
             quantity: qty,
             heldQuantity: 0,
             pickedQuantity: 0,
@@ -260,8 +282,11 @@ async function seedDemoProducts() {
 async function main() {
   console.log('Seeding Jays Shop...')
 
-  await seedAdmin()
-  await seedDemoProducts()
+  const tenant = await getOrCreateDefaultTenant()
+  const location = await getOrCreateMainLocation(tenant.id)
+
+  await seedAdmin(tenant.id)
+  await seedDemoProducts(tenant.id, location.id)
 
   console.log('\nSeed complete!')
   console.log('---------------------------------')

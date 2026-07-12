@@ -4,6 +4,8 @@ import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireAdminSession } from '@/lib/auth'
+import { getDefaultTenantId } from '@/lib/tenant'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,9 +85,13 @@ export async function POST(req: Request) {
       .map((s) => s.trim())
       .filter(Boolean)
 
+    const tenantId = await getDefaultTenantId()
+    const locationId = await getMainStoreLocationId()
+
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
+          tenantId,
           name,
           slug,
           description: description ?? null,
@@ -108,6 +114,7 @@ export async function POST(req: Request) {
           data: sizeList.map((size) => ({
             productId: created.id,
             size,
+            locationId,
             quantity: sizeQuantitiesMap?.[size] ?? defaultQty,
           })),
         })

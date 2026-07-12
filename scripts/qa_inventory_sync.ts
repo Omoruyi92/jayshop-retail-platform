@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { resolveHold } from "@/lib/holds/resolveHold"
 import { createHold } from "@/lib/holds/createHold"
+import { getMainStoreLocationId } from "@/lib/store-locations"
 
 async function main() {
     const results: Record<string, any> = {}
+    const locationId = await getMainStoreLocationId()
     
     // Use Women's Quarter-Zip Fleece (has SizeInventory rows)
     const product = await prisma.product.findFirst({
@@ -32,7 +34,7 @@ async function main() {
     
     // Verify size L held incremented
     const sizeLAfterCreate = await prisma.sizeInventory.findUnique({
-        where: { productId_size: { productId: product.id, size: 'L' } }
+        where: { productId_size_locationId: { productId: product.id, size: 'L', locationId } }
     })
     results.sizeL_after_create = { held: sizeLAfterCreate?.heldQuantity }
     
@@ -41,7 +43,7 @@ async function main() {
     
     // Verify size L restored
     const sizeLAfterRelease = await prisma.sizeInventory.findUnique({
-        where: { productId_size: { productId: product.id, size: 'L' } }
+        where: { productId_size_locationId: { productId: product.id, size: 'L', locationId } }
     })
     const prodAfterRelease = await prisma.product.findUnique({ where: { id: product.id } })
     

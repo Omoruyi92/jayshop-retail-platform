@@ -22,9 +22,9 @@ export function DialogHeader({ children }: { children: React.ReactNode }) {
   return <div className="mb-5 flex items-start justify-between gap-4">{children}</div>
 }
 
-export function DialogTitle({ children }: { children: React.ReactNode }) {
+export function DialogTitle({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <RadixDialog.Title className="font-display text-base font-bold uppercase text-jays-navy">
+    <RadixDialog.Title className={`font-display text-base font-bold uppercase text-jays-navy ${className}`}>
       {children}
     </RadixDialog.Title>
   )

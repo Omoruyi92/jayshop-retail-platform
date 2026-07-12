@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { generateReservationCode } from '@/lib/utils'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export type FinalStatus = 'PICKED_UP' | 'RELEASED' | 'EXPIRED'
 
@@ -99,14 +100,15 @@ export async function resolveHold(
 
     // Size-level inventory counters — only when a size is tracked
     if (hold.size) {
+      const locationId = await getMainStoreLocationId()
       const sizeRow = await tx.sizeInventory.findUnique({
-        where: { productId_size: { productId: hold.productId, size: hold.size } },
+        where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
       })
       if (sizeRow !== null) {
         if (effectiveStatus === 'PICKED_UP') {
           if (isPartial) {
             await tx.sizeInventory.update({
-              where: { productId_size: { productId: hold.productId, size: hold.size } },
+              where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
               data: {
                 heldQuantity: { decrement: resolvedFulfilledQty },
                 pickedQuantity: { increment: resolvedFulfilledQty },
@@ -114,7 +116,7 @@ export async function resolveHold(
             })
           } else {
             await tx.sizeInventory.update({
-              where: { productId_size: { productId: hold.productId, size: hold.size } },
+              where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
               data: {
                 heldQuantity: { decrement: holdQty },
                 pickedQuantity: { increment: holdQty },
@@ -124,7 +126,7 @@ export async function resolveHold(
         } else {
           // RELEASED or EXPIRED
           await tx.sizeInventory.update({
-            where: { productId_size: { productId: hold.productId, size: hold.size } },
+            where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
             data: { heldQuantity: { decrement: holdQty } },
           })
         }

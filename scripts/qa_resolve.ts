@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { resolveHold } from "@/lib/holds/resolveHold"
+import { getMainStoreLocationId } from "@/lib/store-locations"
 
 async function main() {
+    const locationId = await getMainStoreLocationId()
     // Find the size-M fleece hold (JS-AXVH4) for testing
     const holdM = await prisma.hold.findFirst({
         where: { reservationCode: 'JS-AXVH4', status: 'ACTIVE' },
@@ -15,7 +17,7 @@ async function main() {
     
     // Capture state BEFORE resolve
     const sizeBefore = await prisma.sizeInventory.findUnique({
-        where: { productId_size: { productId: holdM.productId, size: 'M' } }
+        where: { productId_size_locationId: { productId: holdM.productId, size: 'M', locationId } }
     })
     const prodBefore = await prisma.product.findUnique({ where: { id: holdM.productId } })
     
@@ -31,7 +33,7 @@ async function main() {
     
     // Capture state AFTER resolve
     const sizeAfter = await prisma.sizeInventory.findUnique({
-        where: { productId_size: { productId: holdM.productId, size: 'M' } }
+        where: { productId_size_locationId: { productId: holdM.productId, size: 'M', locationId } }
     })
     const prodAfter = await prisma.product.findUnique({ where: { id: holdM.productId } })
     const holdAfter = await prisma.hold.findUnique({ where: { id: holdM.id } })

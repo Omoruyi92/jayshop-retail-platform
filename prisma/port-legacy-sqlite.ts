@@ -52,6 +52,8 @@ interface LegacySizeInventory {
 
 async function main() {
   const sqlite = new Database(sqliteDbPath, { readonly: true, fileMustExist: true })
+  const tenant = await prisma.tenant.findFirst({ where: { isDefault: true } }) ?? await prisma.tenant.findFirstOrThrow()
+  const location = await prisma.storeLocation.findFirst({ where: { isMainStore: true } }) ?? await prisma.storeLocation.findFirstOrThrow()
 
   // --- Category table (port only if it exists and has rows) ---
   const categoryTableExists = sqlite
@@ -76,6 +78,7 @@ async function main() {
     await prisma.product.create({
       data: {
         id: p.id,
+        tenantId: tenant.id,
         name: p.name,
         slug: p.slug,
         description: p.description,
@@ -112,6 +115,7 @@ async function main() {
         id: si.id,
         productId: si.productId,
         size: si.size,
+        locationId: location.id,
         quantity: si.quantity,
         heldQuantity: si.heldQuantity,
         pickedQuantity: si.pickedQuantity,
