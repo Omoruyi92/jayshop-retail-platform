@@ -36,6 +36,13 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
 
+  const colorOptions: { name: string; hex: string }[] = Array.isArray(product.colors)
+    ? (product.colors as any[]).map((c) =>
+        typeof c === 'string' ? { name: c, hex: c } : { name: c.name || c.hex || '', hex: c.hex || c.name || '' }
+      ).filter((c) => c.hex)
+    : []
+  const [selectedColor, setSelectedColor] = useState(colorOptions[0]?.name || '')
+
   function isSizeOos(size: string): boolean {
     if (!sizeAvailability) return false
     const stock = sizeAvailability.find((s) => s.size === size)
@@ -102,6 +109,31 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
 
       {product.description && (
         <p className="text-jays-steel text-sm mb-6">{product.description}</p>
+      )}
+
+      {colorOptions.length > 0 && (
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Color{selectedColor ? <span className="text-jays-steel font-normal ml-1">— {selectedColor}</span> : null}
+          </label>
+          <div className="flex flex-wrap gap-2.5">
+            {colorOptions.map((c) => (
+              <button
+                key={c.name}
+                type="button"
+                onClick={() => setSelectedColor(c.name)}
+                title={c.name}
+                aria-label={c.name}
+                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  selectedColor === c.name
+                    ? 'border-jays-navy ring-2 ring-jays-navy/30 scale-110'
+                    : 'border-black/10 hover:border-jays-navy/40'
+                }`}
+                style={{ backgroundColor: c.hex }}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {hasSizes && !isSoldOut && (

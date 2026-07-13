@@ -47,7 +47,10 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
   ]
 
   return (
-    <div className="sticky top-14 sm:top-[5.5rem] xl:top-14 z-20">
+    <div
+      className="sticky z-20"
+      style={{ top: 'calc(var(--header-height, 3.5rem) + var(--subnav-height, 2.75rem))' }}
+    >
       <div className="relative overflow-hidden border-y border-jays-navy/10 bg-gradient-to-b from-white via-white to-jays-ice/70 shadow-[0_1px_0_rgba(19,74,142,0.06)] backdrop-blur-md">
         {/* subtle dotted pattern */}
         <div
@@ -70,6 +73,7 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
                 <Link
                   key={value}
                   href={value === 'All' ? '/shop' : `/shop?category=${encodeURIComponent(value)}`}
+                  scroll={false}
                   className={`shrink-0 snap-start whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-display font-semibold uppercase tracking-wide transition-all duration-300 ease-out sm:px-5 sm:text-xs ${
                     isActive
                       ? 'scale-[1.04] bg-gradient-to-r from-jays-navy to-jays-royal text-white shadow-lg shadow-jays-navy/25'

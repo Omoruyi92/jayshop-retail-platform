@@ -47,7 +47,7 @@ export default function LetsGoJaysWatermark({ className, color = 'white', densit
               top: `${topPct}%`,
               left: offsetX,
               opacity: color === 'navy' ? 0.018 : 0.022,
-              transform: 'rotate(-12deg)',
+              rotate: '-12deg',
               width: '200%',
               animationDuration: `${55 + (i % 4) * 8}s`,
               animationDirection: i % 2 === 0 ? 'normal' : 'reverse',

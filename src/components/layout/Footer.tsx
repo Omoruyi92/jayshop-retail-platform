@@ -84,6 +84,7 @@ export default function Footer() {
     { href: '/players', label: t.footer.popularPlayers, icon: PlayersIcon },
     { href: '/size-chart', label: 'Size Chart', icon: SizeChartIcon },
     { href: '/discounts', label: 'Discounts', icon: DiscountsIcon },
+    { href: '/product-concerns', label: 'Product Concerns', icon: ConcernsIcon },
   ]
 
   return (

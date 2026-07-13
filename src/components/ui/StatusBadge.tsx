@@ -14,6 +14,10 @@ const BADGE_STYLES: Record<string, string> = {
   ARCHIVED:             'bg-gray-100 text-gray-400',
 }
 
+const BADGE_LABELS: Record<string, string> = {
+  AVAILABLE: 'In Stock',
+}
+
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   return (
     <span
@@ -23,7 +27,7 @@ export function StatusBadge({ status, className }: { status: string; className?:
         className
       )}
     >
-      {status.replace(/_/g, ' ')}
+      {BADGE_LABELS[status] ?? status.replace(/_/g, ' ')}
     </span>
   )
 }

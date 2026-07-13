@@ -82,6 +82,18 @@ const config: Config = {
           '0%':   { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        'float': {
+          '0%, 100%': { translate: '0 0' },
+          '50%':      { translate: '0 -15px' },
+        },
+        'drift': {
+          '0%, 100%': { translate: '0 0' },
+          '50%':      { translate: '15px 0' },
+        },
+        'scroll-left': {
+          '0%':   { translate: '0 0' },
+          '100%': { translate: '-50% 0' },
+        },
       },
       animation: {
         'fade-in-up':     'fade-in-up 0.2s ease-out',
@@ -89,6 +101,9 @@ const config: Config = {
         'slide-in-right': 'slide-in-right 0.3s ease-out',
         'slide-in-up':    'slide-in-up 0.25s ease-out',
         'marquee':        'marquee 28s linear infinite',
+        'float':          'float 8s ease-in-out infinite',
+        'drift':          'drift 12s ease-in-out infinite',
+        'scroll-left':    'scroll-left 60s linear infinite',
       },
       transitionDuration: {
         '150': '150ms',

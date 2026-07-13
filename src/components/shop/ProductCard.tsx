@@ -59,7 +59,7 @@ export default function ProductCard({
       onClick={handleClick}
       className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 rounded-2xl ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
     >
-      <div className="bg-white rounded-2xl overflow-hidden border border-border shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:border-jays-navy/30">
+      <div className="bg-white rounded-2xl overflow-hidden border border-border shadow-sm transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-jays-navy/10 group-hover:border-jays-navy/25">
         <div className="relative aspect-[3/4] bg-jays-ice overflow-hidden">
           <Image
             src={product.imageUrl}
@@ -78,22 +78,13 @@ export default function ProductCard({
             </div>
           )}
         </div>
-        <div className="p-3">
-          <p className="font-display font-semibold text-jays-navy uppercase text-sm leading-tight line-clamp-2" title={product.name}>
+        <div className="p-4">
+          <p className="font-display font-semibold text-jays-navy uppercase text-sm leading-tight line-clamp-2 tracking-wide" title={product.name}>
             {product.name}
           </p>
-          <p className="font-bold text-jays-red mt-1 text-base">{formatCAD(product.priceCents)}</p>
+          <p className="font-bold text-jays-red mt-1.5 text-base">{formatCAD(product.priceCents)}</p>
           {!isSoldOut && (
-            <p className="text-xs text-jays-steel mt-0.5">{remaining} left</p>
-          )}
-          {product.colors && Array.isArray(product.colors) && product.colors.length > 0 && (
-            <div className="flex gap-1 mt-2">
-              {product.colors.slice(0, 3).map((c: any) => {
-                const hex = typeof c === 'string' ? c : c.hex || c.name;
-                return <div key={hex} className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: hex }} title={typeof c === 'string' ? c : c.name} />
-              })}
-              {product.colors.length > 3 && <span className="text-[10px] text-gray-500 ml-1">+{product.colors.length - 3}</span>}
-            </div>
+            <p className="text-xs text-jays-steel mt-1">{remaining} left</p>
           )}
         </div>
       </div>

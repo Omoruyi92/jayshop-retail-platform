@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLayoutEffect, useRef } from 'react'
 import {
   Home,
   Info,
@@ -8,10 +9,14 @@ import {
   Ruler,
   Package,
   Users,
+  ShoppingBag,
+  Globe,
 } from 'lucide-react'
 
 const links = [
   { href: '/',            label: 'Home',           icon: Home },
+  { href: '/shop',        label: 'Shop',           icon: ShoppingBag },
+  { href: '/brands',      label: 'Brands',         icon: Globe },
   { href: '/about-us',    label: 'About Us',       icon: Info },
   { href: '/about',       label: 'Our Heritage',   icon: Landmark },
   { href: '/size-chart',  label: 'Size Chart',     icon: Ruler },
@@ -21,9 +26,29 @@ const links = [
 
 export default function SubNavBar() {
   const pathname = usePathname()
+  const navRef = useRef<HTMLElement>(null)
+
+  // Publish this bar's real rendered height so downstream sticky bars
+  // (e.g. StickyShopCategoryNav on the Shop page) can stack directly
+  // beneath it without being hidden behind it.
+  useLayoutEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const setVar = () => {
+      document.documentElement.style.setProperty('--subnav-height', `${el.offsetHeight}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   return (
-    <nav className="sticky top-14 z-30 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
+    <nav
+      ref={navRef}
+      style={{ top: 'var(--header-height, 3.5rem)' }}
+      className="sticky z-30 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm"
+    >
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-start gap-1 sm:gap-2 h-11 overflow-x-auto no-scrollbar">
           {links.map(({ href, label, icon: Icon }) => {

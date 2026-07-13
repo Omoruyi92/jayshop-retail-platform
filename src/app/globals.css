@@ -25,9 +25,25 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 213 74% 31%;
   --radius: 0.5rem;
+
+  /* Sticky-nav stacking heights, kept in sync at runtime by Header.tsx and
+     SubNavBar.tsx (ResizeObserver). Fallbacks below match the xl-breakpoint
+     header (no partner-marquee strip) so the very first paint stays close. */
+  --header-height: 3.5rem;
+  --subnav-height: 2.75rem;
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

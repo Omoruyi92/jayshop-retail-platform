@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/shop/ProductCard'
-import SearchBar from '@/components/shop/SearchBar'
+import ShopHero from '@/components/shop/ShopHero'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SUBS_BY_CAT, BRANDS_BY_CAT } from '@/lib/constants'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -84,7 +84,7 @@ function PillRow({
   )
 }
 
-export default function ShopPageClient() {
+export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const { t } = useLanguage()
   const s = t.shop
   const searchParams = useSearchParams()
@@ -232,91 +232,82 @@ export default function ShopPageClient() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <div className="mb-2 flex items-center gap-3">
-          <h1 className="font-display text-3xl font-bold uppercase text-jays-navy sm:text-4xl">
-            {s.title}
-          </h1>
-          <span className={`inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700 transition-opacity duration-500 ${livePulse ? 'opacity-100' : 'opacity-0'}`}>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-            </span>
-            {s.live}
-          </span>
+    <>
+      <ShopHero
+        searchValue={searchInput}
+        onSearchChange={handleSearchChange}
+        liveLabel={s.live}
+        livePulse={livePulse}
+      />
+
+      {children}
+
+      <div className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+          <PillRow
+            label="Subcategory"
+            options={availableSubs}
+            active={activeSub}
+            onSelect={(value) => {
+              setActiveSub(value)
+              setActiveBrand('All')
+            }}
+            formatLabel={(sub) =>
+              sub === 'All'
+                ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
+                : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')
+            }
+          />
+
+          <PillRow
+            label="Brand"
+            options={availableBrands}
+            active={activeBrand}
+            onSelect={setActiveBrand}
+            formatLabel={(brand) => (brand === 'All' ? 'All Brands' : brand)}
+          />
         </div>
-        <p className="text-jays-steel">{s.subtitle}</p>
-      </div>
 
-      <div className="-mx-4 mb-4 sticky top-0 z-10 bg-jays-ice/80 px-4 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
-        <SearchBar value={searchInput} onChange={handleSearchChange} />
-      </div>
+        {!loading && (
+          <p className="mb-4 text-sm text-jays-steel">
+            {isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeBrand !== 'All'
+              ? `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'} found`
+              : `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`}
+          </p>
+        )}
 
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
-        <PillRow
-          label="Subcategory"
-          options={availableSubs}
-          active={activeSub}
-          onSelect={(value) => {
-            setActiveSub(value)
-            setActiveBrand('All')
-          }}
-          formatLabel={(sub) =>
-            sub === 'All'
-              ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
-              : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')
-          }
-        />
-
-        <PillRow
-          label="Brand"
-          options={availableBrands}
-          active={activeBrand}
-          onSelect={setActiveBrand}
-          formatLabel={(brand) => (brand === 'All' ? 'All Brands' : brand)}
-        />
-      </div>
-
-      {!loading && (
-        <p className="mb-4 text-sm text-jays-steel">
-          {isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeBrand !== 'All'
-            ? `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'} found`
-            : `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`}
-        </p>
-      )}
-
-      {loading ? (
-        <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div key={index} className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm animate-pulse">
-              <div className="aspect-[3/4] bg-jays-ice" />
-              <div className="space-y-2 p-3">
-                <div className="h-3 w-3/4 rounded bg-gray-200" />
-                <div className="h-3 w-1/2 rounded bg-gray-100" />
+        {loading ? (
+          <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm animate-pulse">
+                <div className="aspect-[3/4] bg-jays-ice" />
+                <div className="space-y-2 p-3">
+                  <div className="h-3 w-3/4 rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 rounded bg-gray-100" />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title={isSearching ? 'No results found' : s.noProducts}
-          body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
-        />
-      ) : (
-        <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              remaining={product.remaining}
-              hasSizes={product.hasSizes}
-              allSizesOos={product.allSizesOos}
-              currentFilters={currentFilters}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={isSearching ? 'No results found' : s.noProducts}
+            body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
+          />
+        ) : (
+          <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+            {filtered.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                remaining={product.remaining}
+                hasSizes={product.hasSizes}
+                allSizesOos={product.allSizesOos}
+                currentFilters={currentFilters}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
@@ -44,17 +44,26 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const weCareRef = useRef<HTMLDivElement>(null)
 
-  const [shopDropOpen, setShopDropOpen] = useState(false)
-  const shopDropRef = useRef<HTMLDivElement>(null)
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileWeCareOpen, setMobileWeCareOpen] = useState(false)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
 
-  const navLinks = [
-    { href: '/players',   label: t.header.popularPlayers },
-    { href: '/about-us',  label: t.header.about },
-  ]
+  // Publish the header's real rendered height as a CSS var so downstream
+  // sticky bars (SubNavBar, StickyShopCategoryNav) can stack under it without
+  // overlap, regardless of breakpoint (the header grows taller below xl due
+  // to the secondary partner-logo strip).
+  useLayoutEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const setVar = () => {
+      document.documentElement.style.setProperty('--header-height', `${el.offsetHeight}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -65,21 +74,18 @@ export default function Header() {
       if (weCareRef.current && !weCareRef.current.contains(e.target as Node)) {
         setWeCareOpen(false)
       }
-      if (shopDropRef.current && !shopDropRef.current.contains(e.target as Node)) {
-        setShopDropOpen(false)
-      }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
         setMobileMenuOpen(false)
       }
     }
-    if (open || weCareOpen || shopDropOpen || mobileMenuOpen) {
+    if (open || weCareOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open, weCareOpen, shopDropOpen, mobileMenuOpen])
+  }, [open, weCareOpen, mobileMenuOpen])
 
   return (
-    <header className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
+    <header ref={headerRef} className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
       {/* Main nav row */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 h-14 flex items-center gap-2">
         {/* Left: Logo + MLB */}
@@ -208,53 +214,6 @@ export default function Header() {
 
           {/* Nav links */}
           <nav className="hidden sm:flex items-center gap-4 text-sm font-medium whitespace-nowrap">
-            {/* Shop & Holds dropdown */}
-            <div className="relative" ref={shopDropRef}>
-              <button
-                onClick={() => setShopDropOpen((prev) => !prev)}
-                className="relative pb-0.5 flex items-center gap-1 hover:text-blue-200 transition-colors duration-150"
-              >
-                {t.header.shop}
-                <svg className={`w-3 h-3 transition-transform duration-150 ${shopDropOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {shopDropOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-xl border border-gray-100 py-1 z-50">
-                  <Link href="/shop" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
-                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                    Browse Shop
-                  </Link>
-                  <Link href="/brands" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
-                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                    Brands
-                  </Link>
-                  <Link href="/my-holds" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
-                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    {t.header.myHolds}
-                  </Link>
-                </div>
-              )}
-            </div>
-            <Link
-              href="/players"
-              title={t.header.popularPlayers}
-              aria-label={t.header.popularPlayers}
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/10 hover:text-blue-200 transition-colors duration-150"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-4.13a4 4 0 10-4-4 4 4 0 004 4zm0 0a4 4 0 014 4v1H8v-1a4 4 0 014-4z" />
-              </svg>
-            </Link>
-            {navLinks.filter(({ href }) => href !== '/players').map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="relative pb-0.5 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-blue-200 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 hover:text-blue-200 transition-colors duration-150"
-              >
-                {label}
-              </Link>
-            ))}
             <Image
               src="/brand/canada-flag.png"
               alt="Canada"
@@ -279,18 +238,6 @@ export default function Header() {
 
             {mobileMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                {navLinks.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {label}
-                  </Link>
-                ))}
-
                 {/* We Care — expandable */}
                 <button
                   onClick={() => setMobileWeCareOpen((prev) => !prev)}
