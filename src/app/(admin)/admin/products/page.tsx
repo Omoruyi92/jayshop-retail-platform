@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
@@ -26,6 +26,7 @@ interface Product {
   imageUrl3: string
   category: string
   subcategory: string
+  hatStyle: string
   quantity: number
   heldQuantity: number
   remaining: number
@@ -53,7 +54,7 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
-    isFeatured: false, isSport: false, colors: [] as string[]
+    isFeatured: false, isSport: false, colors: [] as string[], hatStyle: ''
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [images, setImages] = useState<{url: string; file: File | null}[]>([])
@@ -151,6 +152,7 @@ export default function AdminProductsPage() {
     body.append('sizes',       needsSizes ? form.sizes : '')
     body.append('category',    form.category)
     body.append('subcategory', form.subcategory)
+    body.append('hatStyle',    form.subcategory === 'hats' ? form.hatStyle : '')
     body.append('brand',       form.brand)
     body.append('imageUrl',    form.imageUrl)
     body.append('isLicensed',  String(form.isLicensed))
@@ -172,7 +174,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [] })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [], hatStyle: '' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -248,6 +250,15 @@ export default function AdminProductsPage() {
                 {(subsByCat[form.category] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
+            {form.subcategory === 'hats' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Hat Style</label>
+                <select value={form.hatStyle} onChange={(e) => setForm(f => ({ ...f, hatStyle: e.target.value }))} className={INPUT_CLS}>
+                  <option value="">Select style…</option>
+                  {HAT_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Brand / Designer</label>
               <input
@@ -477,7 +488,7 @@ export default function AdminProductsPage() {
                   <td className="px-3 py-2 text-jays-steel text-xs hidden md:table-cell">{p.brand || '—'}</td>
                   {/* Category › Subcategory */}
                   <td className="px-3 py-2 text-jays-steel text-xs capitalize whitespace-nowrap">
-                    {p.category}{p.subcategory ? <> › {p.subcategory}</> : null}
+                    {p.category}{p.subcategory ? <> › {p.subcategory}</> : null}{p.hatStyle ? <> › {p.hatStyle}</> : null}
                   </td>
                   {/* Price */}
                   <td className="px-3 py-2 whitespace-nowrap">

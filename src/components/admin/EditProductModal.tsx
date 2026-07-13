@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 
 interface Product {
@@ -19,6 +19,7 @@ interface Product {
   imageUrl3: string
   category: string
   subcategory: string
+  hatStyle: string
   quantity: number
   heldQuantity: number
   remaining: number
@@ -53,6 +54,7 @@ function buildInitialForm(product: Product) {
     sizes:       product.sizes,
     category:    product.category,
     subcategory: product.subcategory,
+    hatStyle:    product.hatStyle || '',
     brand:       product.brand,
     status:      product.status,
     isLicensed:  product.isLicensed,
@@ -99,7 +101,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
   }
 
   function handleSubcategoryChange(sub: string) {
-    setForm((f) => f ? ({ ...f, subcategory: sub, sizes: getDefaultSizes(sub) }) : f)
+    setForm((f) => f ? ({ ...f, subcategory: sub, sizes: getDefaultSizes(sub), hatStyle: sub === 'hats' ? f.hatStyle : '' }) : f)
   }
 
   function handleSizesChange(val: string) {
@@ -172,6 +174,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('salePriceCents', salePriceCents.toString())
     formData.append('category', form.category)
     formData.append('subcategory', form.subcategory)
+    formData.append('hatStyle', form.subcategory === 'hats' ? form.hatStyle : '')
     formData.append('brand', form.brand)
     formData.append('status', form.status)
     formData.append('isLicensed', String(form.isLicensed))
@@ -276,6 +279,16 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
               {(subsByCat[form.category] ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+
+          {form.subcategory === 'hats' && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Hat Style</label>
+              <select value={form.hatStyle} onChange={(e) => setForm((f) => f ? ({ ...f, hatStyle: e.target.value }) : f)} className={INPUT_CLS}>
+                <option value="">Select style…</option>
+                {HAT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Brand / Designer</label>

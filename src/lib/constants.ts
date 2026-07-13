@@ -37,6 +37,22 @@ export const BRANDS_BY_CAT: Record<string, string[]> = {
 
 export const SIZELESS_SUBS = new Set(['accessories', 'mugs', 'bobbleheads'])
 
+// Hat styles are a further attribute of the "hats" subcategory (men/women/sport),
+// similar in spirit to how subcategories drill down from main categories.
+export const HAT_STYLES = [
+  '59Fifty',
+  '39Thirty',
+  '9Fifty',
+  '9Forty',
+  'Snapback',
+  'Trucker',
+  'Fitted',
+  'Adjustable',
+  'Dad Hat',
+  'Bucket',
+  'Beanie',
+] as const
+
 export const KIDS_SUBCATEGORIES = ['infant', 'toddler', 'child', 'child-youth', 'youth'] as const
 
 export const KIDS_SIZE_MAP: Record<string, string> = {

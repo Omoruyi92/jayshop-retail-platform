@@ -62,6 +62,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('salePriceCents')) body.salePriceCents = Number(formData.get('salePriceCents'))
       if (formData.has('status')) body.status = formData.get('status')
       if (formData.has('category')) body.category = formData.get('category')
+      if (formData.has('subcategory')) body.subcategory = formData.get('subcategory')
+      if (formData.has('hatStyle')) body.hatStyle = formData.get('hatStyle')
       if (formData.has('quantity')) body.quantity = Number(formData.get('quantity'))
       if (formData.has('brand')) body.brand = formData.get('brand')
       if (formData.has('sizes')) body.sizes = formData.get('sizes')
@@ -98,6 +100,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.imageUrl3    !== undefined && { imageUrl3: body.imageUrl3 }),
         ...(body.status       !== undefined && { status: body.status }),
         ...(body.category     !== undefined && { category: body.category }),
+        ...(body.subcategory  !== undefined && { subcategory: body.subcategory }),
+        ...(body.hatStyle     !== undefined && { hatStyle: body.hatStyle }),
         ...(body.quantity     !== undefined && { quantity: Number(body.quantity) }),
         ...(body.brand        !== undefined && { brand: body.brand }),
         ...(body.sizes        !== undefined && { sizes: body.sizes }),

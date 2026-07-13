@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     const sizes = (formData.get('sizes') as string) ?? ''
     const category = (formData.get('category') as string) ?? 'general'
     const subcategory = (formData.get('subcategory') as string) ?? ''
+    const hatStyle = (formData.get('hatStyle') as string) ?? ''
     const brand = (formData.get('brand') as string) ?? ''
     
     const imageUrl = formData.get('imageUrl') as string | null
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
           sizes,
           category: category ?? 'general',
           subcategory: subcategory ?? '',
+          hatStyle: hatStyle ?? '',
           brand: brand ?? '',
           imageUrl: finalImageUrl,
           imageUrl2: finalImageUrl2,

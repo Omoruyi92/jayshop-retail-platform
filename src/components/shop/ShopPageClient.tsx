@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/shop/ProductCard'
 import ShopHero from '@/components/shop/ShopHero'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { BRANDS_BY_CAT } from '@/lib/constants'
+import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState } from '@/lib/shop/shopState'
@@ -19,6 +19,7 @@ interface Product {
   imageUrl: string
   category: string
   subcategory: string
+  hatStyle?: string
   quantity: number
   heldQuantity: number
   pickedQuantity: number
@@ -118,6 +119,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('All')
   const [activeSub, setActiveSub] = useState<string>('All')
+  const [activeHatStyle, setActiveHatStyle] = useState<string>('All')
   const [activeBrand, setActiveBrand] = useState<string>('All')
   const [activePriceRange, setActivePriceRange] = useState<string>('All')
   const [inStockOnly, setInStockOnly] = useState(false)
@@ -226,6 +228,8 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     ? []
     : ['All', ...(subsByCat[activeCategory.toLowerCase()] ?? [])]
 
+  const availableHatStyles = activeSub === 'hats' ? ['All', ...HAT_STYLES] : []
+
   const catFilteredProducts = products.filter((product) => categoryMatches(product, activeCategory))
   const brandsFromProducts = Array.from(new Set(catFilteredProducts.map((product) => product.brand).filter(Boolean)))
   const predefinedBrands = activeCategory === 'All' || isSpecialCategory ? [] : (BRANDS_BY_CAT[activeCategory.toLowerCase()] ?? [])
@@ -235,6 +239,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const filtered = products.filter((product) => {
     const catMatch = categoryMatches(product, activeCategory)
     const subMatch = isSpecialCategory || activeSub === 'All' || product.subcategory.toLowerCase() === activeSub.toLowerCase()
+    const hatStyleMatch = activeSub !== 'hats' || activeHatStyle === 'All' || (product.hatStyle ?? '') === activeHatStyle
     const brandMatch = isSpecialCategory || activeBrand === 'All' || product.brand === activeBrand
 
     const range = PRICE_RANGES.find((r) => r.value === activePriceRange) ?? PRICE_RANGES[0]
@@ -254,7 +259,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         product.subcategory.toLowerCase().includes(query)
     }
 
-    return catMatch && subMatch && brandMatch && priceMatch && stockMatch && searchMatch
+    return catMatch && subMatch && hatStyleMatch && brandMatch && priceMatch && stockMatch && searchMatch
   })
 
   const sorted = [...filtered].sort((a, b) => {
@@ -274,7 +279,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
 
   const isSearching = searchQuery.trim().length > 0
   const hasActiveFilters =
-    isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeBrand !== 'All' || activePriceRange !== 'All' || inStockOnly
+    isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeHatStyle !== 'All' || activeBrand !== 'All' || activePriceRange !== 'All' || inStockOnly
 
   const currentFilters = {
     category: activeCategory,
@@ -303,6 +308,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             onSelect={(value) => {
               setActiveSub(value)
               setActiveBrand('All')
+              setActiveHatStyle('All')
             }}
             formatLabel={(sub) =>
               sub === 'All'
@@ -310,6 +316,16 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
                 : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')
             }
           />
+
+          {activeSub === 'hats' && (
+            <PillRow
+              label="Hat Style"
+              options={availableHatStyles}
+              active={activeHatStyle}
+              onSelect={setActiveHatStyle}
+              formatLabel={(style) => (style === 'All' ? 'All Styles' : style)}
+            />
+          )}
 
           <PillRow
             label="Brand"
