@@ -42,14 +42,13 @@ interface Product {
 
 const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Blanks'])
 
-type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'name-asc' | 'newest'
+type SortOption = 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'featured', label: 'Featured' },
-  { value: 'newest', label: 'Newest Arrivals' },
   { value: 'price-asc', label: 'Price: Low to High' },
   { value: 'price-desc', label: 'Price: High to Low' },
   { value: 'name-asc', label: 'Name: A to Z' },
+  { value: 'name-desc', label: 'Name: Z to A' },
 ]
 
 const PRICE_RANGES: { value: string; label: string; min: number; max: number }[] = [
@@ -125,7 +124,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const [activeBrand, setActiveBrand] = useState<string>('All')
   const [activePriceRange, setActivePriceRange] = useState<string>('All')
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [sortBy, setSortBy] = useState<SortOption>('featured')
+  const [sortBy, setSortBy] = useState<SortOption>('price-asc')
   const [loading, setLoading] = useState(true)
   const [livePulse, setLivePulse] = useState(false)
   const [searchInput, setSearchInput] = useState('')
@@ -151,7 +150,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
       setActivePriceRange('All')
       setSearchInput('')
       setSearchQuery('')
-      setSortBy('featured')
+      setSortBy('price-asc')
       hasRestoredRef.current = true
       return
     }
@@ -297,8 +296,8 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         return effectivePriceCents(b) - effectivePriceCents(a)
       case 'name-asc':
         return a.name.localeCompare(b.name)
-      case 'newest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      case 'name-desc':
+        return b.name.localeCompare(a.name)
       default:
         return 0
     }
