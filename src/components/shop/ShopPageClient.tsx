@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { saveShopState, loadShopState } from '@/lib/shop/shopState'
+import { saveShopState, loadShopState, clearShopState } from '@/lib/shop/shopState'
 
 interface Product {
   id: string
@@ -140,6 +140,21 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     const saved = loadShopState()
     const urlCategory = searchParams?.get('category')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
+    if (urlCategory === 'All') {
+      // Explicit reset request from the "All" pill — always show the full
+      // catalog and discard any previously saved filter state.
+      clearShopState()
+      setActiveCategory('All')
+      setActiveSub('All')
+      setActiveBrand('All')
+      setActiveHatStyle('All')
+      setActivePriceRange('All')
+      setSearchInput('')
+      setSearchQuery('')
+      setSortBy('featured')
+      hasRestoredRef.current = true
+      return
+    }
     if (saved) {
       setActiveCategory(urlCategory || saved.category)
       setActiveSub(saved.sub)
@@ -157,6 +172,16 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   useEffect(() => {
     const urlCategory = searchParams?.get('category')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
+    if (urlCategory === 'All') {
+      setActiveCategory('All')
+      setActiveSub('All')
+      setActiveBrand('All')
+      setActiveHatStyle('All')
+      setActivePriceRange('All')
+      setSearchInput('')
+      setSearchQuery('')
+      return
+    }
     if (urlBrand) {
       setActiveBrand(urlBrand)
       return

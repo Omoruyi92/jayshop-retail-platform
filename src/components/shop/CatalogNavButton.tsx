@@ -16,7 +16,7 @@ export default function CatalogNavButton() {
 
   return (
     <Link
-      href="/shop"
+      href="/shop?category=All"
       aria-label="Back to full shop catalog"
       className="fixed z-40 hidden sm:flex items-center justify-center rounded-full bg-jays-navy text-white shadow-lg hover:bg-jays-royal transition-colors
         bottom-6 left-6 w-12 h-12
