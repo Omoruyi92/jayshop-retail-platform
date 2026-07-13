@@ -201,8 +201,16 @@ export default function HomePage() {
 
       
       {/* ── How It Works ─────────────────────────────────────────── */}
-      <section className="bg-jays-ice py-16">
-        <div className="max-w-5xl mx-auto px-4">
+      <section className="relative overflow-hidden bg-jays-ice py-16 sm:py-20">
+        <LetsGoJaysWatermark color="navy" density="light" />
+        <div className="relative max-w-5xl mx-auto px-4">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <span className="h-px w-6 shrink-0 bg-gradient-to-r from-transparent to-jays-red/50" aria-hidden="true" />
+            <span className="text-[10px] font-display font-bold uppercase tracking-[0.25em] text-jays-red">
+              Simple &amp; Fast
+            </span>
+            <span className="h-px w-6 shrink-0 bg-gradient-to-l from-transparent to-jays-red/50" aria-hidden="true" />
+          </div>
           <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase text-jays-navy text-center mb-3">
             {h.howItWorksTitle}
           </h2>
@@ -214,12 +222,14 @@ export default function HomePage() {
             {steps.map((item) => (
               <div
                 key={item.step}
-                className="bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1"
+                className="group relative bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center transition-all duration-300 hover:shadow-[0_20px_40px_-8px_rgba(19,74,142,0.15)] hover:-translate-y-1.5 ring-1 ring-black/[0.02]"
               >
-                <div className="w-14 h-14 bg-jays-navy text-white rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span className="absolute right-5 top-5 font-display text-3xl font-bold text-jays-navy/[0.06] group-hover:text-jays-navy/[0.10] transition-colors">
+                  {item.step}
+                </span>
+                <div className="relative w-14 h-14 bg-gradient-to-br from-jays-navy to-jays-royal text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-jays-navy/20 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                   {item.icon}
                 </div>
-                <p className="font-display text-sm font-semibold text-jays-steel/70 mb-2">{item.step}</p>
                 <h3 className="font-display font-bold text-xl text-jays-navy uppercase mb-3">
                   {item.title}
                 </h3>
@@ -253,12 +263,17 @@ export default function HomePage() {
       </section>
 
       {/* ── Trust Strip ─────────────────────────────────────────── */}
-      <section className="bg-jays-ice border-t border-gray-200 px-4 py-6">
-        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-8 text-sm text-jays-steel">
+      <section className="bg-jays-ice border-t border-gray-200 px-4 py-8">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-4 sm:gap-5">
           {trustItems.map(({ label, icon }) => (
-            <div key={label} className="flex items-center gap-2 font-medium">
-              <span>{icon}</span>
-              <span>{label}</span>
+            <div
+              key={label}
+              className="flex items-center gap-2.5 rounded-full bg-white pl-2 pr-4 py-2 shadow-sm ring-1 ring-black/[0.03] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-jays-navy/[0.06] text-base">
+                {icon}
+              </span>
+              <span className="text-sm font-medium text-jays-navy">{label}</span>
             </div>
           ))}
         </div>
@@ -267,18 +282,26 @@ export default function HomePage() {
       <FanTestimonials />
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
-      <section className="bg-jays-royal text-white px-4 py-12">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-display text-2xl font-bold uppercase tracking-wide mb-8 text-center">
+      <section className="relative overflow-hidden bg-jays-royal text-white px-4 py-14 sm:py-16">
+        <LetsGoJaysWatermark color="white" density="light" />
+        <div className="relative max-w-3xl mx-auto">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <span className="h-px w-6 shrink-0 bg-gradient-to-r from-transparent to-amber-400/60" aria-hidden="true" />
+            <span className="text-[10px] font-display font-bold uppercase tracking-[0.25em] text-amber-300">
+              Good To Know
+            </span>
+            <span className="h-px w-6 shrink-0 bg-gradient-to-l from-transparent to-amber-400/60" aria-hidden="true" />
+          </div>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-wide mb-8 text-center">
             {h.faqTitle}
           </h2>
-          <div className="space-y-0">
+          <div className="space-y-3">
             {faqs.map((item, i) => (
               <details
                 key={i}
-                className="group border-b border-blue-600 last:border-0"
+                className="group rounded-2xl bg-white/[0.06] ring-1 ring-white/10 open:bg-white/[0.09] open:ring-white/20 transition-colors duration-300"
               >
-                <summary className="flex justify-between items-center py-4 cursor-pointer list-none font-semibold text-sm hover:text-blue-200 transition-colors">
+                <summary className="flex justify-between items-center gap-3 px-5 py-4 cursor-pointer list-none font-semibold text-sm hover:text-blue-200 transition-colors">
                   {item.q}
                   <svg
                     className="w-4 h-4 shrink-0 ml-3 transition-transform group-open:rotate-180"
@@ -289,7 +312,7 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </summary>
-                <p className="pb-4 text-blue-200 text-sm leading-relaxed">{item.a}</p>
+                <p className="px-5 pb-4 text-blue-200 text-sm leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
