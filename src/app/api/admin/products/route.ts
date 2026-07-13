@@ -36,6 +36,8 @@ export async function POST(req: Request) {
     const name = formData.get('name') as string
     const description = formData.get('description') as string | null
     const priceCents = Number(formData.get('priceCents'))
+    const salePriceCentsRaw = formData.get('salePriceCents')
+    const salePriceCents = salePriceCentsRaw ? Number(salePriceCentsRaw) : 0
     const quantity = Number(formData.get('quantity') || '1')
     const sizes = (formData.get('sizes') as string) ?? ''
     const category = (formData.get('category') as string) ?? 'general'
@@ -105,6 +107,7 @@ export async function POST(req: Request) {
           slug,
           description: description ?? null,
           priceCents,
+          salePriceCents: Number.isFinite(salePriceCents) && salePriceCents > 0 ? salePriceCents : 0,
           quantity,
           sizes,
           category: category ?? 'general',

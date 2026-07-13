@@ -59,6 +59,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('name')) body.name = formData.get('name')
       if (formData.has('description')) body.description = formData.get('description')
       if (formData.has('priceCents')) body.priceCents = Number(formData.get('priceCents'))
+      if (formData.has('salePriceCents')) body.salePriceCents = Number(formData.get('salePriceCents'))
       if (formData.has('status')) body.status = formData.get('status')
       if (formData.has('category')) body.category = formData.get('category')
       if (formData.has('quantity')) body.quantity = Number(formData.get('quantity'))
@@ -91,6 +92,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.name         !== undefined && { name: body.name }),
         ...(body.description  !== undefined && { description: body.description }),
         ...(body.priceCents   !== undefined && { priceCents: Number(body.priceCents) }),
+        ...(body.salePriceCents !== undefined && { salePriceCents: Number(body.salePriceCents) }),
         ...(body.imageUrl     !== undefined && { imageUrl: body.imageUrl }),
         ...(body.imageUrl2    !== undefined && { imageUrl2: body.imageUrl2 }),
         ...(body.imageUrl3    !== undefined && { imageUrl3: body.imageUrl3 }),

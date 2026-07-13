@@ -18,8 +18,12 @@ export default function PromotionBanner() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    // Persisted in localStorage (not sessionStorage) so a dismissed promo
+    // stays dismissed across new tabs/sessions, not just page refreshes —
+    // it only reappears once an admin publishes a genuinely new promotion
+    // (a different id).
     try {
-      const raw = sessionStorage.getItem(DISMISS_KEY)
+      const raw = localStorage.getItem(DISMISS_KEY)
       setDismissed(raw ? JSON.parse(raw) : [])
     } catch {
       setDismissed([])
@@ -42,7 +46,7 @@ export default function PromotionBanner() {
     const next = [...dismissed, id]
     setDismissed(next)
     try {
-      sessionStorage.setItem(DISMISS_KEY, JSON.stringify(next))
+      localStorage.setItem(DISMISS_KEY, JSON.stringify(next))
     } catch { /* ignore */ }
   }
 

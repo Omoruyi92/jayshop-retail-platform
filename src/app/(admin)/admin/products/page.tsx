@@ -18,6 +18,7 @@ interface Product {
   name: string
   slug: string
   priceCents: number
+  salePriceCents: number
   imageUrl: string
   imageUrl2: string
   imageUrl3: string
@@ -46,7 +47,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading]   = useState(true)
   const [showAdd, setShowAdd]   = useState(false)
   const [form, setForm] = useState({
-    name: '', description: '', priceCents: '', quantity: '1',
+    name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
     isFeatured: false, isSport: false, colors: [] as string[]
@@ -129,11 +130,20 @@ export default function AdminProductsPage() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
+    const priceNum = parseFloat(form.priceCents)
+    let salePriceCents = 0
+    if (form.salePrice.trim()) {
+      const saleNum = parseFloat(form.salePrice)
+      if (!Number.isFinite(saleNum) || saleNum <= 0) { toast.error('Enter a valid sale price'); return }
+      if (saleNum >= priceNum) { toast.error('Sale price must be less than the regular price'); return }
+      salePriceCents = Math.round(saleNum * 100)
+    }
     setSaving(true)
     const body = new FormData()
     body.append('name',        form.name)
     body.append('description', form.description)
-    body.append('priceCents',  String(Math.round(parseFloat(form.priceCents) * 100)))
+    body.append('priceCents',  String(Math.round(priceNum * 100)))
+    body.append('salePriceCents', String(salePriceCents))
     body.append('quantity',    form.quantity || '1')
     body.append('sizes',       needsSizes ? form.sizes : '')
     body.append('category',    form.category)
@@ -159,7 +169,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [] })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [] })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -214,6 +224,10 @@ export default function AdminProductsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Price (CAD) *</label>
               <input required type="number" step="0.01" min="0" value={form.priceCents} onChange={(e) => setForm(f => ({ ...f, priceCents: e.target.value }))} placeholder="149.99" className={INPUT_CLS} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Sale Price (CAD) <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="number" step="0.01" min="0" value={form.salePrice} onChange={(e) => setForm(f => ({ ...f, salePrice: e.target.value }))} placeholder="e.g. 119.99" className={INPUT_CLS} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Quantity *</label>
@@ -462,7 +476,16 @@ export default function AdminProductsPage() {
                     {p.category}{p.subcategory ? <> › {p.subcategory}</> : null}
                   </td>
                   {/* Price */}
-                  <td className="px-3 py-2 text-jays-red font-bold whitespace-nowrap">{formatCAD(p.priceCents)}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {p.salePriceCents > 0 && p.salePriceCents < p.priceCents ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-jays-red font-bold">{formatCAD(p.salePriceCents)}</span>
+                        <span className="text-jays-steel text-xs line-through">{formatCAD(p.priceCents)}</span>
+                      </div>
+                    ) : (
+                      <span className="text-jays-red font-bold">{formatCAD(p.priceCents)}</span>
+                    )}
+                  </td>
                   {/* Inventory: remaining / held */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <span className={`font-semibold ${remaining <= 0 ? 'text-red-600' : 'text-green-600'}`}>{remaining} rem</span>

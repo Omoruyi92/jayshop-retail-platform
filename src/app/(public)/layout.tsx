@@ -7,6 +7,7 @@ import BottomNav from '@/components/layout/BottomNav'
 import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
 import PromotionBanner from '@/components/layout/PromotionBanner'
+import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <BottomNav />
             <ChatFAB />
             <FeedbackTab />
+            <RecentlyViewedPopup />
           </div>
         </CartProvider>
       </FavoritesProvider>

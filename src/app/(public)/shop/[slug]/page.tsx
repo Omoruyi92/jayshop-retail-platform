@@ -6,6 +6,7 @@ import ProductImageGallery from '@/components/shop/ProductImageGallery'
 import ProductReviews from '@/components/shop/ProductReviews'
 import RecentlyViewed from '@/components/shop/RecentlyViewed'
 import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
+import YouMayAlsoLike from '@/components/shop/YouMayAlsoLike'
 
 export const revalidate = 30
 
@@ -121,6 +122,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
       <div className="mt-16 lg:mt-24">
         <ProductReviews productId={product.id} />
+      </div>
+
+      <div className="mt-12 lg:mt-16 border-t border-gray-100 pt-12">
+        <YouMayAlsoLike productId={product.id} category={product.category} />
       </div>
 
       <div className="mt-12 lg:mt-16 border-t border-gray-100 pt-12">

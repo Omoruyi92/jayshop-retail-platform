@@ -11,6 +11,7 @@ interface Product {
   name: string
   slug: string
   priceCents: number
+  salePriceCents: number
   imageUrl: string
   imageUrl2: string
   imageUrl3: string
@@ -45,6 +46,7 @@ function buildInitialForm(product: Product) {
     name:        product.name,
     description: '',
     price:       (product.priceCents / 100).toFixed(2),
+    salePrice:   product.salePriceCents > 0 ? (product.salePriceCents / 100).toFixed(2) : '',
     quantity:    String(product.quantity),
     sizes:       product.sizes,
     category:    product.category,
@@ -139,6 +141,13 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     if (!form) return; if (!form) return; if (!form) return; if (!form) return; if (!form) return; if (!form.name.trim()) { toast.error('Name is required'); return }
     const priceNum = parseFloat(form.price)
     if (!Number.isFinite(priceNum) || priceNum <= 0) { toast.error('Enter a valid price'); return }
+    let salePriceCents = 0
+    if (form.salePrice.trim()) {
+      const saleNum = parseFloat(form.salePrice)
+      if (!Number.isFinite(saleNum) || saleNum <= 0) { toast.error('Enter a valid sale price'); return }
+      if (saleNum >= priceNum) { toast.error('Sale price must be less than the regular price'); return }
+      salePriceCents = Math.round(saleNum * 100)
+    }
     if (!form.category) { toast.error('Category is required'); return }
     if (images.length === 0) { toast.error('At least one image is required'); return }
 
@@ -157,6 +166,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('name', form.name.trim())
     if (form.description) formData.append('description', form.description)
     formData.append('priceCents', priceCents.toString())
+    formData.append('salePriceCents', salePriceCents.toString())
     formData.append('category', form.category)
     formData.append('subcategory', form.subcategory)
     formData.append('brand', form.brand)
@@ -238,6 +248,11 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Price (CAD) *</label>
             <input type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm((f) => f ? ({ ...f, price: e.target.value }) : f)} placeholder="49.99" className={INPUT_CLS} />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Sale Price (CAD) <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input type="number" step="0.01" min="0" value={form.salePrice} onChange={(e) => setForm((f) => f ? ({ ...f, salePrice: e.target.value }) : f)} placeholder="e.g. 39.99" className={INPUT_CLS} />
           </div>
 
           <div>

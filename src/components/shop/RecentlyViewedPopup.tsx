@@ -25,10 +25,12 @@ export default function RecentlyViewedPopup() {
     }
   }, [])
 
-  // Trigger the popup when the user has viewed items and we have budget left.
+  // Trigger the popup once per browsing session when the user has viewed
+  // items and hasn't already seen the popup this session. On refresh the
+  // sessionStorage flag survives, so it won't retrigger.
   useEffect(() => {
     if (!recentlyViewed.length) return
-    if (showCount >= 2) return
+    if (showCount >= 1) return
 
     const timer = setTimeout(() => {
       setIsOpen(true)
