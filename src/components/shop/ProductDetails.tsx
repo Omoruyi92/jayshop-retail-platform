@@ -41,7 +41,7 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
   }
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col pb-8">
       <BackToShopButton />
       <div className="flex items-start justify-between gap-4 mb-4">
         <h1 className="font-display text-2xl font-bold text-jays-navy uppercase leading-tight">

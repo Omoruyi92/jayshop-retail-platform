@@ -52,7 +52,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
       <TrackRecentlyViewed
         id={product.id}
         slug={product.slug}
@@ -60,25 +60,35 @@ export default async function ProductPage({ params }: { params: { slug: string }
         imageUrl={product.imageUrl}
         priceCents={product.priceCents}
       />
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="relative aspect-[4/3] bg-gray-100">
-          <ProductImageGallery images={images} alt={product.name} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        {/* Gallery Column */}
+        <div className="lg:col-span-7 lg:sticky lg:top-24">
+          <div className="bg-white rounded-3xl shadow-sm overflow-hidden relative aspect-[4/3] md:aspect-[4/3] w-full border border-gray-100/50">
+            <ProductImageGallery images={images} alt={product.name} />
+          </div>
         </div>
-        <ProductDetails
-          product={product}
-          remaining={remaining}
-          isSoldOut={isSoldOut}
-          sizes={sizes}
-          displayStatus={displayStatus}
-          sizeAvailability={sizeAvailability}
-        />
+
+        {/* Details Column */}
+        <div className="lg:col-span-5 flex flex-col bg-white lg:bg-transparent rounded-3xl lg:rounded-none shadow-sm lg:shadow-none p-6 lg:p-0 border border-gray-100/50 lg:border-none">
+          <ProductDetails
+            product={product}
+            remaining={remaining}
+            isSoldOut={isSoldOut}
+            sizes={sizes}
+            displayStatus={displayStatus}
+            sizeAvailability={sizeAvailability}
+          />
+        </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-16 lg:mt-24">
         <ProductReviews productId={product.id} />
       </div>
 
-      <RecentlyViewed />
+      <div className="mt-12 lg:mt-16 border-t border-gray-100 pt-12">
+        <RecentlyViewed />
+      </div>
     </div>
   )
 }
