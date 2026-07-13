@@ -95,7 +95,10 @@ export default function GalleryPage() {
       </section>
 
       {/* Category filters */}
-      <section className="sticky top-0 z-20 bg-white border-b border-border shadow-sm">
+      <section
+        className="sticky z-20 bg-white border-b border-border shadow-sm"
+        style={{ top: 'calc(var(--header-height, 3.5rem) + var(--subnav-height, 2.75rem))' }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <button
