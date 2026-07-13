@@ -15,18 +15,20 @@ const CATEGORY_SORT_ORDER = ['men', 'women', 'kids', 'accessories', 'sports', 'a
 export default async function StickyShopCategoryNav({ activeCategory }: { activeCategory?: string }) {
   const products = await prisma.product.findMany({
     where: { status: { not: 'ARCHIVED' } },
-    select: { category: true, isFeatured: true, isNewArrival: true, isClearance: true, salePriceCents: true },
+    select: { category: true, isFeatured: true, isNewArrival: true, isClearance: true, isAuthenticated: true, salePriceCents: true },
   })
 
   const categorySet = new Set<string>()
   let hasFeatured = false
   let hasNewArrival = false
   let hasClearance = false
+  let hasAuthentic = false
   for (const p of products) {
     if (p.category) categorySet.add(p.category.toLowerCase())
     if (p.isFeatured) hasFeatured = true
     if (p.isNewArrival) hasNewArrival = true
     if (p.isClearance || p.salePriceCents > 0) hasClearance = true
+    if (p.isAuthenticated) hasAuthentic = true
   }
 
   const realCategories = Array.from(categorySet).sort((a, b) => {
@@ -44,6 +46,7 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
     ...(hasFeatured ? [{ label: 'Featured', value: 'Featured' }] : []),
     ...(hasNewArrival ? [{ label: 'New Arrivals', value: 'New Arrivals' }] : []),
     ...(hasClearance ? [{ label: 'Sales & Clearance', value: 'Sales & Clearance' }] : []),
+    ...(hasAuthentic ? [{ label: 'Authentic Collection', value: 'Authentic Collection' }] : []),
   ]
 
   return (

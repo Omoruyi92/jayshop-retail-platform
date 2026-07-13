@@ -74,6 +74,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('isClearance')) body.isClearance = formData.get('isClearance') === 'true'
       if (formData.has('isFeatured')) body.isFeatured = formData.get('isFeatured') === 'true'
       if (formData.has('isSport')) body.isSport = formData.get('isSport') === 'true'
+      if (formData.has('isAuthenticated')) body.isAuthenticated = formData.get('isAuthenticated') === 'true'
       
       if (formData.has('colors')) body.colors = JSON.parse(formData.get('colors') as string)
       if (formData.has('sizeInventories')) body.sizeInventories = JSON.parse(formData.get('sizeInventories') as string)
@@ -112,6 +113,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.isClearance  !== undefined && { isClearance: Boolean(body.isClearance) }),
         ...(body.isFeatured   !== undefined && { isFeatured: Boolean(body.isFeatured) }),
         ...(body.isSport      !== undefined && { isSport: Boolean(body.isSport) }),
+        ...(body.isAuthenticated !== undefined && { isAuthenticated: Boolean(body.isAuthenticated) }),
       },
       include: { _count: { select: { holds: true } } },
     })

@@ -31,6 +31,7 @@ interface Product {
   isFeatured: boolean
   isNewArrival: boolean
   isClearance: boolean
+  isAuthenticated: boolean
   salePriceCents: number
   createdAt: Date
   updatedAt: Date
@@ -39,7 +40,7 @@ interface Product {
   allSizesOos?: boolean
 }
 
-const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance'])
+const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Authentic Collection'])
 
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'name-asc' | 'newest'
 
@@ -70,6 +71,7 @@ function categoryMatches(product: Product, activeCategory: string): boolean {
   if (activeCategory === 'Featured') return product.isFeatured
   if (activeCategory === 'New Arrivals') return product.isNewArrival
   if (activeCategory === 'Sales & Clearance') return product.isClearance || product.salePriceCents > 0
+  if (activeCategory === 'Authentic Collection') return product.isAuthenticated
   return product.category.toLowerCase() === activeCategory.toLowerCase()
 }
 

@@ -32,6 +32,7 @@ interface Product {
   isClearance: boolean
   isFeatured: boolean
   isSport: boolean
+  isAuthenticated: boolean
   colors: any
   _count?: { holds: number }
 }
@@ -63,6 +64,7 @@ function buildInitialForm(product: Product) {
     isClearance:  product.isClearance,
     isFeatured:   product.isFeatured,
     isSport:      product.isSport,
+    isAuthenticated: product.isAuthenticated,
     imageUrl:    product.imageUrl,
     imageUrl2:   product.imageUrl2,
     imageUrl3:   product.imageUrl3,
@@ -183,6 +185,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('isClearance', String(form.isClearance))
     formData.append('isFeatured', String(form.isFeatured))
     formData.append('isSport', String(form.isSport))
+    formData.append('isAuthenticated', String(form.isAuthenticated))
     formData.append('quantity', (parseInt(form.quantity, 10) || 1).toString())
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
@@ -359,11 +362,28 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
             </div>
           )}
 
-          <div className="sm:col-span-2 flex flex-wrap gap-4 border-t border-border pt-4 mt-2">
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => f ? ({ ...f, isFeatured: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
-              <span className="font-medium text-jays-navy">Featured Product</span>
-            </label>
+          <div className="sm:col-span-2 border-t border-border pt-4 mt-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-jays-steel/70 mb-2">Storefront Collections</p>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => f ? ({ ...f, isFeatured: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
+                <span className="font-medium text-jays-navy">Featured Products</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isNewArrival} onChange={(e) => setForm((f) => f ? ({ ...f, isNewArrival: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-cyan-600" />
+                <span className="font-medium text-jays-navy">New Arrivals</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isClearance} onChange={(e) => setForm((f) => f ? ({ ...f, isClearance: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-red" />
+                <span className="font-medium text-jays-navy">Sales & Clearance</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isAuthenticated} onChange={(e) => setForm((f) => f ? ({ ...f, isAuthenticated: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-emerald-600" />
+                <span className="font-medium text-jays-navy">Authentic Collection</span>
+              </label>
+            </div>
+          </div>
+          <div className="sm:col-span-2 flex flex-wrap gap-4 pt-1">
             <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
               <input type="checkbox" checked={form.isSport} onChange={(e) => setForm((f) => f ? ({ ...f, isSport: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
               <span className="font-medium text-jays-navy">Sport Collection</span>
@@ -375,14 +395,6 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
             <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
               <input type="checkbox" checked={form.isChampion} onChange={(e) => setForm((f) => f ? ({ ...f, isChampion: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-yellow-500" />
               <span className="font-medium text-jays-navy">ALC Champion 2025</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input type="checkbox" checked={form.isNewArrival} onChange={(e) => setForm((f) => f ? ({ ...f, isNewArrival: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-cyan-600" />
-              <span className="font-medium text-jays-navy">New Arrival</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input type="checkbox" checked={form.isClearance} onChange={(e) => setForm((f) => f ? ({ ...f, isClearance: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-red" />
-              <span className="font-medium text-jays-navy">Sales & Clearance</span>
             </label>
           </div>
         </div>

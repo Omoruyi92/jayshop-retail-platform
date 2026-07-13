@@ -39,6 +39,7 @@ interface Product {
   isClearance: boolean
   isFeatured: boolean
   isSport: boolean
+  isAuthenticated: boolean
   colors: any
   _count?: { holds: number }
 }
@@ -54,7 +55,7 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
-    isFeatured: false, isSport: false, colors: [] as string[], hatStyle: ''
+    isFeatured: false, isSport: false, isAuthenticated: false, colors: [] as string[], hatStyle: ''
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [images, setImages] = useState<{url: string; file: File | null}[]>([])
@@ -159,6 +160,10 @@ export default function AdminProductsPage() {
     body.append('isChampion',  String(form.isChampion))
     body.append('isNewArrival', String(form.isNewArrival))
     body.append('isClearance',  String(form.isClearance))
+    body.append('isFeatured',   String(form.isFeatured))
+    body.append('isSport',      String(form.isSport))
+    body.append('isAuthenticated', String(form.isAuthenticated))
+    body.append('colors',       JSON.stringify(form.colors))
     
 
     if (needsSizes && currentSizeList.length > 0) {
@@ -174,7 +179,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [], hatStyle: '' })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isAuthenticated: false, colors: [], hatStyle: '' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -337,11 +342,43 @@ export default function AdminProductsPage() {
               </div>
             </div>
           </div>
+          <div className="pt-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-jays-steel/70 mb-2">Storefront Collections</p>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(f => ({ ...f, isFeatured: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
+                <span className="font-medium text-jays-navy">Featured Products</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isNewArrival}
+                  onChange={(e) => setForm(f => ({ ...f, isNewArrival: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 accent-cyan-600"
+                />
+                <span className="font-medium text-jays-navy">New Arrivals</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isClearance}
+                  onChange={(e) => setForm(f => ({ ...f, isClearance: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 accent-jays-red"
+                />
+                <span className="font-medium text-jays-navy">Sales &amp; Clearance</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isAuthenticated}
+                  onChange={(e) => setForm(f => ({ ...f, isAuthenticated: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 accent-emerald-600"
+                />
+                <span className="font-medium text-jays-navy">Authentic Collection</span>
+              </label>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-4 pt-1">
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(f => ({ ...f, isFeatured: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
-              <span className="font-medium text-jays-navy">Featured Product</span>
-            </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
               <input type="checkbox" checked={form.isSport} onChange={(e) => setForm(f => ({ ...f, isSport: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
               <span className="font-medium text-jays-navy">Sport Collection</span>
@@ -363,24 +400,6 @@ export default function AdminProductsPage() {
                 className="w-4 h-4 rounded border-gray-300 accent-yellow-500"
               />
               <span className="font-medium text-jays-navy">ALC Champion 2025</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={form.isNewArrival}
-                onChange={(e) => setForm(f => ({ ...f, isNewArrival: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300 accent-cyan-600"
-              />
-              <span className="font-medium text-jays-navy">New Arrival</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={form.isClearance}
-                onChange={(e) => setForm(f => ({ ...f, isClearance: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300 accent-jays-red"
-              />
-              <span className="font-medium text-jays-navy">Sales &amp; Clearance</span>
             </label>
           </div>
           <div className="flex gap-3">

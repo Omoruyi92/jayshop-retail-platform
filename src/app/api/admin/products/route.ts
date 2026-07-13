@@ -61,6 +61,7 @@ export async function POST(req: Request) {
     const isChampion = formData.get('isChampion') === 'true'
     const isNewArrival = formData.get('isNewArrival') === 'true'
     const isClearance = formData.get('isClearance') === 'true'
+    const isAuthenticated = formData.get('isAuthenticated') === 'true'
 
     if (!name || !priceCents) {
       return NextResponse.json({ error: 'name and priceCents required' }, { status: 400 })
@@ -125,6 +126,7 @@ export async function POST(req: Request) {
           isChampion,
           isNewArrival,
           isClearance,
+          isAuthenticated,
         },
       })
 
