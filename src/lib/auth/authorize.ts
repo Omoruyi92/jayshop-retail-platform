@@ -105,11 +105,19 @@ export async function requireRole(
     }
   }
 
-  const role = (session.user as any).role
+  let role = (session.user as any).role
+
+  // Fallback to database if role is missing in session cookie
+  if (!role && session.user.adminId) {
+    const { prisma } = await import('@/lib/prisma')
+    const dbAdmin = await prisma.admin.findUnique({ where: { id: session.user.adminId } })
+    if (dbAdmin) role = dbAdmin.role
+  }
+
   if (!role || !can(role, action)) {
     return {
       session: null,
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+      error: NextResponse.json({ error: `Forbidden: required action ${action}` }, { status: 403 }),
     }
   }
 

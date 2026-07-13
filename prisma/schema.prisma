@@ -55,6 +55,7 @@ model Product {
   isNewArrival       Boolean                @default(false)
   isSport            Boolean                @default(false)
   isWorldSeries      Boolean                @default(false)
+  colors             Json?
   originalPriceCents Int?
   salePriceCents     Int                    @default(0)
   isBlankJersey      Boolean                @default(false)

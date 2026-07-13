@@ -13,6 +13,20 @@ function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+async function processImage(file: File | null, existingUrl: string) {
+  if (file && file.size > 0) {
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const ext = file.name.split('.').pop() || 'png'
+    const fileName = `${nanoid(10)}.${ext}`
+    const uploadDir = join(process.cwd(), 'public', 'uploads')
+    await mkdir(uploadDir, { recursive: true })
+    await writeFile(join(uploadDir, fileName), buffer)
+    return `/uploads/${fileName}`
+  }
+  return existingUrl
+}
+
 export async function POST(req: Request) {
   const { error } = await requireAdminSession()
   if (error) return error
@@ -27,8 +41,18 @@ export async function POST(req: Request) {
     const category = (formData.get('category') as string) ?? 'general'
     const subcategory = (formData.get('subcategory') as string) ?? ''
     const brand = (formData.get('brand') as string) ?? ''
+    
     const imageUrl = formData.get('imageUrl') as string | null
     const imageFile = formData.get('imageFile') as File | null
+    const imageUrl2 = formData.get('imageUrl2') as string | null
+    const imageFile2 = formData.get('imageFile2') as File | null
+    const imageUrl3 = formData.get('imageUrl3') as string | null
+    const imageFile3 = formData.get('imageFile3') as File | null
+    
+    const colors = formData.get('colors') as string | null
+    const isFeatured = formData.get('isFeatured') === 'true'
+    const isSport = formData.get('isSport') === 'true'
+
     const sizeQuantitiesRaw = formData.get('sizeQuantities') as string | null
     const isLicensed = formData.get('isLicensed') === 'true'
     const isChampion = formData.get('isChampion') === 'true'
@@ -43,22 +67,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'priceCents must be a positive integer' }, { status: 400 })
     }
 
-    let finalImageUrl = imageUrl || ''
-
-    // Handle file upload
-    if (imageFile && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const ext = imageFile.name.split('.').pop() || 'png'
-      const fileName = `${nanoid(10)}.${ext}`
-      const uploadDir = join(process.cwd(), 'public', 'uploads')
-      await mkdir(uploadDir, { recursive: true })
-      await writeFile(join(uploadDir, fileName), buffer)
-      finalImageUrl = `/uploads/${fileName}`
-    }
+    const finalImageUrl = await processImage(imageFile, imageUrl || '')
+    const finalImageUrl2 = await processImage(imageFile2, imageUrl2 || '')
+    const finalImageUrl3 = await processImage(imageFile3, imageUrl3 || '')
 
     if (!finalImageUrl) {
-      return NextResponse.json({ error: 'imageUrl or imageFile required' }, { status: 400 })
+      return NextResponse.json({ error: 'At least one image is required' }, { status: 400 })
     }
 
     const baseSlug = slugify(name)
@@ -68,7 +82,6 @@ export async function POST(req: Request) {
       slug = `${baseSlug}-${n++}`
     }
 
-    // Parse per-size quantities if provided
     let sizeQuantitiesMap: Record<string, number> | null = null
     if (sizeQuantitiesRaw) {
       try {
@@ -77,16 +90,10 @@ export async function POST(req: Request) {
           sizeQuantitiesMap = parsed
         }
       } catch {
-        // ignore malformed JSON; fall back to default distribution
       }
     }
 
-    // Build SizeInventory rows if sizes are defined
-    const sizeList = sizes
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-
+    const sizeList = sizes.split(',').map((s) => s.trim()).filter(Boolean)
     const tenantId = await getDefaultTenantId()
     const locationId = await getMainStoreLocationId()
 
@@ -104,6 +111,11 @@ export async function POST(req: Request) {
           subcategory: subcategory ?? '',
           brand: brand ?? '',
           imageUrl: finalImageUrl,
+          imageUrl2: finalImageUrl2,
+          imageUrl3: finalImageUrl3,
+          colors: colors ? JSON.parse(colors) : [],
+          isFeatured,
+          isSport,
           isLicensed,
           isChampion,
           isNewArrival,
@@ -112,7 +124,6 @@ export async function POST(req: Request) {
       })
 
       if (sizeList.length > 0) {
-        // Default per-size quantity: use provided map, or distribute evenly
         const defaultQty = Math.floor(quantity / sizeList.length)
         await tx.sizeInventory.createMany({
           data: sizeList.map((size) => ({

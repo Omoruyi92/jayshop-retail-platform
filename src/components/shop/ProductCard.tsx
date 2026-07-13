@@ -22,6 +22,7 @@ type ProductCardProduct = {
   isLicensed: boolean
   isChampion: boolean
   priceCents: number
+  colors?: any
 }
 
 export default function ProductCard({
@@ -37,8 +38,6 @@ export default function ProductCard({
   allSizesOos?: boolean
   currentFilters?: CurrentFilters
 }) {
-  // For size-tracked products, sold-out is determined by allSizesOos (all sizes exhausted).
-  // For non-size products, use remaining <= 0. SOLD/ARCHIVED status always overrides.
   const isSoldOut =
     product.status === 'SOLD' ||
     product.status === 'ARCHIVED' ||
@@ -86,6 +85,15 @@ export default function ProductCard({
           <p className="font-bold text-jays-red mt-1 text-base">{formatCAD(product.priceCents)}</p>
           {!isSoldOut && (
             <p className="text-xs text-jays-steel mt-0.5">{remaining} left</p>
+          )}
+          {product.colors && Array.isArray(product.colors) && product.colors.length > 0 && (
+            <div className="flex gap-1 mt-2">
+              {product.colors.slice(0, 3).map((c: any) => {
+                const hex = typeof c === 'string' ? c : c.hex || c.name;
+                return <div key={hex} className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: hex }} title={typeof c === 'string' ? c : c.name} />
+              })}
+              {product.colors.length > 3 && <span className="text-[10px] text-gray-500 ml-1">+{product.colors.length - 3}</span>}
+            </div>
           )}
         </div>
       </div>

@@ -19,6 +19,8 @@ interface Product {
   slug: string
   priceCents: number
   imageUrl: string
+  imageUrl2: string
+  imageUrl3: string
   category: string
   subcategory: string
   quantity: number
@@ -31,6 +33,9 @@ interface Product {
   isChampion: boolean
   isNewArrival: boolean
   isClearance: boolean
+  isFeatured: boolean
+  isSport: boolean
+  colors: any
   _count?: { holds: number }
 }
 
@@ -44,10 +49,11 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
+    isFeatured: false, isSport: false, colors: [] as string[]
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
-  const [imageFile, setImageFile]     = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [images, setImages] = useState<{url: string; file: File | null}[]>([])
+  const [colorInput, setColorInput] = useState('')
   const [saving, setSaving]           = useState(false)
 
   const [showArchived, setShowArchived] = useState(false)
@@ -89,16 +95,31 @@ export default function AdminProductsPage() {
   useEffect(() => { load() }, [load])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] || null
-    setImageFile(file)
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => setImagePreview(reader.result as string)
-      reader.readAsDataURL(file)
-    } else {
-      setImagePreview(null)
+    if (e.target.files && e.target.files.length > 0) {
+      if (images.length >= 3) { toast.error('Max 3 images allowed'); return }
+      const newFiles = Array.from(e.target.files).slice(0, 3 - images.length)
+      const newImages = newFiles.map(file => ({
+        url: URL.createObjectURL(file),
+        file
+      }))
+      setImages(prev => [...prev, ...newImages])
     }
   }
+
+  function removeImage(index: number) {
+    setImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function handleAddColor() {
+    if (colorInput.trim() && !form.colors.includes(colorInput.trim())) {
+      setForm(f => ({ ...f, colors: [...f.colors, colorInput.trim()] }))
+      setColorInput('')
+    }
+  }
+
+  function handleRemoveColor(col: string) {
+    setForm(f => ({ ...f, colors: f.colors.filter(c => c !== col) }))
+
 
   const needsSizes = !SIZELESS_SUBS.has(form.subcategory)
 
@@ -123,7 +144,7 @@ export default function AdminProductsPage() {
     body.append('isChampion',  String(form.isChampion))
     body.append('isNewArrival', String(form.isNewArrival))
     body.append('isClearance',  String(form.isClearance))
-    if (imageFile) body.append('imageFile', imageFile)
+    
 
     if (needsSizes && currentSizeList.length > 0) {
       const sqMap: Record<string, number> = {}
@@ -138,9 +159,9 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false })
+      setForm({ name: '', description: '', priceCents: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, colors: [] })
       setSizeQuantities({})
-      setImageFile(null); setImagePreview(null); setShowAdd(false)
+      setImages([]); setColorInput(""); setShowAdd(false)
       load()
     } else {
       const d = await res.json()
@@ -257,17 +278,45 @@ export default function AdminProductsPage() {
               <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
               <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className={INPUT_CLS} />
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Upload image from computer</label>
-              <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal" />
-              {imagePreview && (
-                <div className="mt-3 relative w-32 h-32 rounded-xl overflow-hidden border border-border">
-                  <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                </div>
-              )}
+            <div className="sm:col-span-2 border-t border-border pt-4">
+              <label className="block text-xs font-medium text-gray-600 mb-2">Product Images (up to 3)</label>
+              <input type="file" accept="image/*" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+              <div className="flex gap-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-border group">
+                    <Image src={img.url} alt="Preview" fill className="object-cover" unoptimized />
+                    <button type="button" onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 border-t border-border pt-4">
+              <label className="block text-xs font-medium text-gray-600 mb-2">Colors</label>
+              <div className="flex gap-2 mb-2">
+                <input value={colorInput} onChange={e => setColorInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor())} placeholder="e.g. Red, Blue, #1E2761" className={INPUT_CLS} />
+                <button type="button" onClick={handleAddColor} className="px-4 py-2 bg-jays-ice text-jays-navy font-semibold rounded-xl text-sm">Add</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {form.colors.map((c: string) => (
+                  <span key={c} className="px-3 py-1 bg-jays-ice text-jays-navy rounded-full text-xs font-medium flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c }}></span>
+                    {c}
+                    <button type="button" onClick={() => handleRemoveColor(c)} className="text-jays-steel hover:text-red-500 font-bold">×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-4 pt-1">
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(f => ({ ...f, isFeatured: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
+              <span className="font-medium text-jays-navy">Featured Product</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input type="checkbox" checked={form.isSport} onChange={(e) => setForm(f => ({ ...f, isSport: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
+              <span className="font-medium text-jays-navy">Sport Collection</span>
+            </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -493,4 +542,5 @@ export default function AdminProductsPage() {
       />
     </div>
   )
+}
 }
