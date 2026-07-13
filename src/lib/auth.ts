@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
           try {
             const admin = await prisma.admin.findFirst()
             if (admin) {
-              return { id: admin.id, email: admin.email, name: admin.role }
+              return { id: admin.id, email: admin.email, name: admin.role, role: admin.role }
             }
           } catch {
             // DB unavailable in dev — fail login rather than create a fake session
@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
           if (!admin) return null
           const passwordValid = await bcrypt.compare(credentials.password, admin.passwordHash)
           if (!passwordValid) return null
-          return { id: admin.id, email: admin.email, name: admin.role }
+          return { id: admin.id, email: admin.email, name: admin.role, role: admin.role }
         } catch {
           return null
         }
@@ -48,11 +48,15 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.adminId = user.id
+      if (user) {
+        token.adminId = user.id
+        token.role = (user as { role?: string }).role
+      }
       return token
     },
     async session({ session, token }) {
       if (token.adminId) session.user.adminId = token.adminId as string
+      if (token.role) (session.user as { role?: string }).role = token.role as string
       return session
     },
   },

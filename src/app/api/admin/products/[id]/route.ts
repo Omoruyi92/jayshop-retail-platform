@@ -17,30 +17,47 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   try {
     const body = await req.json()
 
-    // Capture old imageUrl before update so we can clean up if it changes
+    // Capture old imageUrl/isNewArrival before update so we can clean up / notify on change
     const existing = await prisma.product.findUnique({
       where: { id: params.id },
-      select: { imageUrl: true },
+      select: { imageUrl: true, isNewArrival: true },
     })
     const oldImageUrl = existing?.imageUrl ?? null
+    const wasNewArrival = existing?.isNewArrival ?? false
 
     const product = await prisma.product.update({
       where: { id: params.id },
       data: {
-        ...(body.name        !== undefined && { name: body.name }),
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.priceCents  !== undefined && { priceCents: Number(body.priceCents) }),
-        ...(body.imageUrl    !== undefined && { imageUrl: body.imageUrl }),
-        ...(body.status      !== undefined && { status: body.status }),
-        ...(body.category    !== undefined && { category: body.category }),
-        ...(body.quantity    !== undefined && { quantity: Number(body.quantity) }),
-        ...(body.brand       !== undefined && { brand: body.brand }),
-        ...(body.sizes       !== undefined && { sizes: body.sizes }),
-        ...(body.isLicensed  !== undefined && { isLicensed: Boolean(body.isLicensed) }),
-        ...(body.isChampion  !== undefined && { isChampion: Boolean(body.isChampion) }),
+        ...(body.name         !== undefined && { name: body.name }),
+        ...(body.description  !== undefined && { description: body.description }),
+        ...(body.priceCents   !== undefined && { priceCents: Number(body.priceCents) }),
+        ...(body.imageUrl     !== undefined && { imageUrl: body.imageUrl }),
+        ...(body.status       !== undefined && { status: body.status }),
+        ...(body.category     !== undefined && { category: body.category }),
+        ...(body.quantity     !== undefined && { quantity: Number(body.quantity) }),
+        ...(body.brand        !== undefined && { brand: body.brand }),
+        ...(body.sizes        !== undefined && { sizes: body.sizes }),
+        ...(body.isLicensed   !== undefined && { isLicensed: Boolean(body.isLicensed) }),
+        ...(body.isChampion   !== undefined && { isChampion: Boolean(body.isChampion) }),
+        ...(body.isNewArrival !== undefined && { isNewArrival: Boolean(body.isNewArrival) }),
+        ...(body.isClearance  !== undefined && { isClearance: Boolean(body.isClearance) }),
       },
       include: { _count: { select: { holds: true } } },
     })
+
+    // Notify customers when a product newly becomes a "New Arrival"
+    if (body.isNewArrival !== undefined && Boolean(body.isNewArrival) && !wasNewArrival) {
+      await prisma.customerNotification.create({
+        data: {
+          type: 'NEW_ARRIVAL',
+          title: 'New Arrival!',
+          body: `${product.name} just landed — check it out.`,
+          productId: product.id,
+          productSlug: product.slug,
+          imageUrl: product.imageUrl,
+        },
+      })
+    }
 
     // Clean up replaced local upload file (only if imageUrl actually changed)
     if (

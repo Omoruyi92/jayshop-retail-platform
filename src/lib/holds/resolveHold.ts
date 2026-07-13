@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { generateReservationCode } from '@/lib/utils'
-import { getMainStoreLocationId } from '@/lib/store-locations'
+import { getHoldReservationLocationId } from '@/lib/store-locations'
+import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
 
 export type FinalStatus = 'PICKED_UP' | 'RELEASED' | 'EXPIRED'
 
@@ -100,7 +101,7 @@ export async function resolveHold(
 
     // Size-level inventory counters — only when a size is tracked
     if (hold.size) {
-      const locationId = await getMainStoreLocationId()
+      const locationId = await getHoldReservationLocationId(hold.isStadiumHold)
       const sizeRow = await tx.sizeInventory.findUnique({
         where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
       })
@@ -131,6 +132,19 @@ export async function resolveHold(
           })
         }
       }
+
+      // Append-only ledger entry: releasing/expiring a hold returns stock to
+      // the available pool at the fulfilling location.
+      if (effectiveStatus !== 'PICKED_UP') {
+        await logInventoryTransaction(tx, {
+          productId: hold.productId,
+          size: hold.size,
+          type: 'hold-release',
+          quantity: holdQty,
+          fromLocationId: locationId,
+          note: `Hold ${hold.reservationCode} ${effectiveStatus.toLowerCase()}`,
+        })
+      }
     }
 
     // Create a new ACTIVE hold for remaining quantity (partial pickup only)
@@ -158,7 +172,7 @@ export async function resolveHold(
 
     // Recalculate product status AFTER all heldQuantity updates are complete
     const updatedProduct = await tx.product.findUniqueOrThrow({ where: { id: hold.productId } })
-    const available = updatedProduct.quantity - updatedProduct.heldQuantity
+    const available = updatedProduct.quantity - updatedProduct.heldQuantity - updatedProduct.pickedQuantity
     const newProductStatus = available <= 0 ? 'SOLD' : 'AVAILABLE'
     await tx.product.update({ where: { id: hold.productId }, data: { status: newProductStatus } })
 

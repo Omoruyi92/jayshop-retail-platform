@@ -78,12 +78,17 @@ const config: Config = {
           '0%':   { opacity: '0', transform: 'translateY(100%)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'marquee': {
+          '0%':   { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         'fade-in-up':     'fade-in-up 0.2s ease-out',
         'fade-in':        'fade-in 0.15s ease-out',
         'slide-in-right': 'slide-in-right 0.3s ease-out',
         'slide-in-up':    'slide-in-up 0.25s ease-out',
+        'marquee':        'marquee 28s linear infinite',
       },
       transitionDuration: {
         '150': '150ms',

@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trophy, Handshake } from 'lucide-react'
+import { Trophy, Handshake, Landmark } from 'lucide-react'
 import BrandWatermarks from '@/components/ui/BrandWatermarks'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -44,24 +44,52 @@ export default function AboutPage() {
     <div>
       {/* ── Hero Banner ────────────────────────────────────────────── */}
       <section className="relative bg-jays-navy text-white overflow-hidden sm:-mt-14">
+        {/* glow orbs, echoes Home Hero */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 opacity-10"
+          className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full opacity-[0.12]"
+          style={{ background: 'radial-gradient(circle, #C2440C 0%, #8B1A1A 40%, transparent 70%)' }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full opacity-[0.08]"
+          style={{ background: 'radial-gradient(circle, #D4540A 0%, #7B1818 50%, transparent 75%)' }}
+        />
+        {/* diagonal stripe pattern, echoes Home Hero */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
-            backgroundImage:
-              'repeating-linear-gradient(135deg, transparent, transparent 40px, rgba(255,255,255,.04) 40px, rgba(255,255,255,.04) 42px)',
+            background:
+              'repeating-linear-gradient(-45deg, #C2440C 0, #C2440C 1px, transparent 0, transparent 50%)',
+            backgroundSize: '40px 40px',
           }}
         />
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-amber-600/40 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-x-0 top-[2px] h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-30"
+          style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 55%, rgba(30, 39, 97, 0.8) 0%, transparent 100%)' }}
+        />
+
         <BrandWatermarks className="z-0" />
         <LetsGoJaysWatermark className="z-0" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 pt-20 pb-14 sm:pt-32 sm:pb-20 text-center">
-          <p className="font-display text-xs sm:text-sm uppercase tracking-[0.35em] text-blue-300 mb-3">
-            {a.heroSupra}
-          </p>
+          <div className="mb-5 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
+              <Landmark className="h-3 w-3 text-blue-200" />
+              <span className="font-display text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-blue-200">
+                {a.heroSupra}
+              </span>
+            </span>
+          </div>
           <h1 className="font-display text-4xl sm:text-6xl font-bold uppercase tracking-wide leading-tight mb-4">
             Explore{' '}
-            <span className="text-jays-red">Jays Shop</span>
+            <span className="bg-gradient-to-r from-orange-500 via-jays-red to-amber-500 bg-clip-text text-transparent">
+              Jays Shop
+            </span>
           </h1>
           <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             {a.heroSubtitle}
@@ -70,6 +98,7 @@ export default function AboutPage() {
 
         {/* Curved bottom edge */}
         <div className="absolute bottom-0 left-0 right-0">
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-[6px] h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent sm:bottom-[10px]" />
           <svg viewBox="0 0 1440 60" fill="none" className="w-full h-8 sm:h-12">
             <path d="M0 60L1440 60L1440 0C1200 50 240 50 0 0L0 60Z" fill="#f0f4f8" />
           </svg>

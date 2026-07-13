@@ -10,6 +10,8 @@ import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
 import { MAIN_CATEGORIES, SUBS_BY_CAT, SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS } from '@/lib/constants'
 import EditProductModal from '@/components/admin/EditProductModal'
+import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
+import RestockModal from '@/components/admin/RestockModal'
 
 interface Product {
   id: string
@@ -27,6 +29,8 @@ interface Product {
   status: string
   isLicensed: boolean
   isChampion: boolean
+  isNewArrival: boolean
+  isClearance: boolean
   _count?: { holds: number }
 }
 
@@ -39,7 +43,7 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState({
     name: '', description: '', priceCents: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
-    isLicensed: false, isChampion: false,
+    isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [imageFile, setImageFile]     = useState<File | null>(null)
@@ -48,6 +52,8 @@ export default function AdminProductsPage() {
 
   const [showArchived, setShowArchived] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [locationsProduct, setLocationsProduct] = useState<Product | null>(null)
+  const [restockProduct, setRestockProduct] = useState<Product | null>(null)
 
   const [search, setSearch]           = useState('')
   const [catFilter, setCatFilter]     = useState('all')
@@ -115,6 +121,8 @@ export default function AdminProductsPage() {
     body.append('imageUrl',    form.imageUrl)
     body.append('isLicensed',  String(form.isLicensed))
     body.append('isChampion',  String(form.isChampion))
+    body.append('isNewArrival', String(form.isNewArrival))
+    body.append('isClearance',  String(form.isClearance))
     if (imageFile) body.append('imageFile', imageFile)
 
     if (needsSizes && currentSizeList.length > 0) {
@@ -130,7 +138,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false })
+      setForm({ name: '', description: '', priceCents: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false })
       setSizeQuantities({})
       setImageFile(null); setImagePreview(null); setShowAdd(false)
       load()
@@ -278,6 +286,24 @@ export default function AdminProductsPage() {
               />
               <span className="font-medium text-jays-navy">ALC Champion 2025</span>
             </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isNewArrival}
+                onChange={(e) => setForm(f => ({ ...f, isNewArrival: e.target.checked }))}
+                className="w-4 h-4 rounded border-gray-300 accent-cyan-600"
+              />
+              <span className="font-medium text-jays-navy">New Arrival</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isClearance}
+                onChange={(e) => setForm(f => ({ ...f, isClearance: e.target.checked }))}
+                className="w-4 h-4 rounded border-gray-300 accent-jays-red"
+              />
+              <span className="font-medium text-jays-navy">Sales &amp; Clearance</span>
+            </label>
           </div>
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="bg-jays-navy text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-jays-royal transition-colors disabled:opacity-50">
@@ -406,6 +432,18 @@ export default function AdminProductsPage() {
                       >
                         Edit
                       </button>
+                      <button
+                        onClick={() => setLocationsProduct(p)}
+                        className="px-2 py-1 bg-jays-royal/10 text-jays-royal text-xs rounded-lg hover:bg-jays-royal/20 transition-colors whitespace-nowrap"
+                      >
+                        Locations
+                      </button>
+                      <button
+                        onClick={() => setRestockProduct(p)}
+                        className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap"
+                      >
+                        Restock
+                      </button>
                       {isArchived ? (
                         remaining > 0 ? (
                           <button onClick={() => handleUnarchive(p.id)} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap">Unarchive</button>
@@ -435,6 +473,23 @@ export default function AdminProductsPage() {
           setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p))
           setEditingProduct(null)
         }}
+      />
+
+      <ProductLocationsModal
+        key={locationsProduct?.id ?? 'none'}
+        productId={locationsProduct?.id ?? null}
+        productName={locationsProduct?.name ?? ''}
+        sizes={locationsProduct?.sizes ?? ''}
+        onClose={() => setLocationsProduct(null)}
+      />
+
+      <RestockModal
+        key={restockProduct ? `restock-${restockProduct.id}` : 'restock-none'}
+        productId={restockProduct?.id ?? null}
+        productName={restockProduct?.name ?? ''}
+        sizes={restockProduct?.sizes ?? ''}
+        onClose={() => setRestockProduct(null)}
+        onRestocked={() => { setRestockProduct(null); load() }}
       />
     </div>
   )

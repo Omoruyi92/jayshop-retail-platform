@@ -1,5 +1,7 @@
 'use client'
+import { useState } from 'react'
 import HoldButton from '@/components/shop/HoldButton'
+import AddToCartButton from '@/components/shop/AddToCartButton'
 import StatusChip from '@/components/ui/StatusChip'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
@@ -7,6 +9,8 @@ import BackToShopButton from '@/components/shop/BackToShopButton'
 import { formatCAD } from '@/lib/utils'
 import type { Product } from '@prisma/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { useFavorites } from '@/lib/store/FavoritesContext'
+import { Heart } from 'lucide-react'
 
 interface SizeAvailability {
   size: string
@@ -25,6 +29,16 @@ interface Props {
 export default function ProductDetails({ product, remaining, isSoldOut, sizes, displayStatus, sizeAvailability }: Props) {
   const { t } = useLanguage()
   const pd = t.product
+  const { isLiked, toggle } = useFavorites()
+  const [selectedSize, setSelectedSize] = useState('')
+  const hasSizes = sizes.length > 0
+  const liked = isLiked(product.id)
+
+  function isSizeOos(size: string): boolean {
+    if (!sizeAvailability) return false
+    const stock = sizeAvailability.find((s) => s.size === size)
+    return stock !== undefined && stock.available <= 0
+  }
 
   return (
     <div className="p-6">
@@ -33,7 +47,30 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
         <h1 className="font-display text-2xl font-bold text-jays-navy uppercase leading-tight">
           {product.name}
         </h1>
-        <StatusChip status={displayStatus} />
+        <div className="flex items-center gap-2 shrink-0">
+          <StatusChip status={displayStatus} />
+          <button
+            type="button"
+            onClick={() =>
+              toggle({
+                productId: product.id,
+                slug: product.slug,
+                name: product.name,
+                imageUrl: product.imageUrl,
+                priceCents: product.priceCents,
+              })
+            }
+            aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+            title={liked ? 'Remove from favorites' : 'Add to favorites'}
+            className={`flex items-center justify-center w-9 h-9 rounded-full border transition-colors ${
+              liked
+                ? 'bg-jays-red/10 border-jays-red text-jays-red'
+                : 'border-gray-200 text-gray-400 hover:border-jays-red hover:text-jays-red'
+            }`}
+          >
+            <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
+          </button>
+        </div>
       </div>
 
       {(product.isLicensed || product.isChampion) && (
@@ -65,13 +102,52 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
         <p className="text-jays-steel text-sm mb-6">{product.description}</p>
       )}
 
-      <HoldButton
-        product={product}
-        remaining={remaining}
-        isSoldOut={isSoldOut}
-        sizes={sizes}
-        sizeAvailability={sizeAvailability}
-      />
+      {hasSizes && !isSoldOut && (
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Size</label>
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((size) => {
+              const oos = isSizeOos(size)
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  disabled={oos}
+                  onClick={() => { if (!oos) setSelectedSize(size) }}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                    oos
+                      ? 'opacity-40 cursor-not-allowed line-through bg-gray-100 border-gray-200 text-gray-400'
+                      : selectedSize === size
+                      ? 'bg-jays-navy text-white border-jays-navy'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-jays-navy'
+                  }`}
+                >
+                  {size}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <AddToCartButton
+          product={product}
+          selectedSize={selectedSize || undefined}
+          sizes={sizes}
+          sizeAvailability={sizeAvailability}
+          remaining={remaining}
+          isSoldOut={isSoldOut}
+        />
+
+        <HoldButton
+          product={product}
+          remaining={remaining}
+          isSoldOut={isSoldOut}
+          sizes={sizes}
+          sizeAvailability={sizeAvailability}
+        />
+      </div>
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

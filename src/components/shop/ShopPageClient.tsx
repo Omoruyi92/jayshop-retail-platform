@@ -26,6 +26,10 @@ interface Product {
   status: string
   isLicensed: boolean
   isChampion: boolean
+  isFeatured: boolean
+  isNewArrival: boolean
+  isClearance: boolean
+  salePriceCents: number
   createdAt: Date
   updatedAt: Date
   remaining: number
@@ -33,10 +37,52 @@ interface Product {
   allSizesOos?: boolean
 }
 
-const CATEGORY_KEYS = ['All', 'Men', 'Women', 'Kids', 'Accessories'] as const
+const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance'])
 
-const selectCls =
-  'bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-jays-navy focus:border-transparent cursor-pointer w-full'
+function categoryMatches(product: Product, activeCategory: string): boolean {
+  if (activeCategory === 'All') return true
+  if (activeCategory === 'Featured') return product.isFeatured
+  if (activeCategory === 'New Arrivals') return product.isNewArrival
+  if (activeCategory === 'Sales & Clearance') return product.isClearance || product.salePriceCents > 0
+  return product.category.toLowerCase() === activeCategory.toLowerCase()
+}
+
+function PillRow({
+  label,
+  options,
+  active,
+  onSelect,
+  formatLabel,
+}: {
+  label: string
+  options: string[]
+  active: string
+  onSelect: (value: string) => void
+  formatLabel?: (value: string) => string
+}) {
+  if (options.length === 0) return null
+  return (
+    <div className="min-w-0">
+      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">{label}</p>
+      <div className="flex snap-x snap-mandatory items-center gap-1.5 overflow-x-auto scroll-px-1 pb-1 scrollbar-hide [mask-image:linear-gradient(to_right,transparent,black_10px,black_calc(100%-10px),transparent)] sm:[mask-image:none]">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onSelect(option)}
+            className={`shrink-0 snap-start whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-display font-semibold uppercase tracking-wide transition-all duration-300 ease-out ${
+              active.toLowerCase() === option.toLowerCase()
+                ? 'scale-[1.04] bg-gradient-to-r from-jays-navy to-jays-royal text-white shadow-md shadow-jays-navy/20'
+                : 'border border-jays-navy/12 bg-white/90 text-jays-navy shadow-sm hover:-translate-y-0.5 hover:border-jays-navy/30 hover:bg-white hover:shadow-md'
+            }`}
+          >
+            {formatLabel ? formatLabel(option) : option}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function ShopPageClient() {
   const { t } = useLanguage()
@@ -60,21 +106,28 @@ export default function ShopPageClient() {
   useEffect(() => {
     const saved = loadShopState()
     const urlCategory = searchParams?.get('category')?.trim()
+    const urlBrand = searchParams?.get('brand')?.trim()
     if (saved) {
       setActiveCategory(urlCategory || saved.category)
       setActiveSub(saved.sub)
-      setActiveBrand(saved.brand)
+      setActiveBrand(urlBrand || saved.brand)
       setSearchInput(saved.search)
       setSearchQuery(saved.search)
       pendingScrollRef.current = saved.scrollY
-    } else if (urlCategory) {
-      setActiveCategory(urlCategory)
+    } else {
+      if (urlCategory) setActiveCategory(urlCategory)
+      if (urlBrand) setActiveBrand(urlBrand)
     }
     hasRestoredRef.current = true
   }, [searchParams])
 
   useEffect(() => {
     const urlCategory = searchParams?.get('category')?.trim()
+    const urlBrand = searchParams?.get('brand')?.trim()
+    if (urlBrand) {
+      setActiveBrand(urlBrand)
+      return
+    }
     if (!urlCategory) return
     setActiveCategory(urlCategory)
     setActiveSub('All')
@@ -138,22 +191,22 @@ export default function ShopPageClient() {
     return () => clearInterval(interval)
   }, [fetchProducts])
 
-  const availableSubs = activeCategory === 'All'
+  const isSpecialCategory = SPECIAL_CATEGORIES.has(activeCategory)
+
+  const availableSubs = activeCategory === 'All' || isSpecialCategory
     ? []
     : ['All', ...(SUBS_BY_CAT[activeCategory.toLowerCase()] ?? [])]
 
-  const catFilteredProducts = products.filter((product) =>
-    activeCategory === 'All' || product.category.toLowerCase() === activeCategory.toLowerCase()
-  )
+  const catFilteredProducts = products.filter((product) => categoryMatches(product, activeCategory))
   const brandsFromProducts = Array.from(new Set(catFilteredProducts.map((product) => product.brand).filter(Boolean)))
-  const predefinedBrands = activeCategory === 'All' ? [] : (BRANDS_BY_CAT[activeCategory.toLowerCase()] ?? [])
+  const predefinedBrands = activeCategory === 'All' || isSpecialCategory ? [] : (BRANDS_BY_CAT[activeCategory.toLowerCase()] ?? [])
   const combinedBrands = Array.from(new Set([...predefinedBrands, ...brandsFromProducts]))
-  const availableBrands = activeCategory === 'All' ? [] : ['All', ...combinedBrands]
+  const availableBrands = activeCategory === 'All' || isSpecialCategory ? [] : ['All', ...combinedBrands]
 
   const filtered = products.filter((product) => {
-    const catMatch = activeCategory === 'All' || product.category.toLowerCase() === activeCategory.toLowerCase()
-    const subMatch = activeSub === 'All' || product.subcategory.toLowerCase() === activeSub.toLowerCase()
-    const brandMatch = activeBrand === 'All' || product.brand === activeBrand
+    const catMatch = categoryMatches(product, activeCategory)
+    const subMatch = isSpecialCategory || activeSub === 'All' || product.subcategory.toLowerCase() === activeSub.toLowerCase()
+    const brandMatch = isSpecialCategory || activeBrand === 'All' || product.brand === activeBrand
 
     let searchMatch = true
     if (searchQuery.trim()) {
@@ -200,64 +253,29 @@ export default function ShopPageClient() {
         <SearchBar value={searchInput} onChange={handleSearchChange} />
       </div>
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:gap-3">
-        <select
-          value={activeCategory}
-          onChange={(event) => {
-            setActiveCategory(event.target.value)
-            setActiveSub('All')
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+        <PillRow
+          label="Subcategory"
+          options={availableSubs}
+          active={activeSub}
+          onSelect={(value) => {
+            setActiveSub(value)
             setActiveBrand('All')
           }}
-          className={selectCls}
-          aria-label="Filter by category"
-        >
-          {CATEGORY_KEYS.map((category) => (
-            <option key={category} value={category}>
-              {s.categories[category]}
-            </option>
-          ))}
-        </select>
+          formatLabel={(sub) =>
+            sub === 'All'
+              ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
+              : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')
+          }
+        />
 
-        <select
-          value={activeSub}
-          onChange={(event) => {
-            setActiveSub(event.target.value)
-            setActiveBrand('All')
-          }}
-          disabled={availableSubs.length === 0}
-          className={`${selectCls} disabled:cursor-not-allowed disabled:opacity-40`}
-          aria-label="Filter by subcategory"
-        >
-          {availableSubs.length === 0 ? (
-            <option value="All">{s.allSubcategories}</option>
-          ) : (
-            availableSubs.map((sub) => (
-              <option key={sub} value={sub}>
-                {sub === 'All'
-                  ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
-                  : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')}
-              </option>
-            ))
-          )}
-        </select>
-
-        <select
-          value={activeBrand}
-          onChange={(event) => setActiveBrand(event.target.value)}
-          disabled={availableBrands.length === 0}
-          className={`${selectCls} disabled:cursor-not-allowed disabled:opacity-40`}
-          aria-label="Filter by brand"
-        >
-          {availableBrands.length === 0 ? (
-            <option value="All">All Brands</option>
-          ) : (
-            availableBrands.map((brand) => (
-              <option key={brand} value={brand}>
-                {brand === 'All' ? 'All Brands' : brand}
-              </option>
-            ))
-          )}
-        </select>
+        <PillRow
+          label="Brand"
+          options={availableBrands}
+          active={activeBrand}
+          onSelect={setActiveBrand}
+          formatLabel={(brand) => (brand === 'All' ? 'All Brands' : brand)}
+        />
       </div>
 
       {!loading && (

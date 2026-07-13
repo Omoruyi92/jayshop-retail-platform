@@ -51,6 +51,10 @@ export async function GET(req: NextRequest) {
     createdAt: f.createdAt.toISOString(),
   }))
 
+  const testimonials = [...reviews, ...feedbackItems]
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, limit)
+
   // Compute stats from all approved positive reviews
   const allPositiveReviews = await prisma.productReview.findMany({
     where: { rating: { gte: 4 }, status: 'APPROVED' },
@@ -71,6 +75,7 @@ export async function GET(req: NextRequest) {
     avgRating: Math.round(avgRating * 10) / 10,
     reviewCount,
     recentReviewCount,
+    testimonials,
     reviews,
     feedback: feedbackItems,
   })

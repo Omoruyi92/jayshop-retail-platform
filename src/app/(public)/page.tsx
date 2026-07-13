@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import UpcomingMatchCard from '@/components/home/UpcomingMatchCard'
 import FanTestimonials from '@/components/home/FanTestimonials'
+import PartnerLogoMarquee from '@/components/ui/PartnerLogoMarquee'
 import BrandWatermarks from '@/components/ui/BrandWatermarks'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 
@@ -193,60 +194,61 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0">
           <div aria-hidden="true" className="absolute inset-x-0 bottom-[6px] h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent sm:bottom-[10px]" />
           <svg viewBox="0 0 1440 48" fill="none" className="h-6 w-full sm:h-10">
-            <path d="M0 48L1440 48L1440 0C1200 40 240 40 0 0L0 48Z" fill="white" />
+            <path d="M0 48L1440 48L1440 0C1200 40 240 40 0 0L0 48Z" fill="#F0F4FA" />
           </svg>
         </div>
       </section>
 
+      
       {/* ── How It Works ─────────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-4 py-10">
-        <h2 className="font-display text-2xl font-bold uppercase text-jays-navy text-center mb-2">
-          {h.howItWorksTitle}
-        </h2>
-        <p className="text-jays-steel text-center text-sm mb-6">
-          {h.howItWorksSubtitle}
-        </p>
+      <section className="bg-jays-ice py-16">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase text-jays-navy text-center mb-3">
+            {h.howItWorksTitle}
+          </h2>
+          <p className="text-jays-steel text-center text-base sm:text-lg mb-10">
+            {h.howItWorksSubtitle}
+          </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {steps.map((item) => (
-            <div
-              key={item.step}
-              className="bg-white rounded-2xl p-6 shadow-sm text-center border border-gray-100 hover:border-jays-navy hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 bg-jays-navy text-white rounded-xl flex items-center justify-center mx-auto mb-4">
-                {item.icon}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+            {steps.map((item) => (
+              <div
+                key={item.step}
+                className="bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1"
+              >
+                <div className="w-14 h-14 bg-jays-navy text-white rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  {item.icon}
+                </div>
+                <p className="font-display text-sm font-semibold text-jays-steel/70 mb-2">{item.step}</p>
+                <h3 className="font-display font-bold text-xl text-jays-navy uppercase mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-jays-steel text-sm sm:text-base leading-relaxed">{item.body}</p>
               </div>
-              <p className="font-mono text-xs text-jays-steel mb-1">{item.step}</p>
-              <h3 className="font-display font-semibold text-lg text-jays-navy uppercase mb-2">
-                {item.title}
-              </h3>
-              <p className="text-jays-steel text-sm leading-relaxed">{item.body}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* ── Stadium Policy Notice ─────────────────────────────── */}
-        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5">
-          <div className="flex items-start gap-3">
-            <span className="text-amber-500 text-xl mt-0.5" aria-hidden="true">⚠️</span>
-            <div>
-              <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-amber-800 mb-1">
-                {h.stadiumPolicyTitle}
-              </h3>
-              <p className="text-amber-700 text-sm leading-relaxed">
-                {h.stadiumPolicyBody}
-              </p>
+          {/* ── Stadium Policy Notice ─────────────────────────────── */}
+          <div className="mt-10 rounded-2xl border border-amber-200/60 bg-[#FFFDF4] px-6 py-5 shadow-sm">
+            <div className="flex items-start gap-4">
+              <svg className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="font-display font-bold text-sm sm:text-base uppercase tracking-wide text-amber-900 mb-1.5">
+                  {h.stadiumPolicyTitle}
+                </h3>
+                <p className="text-amber-800/90 text-sm sm:text-base leading-relaxed">
+                  {h.stadiumPolicyBody}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+          {/* ── Partner Marquee ─────────────────────────────────────────── */}
+          <div className="mt-14">
+            <PartnerLogoMarquee />
+          </div>
 
-        <div className="text-center mt-6">
-          <Link
-            href="/shop"
-            className="inline-flex items-center gap-2 border-2 border-jays-navy text-jays-navy font-display font-semibold uppercase tracking-wide px-7 py-3 rounded-xl hover:bg-jays-navy hover:text-white transition-colors"
-          >
-            {h.viewAllProducts}
-          </Link>
         </div>
       </section>
 

@@ -6,15 +6,69 @@ import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard, Package, ClipboardList, History,
   BarChart2, Bell, LogOut, ExternalLink, Menu, X,
+  Tag, Image as ImageIcon, Users, Megaphone, Calendar,
+  Clock, Boxes, KeyRound, Radio, Terminal, LineChart,
+  ScrollText, Star, MessageSquare, UserCog, Settings,
 } from 'lucide-react'
 
-const links = [
-  { href: '/admin',               label: 'Dashboard',     icon: LayoutDashboard },
-  { href: '/admin/products',      label: 'Products',      icon: Package },
-  { href: '/admin/holds',         label: 'Holds',         icon: ClipboardList },
-  { href: '/admin/history',       label: 'History',       icon: History },
-  { href: '/admin/reports',       label: 'Reports',       icon: BarChart2 },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+const linkGroups = [
+  {
+    label: 'Overview',
+    links: [
+      { href: '/admin',               label: 'Dashboard',     icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'Catalog',
+    links: [
+      { href: '/admin/products',      label: 'Products',      icon: Package },
+      { href: '/admin/brands',        label: 'Brands',        icon: Tag },
+      { href: '/admin/gallery',       label: 'Gallery',       icon: ImageIcon },
+      { href: '/admin/players',       label: 'Players',       icon: Users },
+      { href: '/admin/promotions',    label: 'Promotions',    icon: Megaphone },
+    ],
+  },
+  {
+    label: 'Operations',
+    links: [
+      { href: '/admin/holds',              label: 'Holds',            icon: ClipboardList },
+      { href: '/admin/hold-settings',       label: 'Hold Settings',    icon: Clock },
+      { href: '/admin/inventory/history',   label: 'Inventory History',icon: Boxes },
+      { href: '/admin/game-days',           label: 'Game Days',        icon: Calendar },
+    ],
+  },
+  {
+    label: 'POS',
+    links: [
+      { href: '/admin/pos-keys',       label: 'POS Keys',      icon: KeyRound },
+      { href: '/admin/pos-events',     label: 'POS Events',    icon: Radio },
+      { href: '/admin/pos-simulator',  label: 'POS Simulator', icon: Terminal },
+    ],
+  },
+  {
+    label: 'Insights',
+    links: [
+      { href: '/admin/analytics',     label: 'Analytics',     icon: LineChart },
+      { href: '/admin/reports',       label: 'Reports',       icon: BarChart2 },
+      { href: '/admin/history',       label: 'History',       icon: History },
+      { href: '/admin/audit-log',     label: 'Audit Log',     icon: ScrollText },
+    ],
+  },
+  {
+    label: 'Community',
+    links: [
+      { href: '/admin/reviews',       label: 'Reviews',       icon: Star },
+      { href: '/admin/feedback',      label: 'Feedback',      icon: MessageSquare },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
+  {
+    label: 'Admin',
+    links: [
+      { href: '/admin/admins',        label: 'Admins',        icon: UserCog },
+      { href: '/admin/settings',      label: 'Settings',      icon: Settings },
+    ],
+  },
 ]
 
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -30,25 +84,32 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {links.map(({ href, label, icon: Icon }) => {
-          const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onLinkClick}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-white/15 text-white'
-                  : 'text-blue-200 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {linkGroups.map((group) => (
+          <div key={group.label} className="space-y-1">
+            <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-blue-300/60">
+              {group.label}
+            </p>
+            {group.links.map(({ href, label, icon: Icon }) => {
+              const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onLinkClick}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-white/15 text-white'
+                      : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Sign out + public site */}

@@ -65,6 +65,12 @@ export async function POST(request: Request) {
     if (error.message === 'SIZE_NOT_AVAILABLE') {
       return NextResponse.json({ error: 'This size is no longer available' }, { status: 409 })
     }
+    if (error.message === 'SECTION_123_GAME_DAY_ONLY') {
+      return NextResponse.json(
+        { error: 'Section 123 stadium pickup is only available on active game days', code: 'SECTION_123_GAME_DAY_ONLY' },
+        { status: 409 }
+      )
+    }
     console.error(error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

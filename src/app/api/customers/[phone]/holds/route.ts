@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +27,12 @@ export async function GET(req: Request, { params }: { params: { phone: string } 
   if (isRateLimited(ip)) {
     return NextResponse.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 })
   }
+
+  // Inline auto-expire so a fan looking up their holds never sees a stale
+  // "ACTIVE" status after the expiry window has already passed.
+  await autoExpireOverdueHolds().catch((err) => {
+    console.error('[customers/[phone]/holds] Inline auto-expire failed:', err)
+  })
 
   const phone = decodeURIComponent(params.phone)
   const customer = await prisma.customer.findUnique({

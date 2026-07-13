@@ -1,18 +1,19 @@
-// PartnerLogosBar.tsx — inline banner with location status + animated partner logos
+// PartnerLogosBar.tsx — inline banner with location status + animated promotions/partner logos
 'use client'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
-const PARTNERS = [
-  { src: '/brand/partners/nike.png',              alt: 'Nike',              landscape: true },
-  { src: '/brand/partners/new-era.png',           alt: 'New Era',           landscape: false },
-  { src: '/brand/partners/fanatics.png',          alt: 'Fanatics',          landscape: true },
-  { src: '/brand/partners/levelwear.png',         alt: 'Levelwear',         landscape: false },
-  { src: '/brand/partners/47brand.jpg',           alt: '47 Brand',          landscape: false },
-  { src: '/brand/partners/roots.jpg',             alt: 'Roots',             landscape: true },
-  { src: '/brand/partners/peace-collective.png',  alt: 'Peace Collective',  landscape: false },
-  { src: '/brand/partners/mitchell-ness.png',     alt: 'Mitchell & Ness',   landscape: true },
-  { src: '/brand/partners/bulletin.png',          alt: 'Bulletin',          landscape: false },
+export const PARTNERS = [
+  { src: '/brand/partners/nike.png',              alt: 'Nike',              landscape: true,  href: '/shop?brand=Nike' },
+  { src: '/brand/partners/new-era.png',           alt: 'New Era',           landscape: false, href: '/shop?brand=New Era' },
+  { src: '/brand/partners/fanatics.png',          alt: 'Fanatics',          landscape: true,  href: '/shop?brand=Fanatics' },
+  { src: '/brand/partners/levelwear.png',         alt: 'Levelwear',         landscape: false, href: '/shop?brand=Levelwear' },
+  { src: '/brand/partners/47brand.jpg',           alt: '47 Brand',          landscape: false, href: '/shop?brand=47 Brand' },
+  { src: '/brand/partners/roots.jpg',             alt: 'Roots',             landscape: true,  href: '/shop?brand=Roots' },
+  { src: '/brand/partners/peace-collective.png',  alt: 'Peace Collective',  landscape: false, href: '/shop?brand=Peace Collective' },
+  { src: '/brand/partners/mitchell-ness.png',     alt: 'Mitchell & Ness',   landscape: true,  href: '/shop?brand=Mitchell & Ness' },
+  { src: '/brand/partners/bulletin.png',          alt: 'Bulletin',          landscape: false, href: '/shop?brand=Bulletin' },
 ]
 
 const OPEN_HOUR = 10
@@ -90,7 +91,52 @@ function LogoStrip() {
   )
 }
 
+interface Promotion {
+  id: string
+  text: string
+  link: string | null
+}
+
+function usePromotions() {
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+
+  useEffect(() => {
+    fetch('/api/promotions')
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.promotions)) setPromotions(d.promotions) })
+      .catch(() => {})
+  }, [])
+
+  return promotions
+}
+
+/* Duplicated promo set for seamless marquee loop */
+function PromoStrip({ promotions }: { promotions: Promotion[] }) {
+  return (
+    <>
+      {promotions.map((p, i) => {
+        const content = (
+          <span className="flex items-center gap-1.5 shrink-0 rounded-full bg-white/10 px-3 py-1 whitespace-nowrap hover:bg-white/15 transition-colors">
+            <span className="h-1.5 w-1.5 rounded-full bg-jays-red animate-pulse" />
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{p.text}</span>
+          </span>
+        )
+        return p.link ? (
+          <Link key={`${p.id}-${i}`} href={p.link} className="shrink-0">
+            {content}
+          </Link>
+        ) : (
+          <div key={`${p.id}-${i}`} className="shrink-0">{content}</div>
+        )
+      })}
+    </>
+  )
+}
+
 export default function PartnerLogosBar() {
+  const promotions = usePromotions()
+  const hasPromotions = promotions.length > 0
+
   return (
     <div className="flex items-center justify-between bg-white/[0.06] rounded-full px-3 py-1 border border-white/10 gap-2">
       {/* Location + Status */}
@@ -99,19 +145,35 @@ export default function PartnerLogosBar() {
       {/* Divider */}
       <span className="w-px h-6 bg-white/10 shrink-0" aria-hidden="true" />
 
-      {/* Partner logos — marquee animation */}
-      <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
-        <span className="text-[7px] text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1">
-          Partners
-        </span>
-        <div className="overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-          <div className="animate-marquee flex items-center gap-2 w-max">
-            <LogoStrip />
-            {/* Duplicate for seamless loop */}
-            <LogoStrip />
+      {hasPromotions ? (
+        /* Promotions — marquee animation */
+        <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
+          <span className="text-[7px] text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1">
+            Deals
+          </span>
+          <div className="group/promo overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <div className="animate-marquee flex items-center gap-2 w-max group-hover/promo:[animation-play-state:paused]">
+              <PromoStrip promotions={promotions} />
+              {/* Duplicate for seamless loop */}
+              <PromoStrip promotions={promotions} />
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* Fallback — partner logos marquee when no active promotions */
+        <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
+          <span className="text-[7px] text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1">
+            Partners
+          </span>
+          <div className="overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <div className="animate-marquee flex items-center gap-2 w-max">
+              <LogoStrip />
+              {/* Duplicate for seamless loop */}
+              <LogoStrip />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

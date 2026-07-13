@@ -32,6 +32,8 @@ export async function POST(req: Request) {
     const sizeQuantitiesRaw = formData.get('sizeQuantities') as string | null
     const isLicensed = formData.get('isLicensed') === 'true'
     const isChampion = formData.get('isChampion') === 'true'
+    const isNewArrival = formData.get('isNewArrival') === 'true'
+    const isClearance = formData.get('isClearance') === 'true'
 
     if (!name || !priceCents) {
       return NextResponse.json({ error: 'name and priceCents required' }, { status: 400 })
@@ -104,6 +106,8 @@ export async function POST(req: Request) {
           imageUrl: finalImageUrl,
           isLicensed,
           isChampion,
+          isNewArrival,
+          isClearance,
         },
       })
 
@@ -117,6 +121,19 @@ export async function POST(req: Request) {
             locationId,
             quantity: sizeQuantitiesMap?.[size] ?? defaultQty,
           })),
+        })
+      }
+
+      if (isNewArrival) {
+        await tx.customerNotification.create({
+          data: {
+            type: 'NEW_ARRIVAL',
+            title: 'New Arrival!',
+            body: `${created.name} just landed — check it out.`,
+            productId: created.id,
+            productSlug: created.slug,
+            imageUrl: created.imageUrl,
+          },
         })
       }
 

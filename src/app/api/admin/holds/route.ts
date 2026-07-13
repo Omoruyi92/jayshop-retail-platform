@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
+import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   const { error } = await requireAdminSession()
   if (error) return error
+
+  // Inline auto-expire so the staff queue reflects reality without waiting for
+  // the scheduled cron or a manual "Expire Overdue" click.
+  await autoExpireOverdueHolds().catch((err) => {
+    console.error('[admin/holds] Inline auto-expire failed:', err)
+  })
 
   const { searchParams } = new URL(req.url)
   const statusParam = searchParams.get('status')

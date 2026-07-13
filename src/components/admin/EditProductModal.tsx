@@ -22,6 +22,8 @@ interface Product {
   status: string
   isLicensed: boolean
   isChampion: boolean
+  isNewArrival: boolean
+  isClearance: boolean
   _count?: { holds: number }
 }
 
@@ -46,6 +48,8 @@ function buildInitialForm(product: Product) {
     status:      product.status,
     isLicensed:  product.isLicensed,
     isChampion:  product.isChampion,
+    isNewArrival: product.isNewArrival,
+    isClearance:  product.isClearance,
     imageUrl:    product.imageUrl,
   }
 }
@@ -120,6 +124,8 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
       status:      form.status,
       isLicensed:  form.isLicensed,
       isChampion:  form.isChampion,
+      isNewArrival: form.isNewArrival,
+      isClearance:  form.isClearance,
       quantity:    parseInt(form.quantity, 10) || 1,
       sizes:       needsSizes ? form.sizes : '',
     }
@@ -333,6 +339,24 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
                 className="w-4 h-4 rounded border-gray-300 accent-yellow-500"
               />
               <span className="font-medium text-jays-navy">ALC Champion 2025</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isNewArrival}
+                onChange={(e) => setForm((f) => f ? ({ ...f, isNewArrival: e.target.checked }) : f)}
+                className="w-4 h-4 rounded border-gray-300 accent-cyan-600"
+              />
+              <span className="font-medium text-jays-navy">New Arrival</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isClearance}
+                onChange={(e) => setForm((f) => f ? ({ ...f, isClearance: e.target.checked }) : f)}
+                className="w-4 h-4 rounded border-gray-300 accent-jays-red"
+              />
+              <span className="font-medium text-jays-navy">Sales &amp; Clearance</span>
             </label>
           </div>
         </div>

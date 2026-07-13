@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { resolveHold } from '@/lib/holds/resolveHold'
+import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(_req: Request, { params }: { params: { reservationId: string } }) {
+  // Inline auto-expire so a fan looking up their hold never sees a stale
+  // "ACTIVE" status after the expiry window has already passed.
+  await autoExpireOverdueHolds().catch((err) => {
+    console.error('[holds/[reservationId]] Inline auto-expire failed:', err)
+  })
+
   const hold = await prisma.hold.findUnique({
     where: { reservationCode: params.reservationId },
     include: { product: true, customer: true },

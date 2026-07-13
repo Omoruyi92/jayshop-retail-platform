@@ -1,52 +1,86 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
-const CATEGORY_ORDER = [
-  'All',
-  'Men',
-  'Women',
-  'Kids',
-  'Sports',
-  'Jerseys',
-  'Hats',
-  'Casuals',
-  'Accessories',
-  'Authentication',
-  'Blank Jersey',
-  'Featured',
-  'New Arrivals',
-  'Sales & Clearance',
-]
+const CATEGORY_LABELS: Record<string, string> = {
+  men: 'Men',
+  women: 'Women',
+  kids: 'Kids',
+  accessories: 'Accessories',
+  authentication: 'Authentication',
+  sports: 'Sports',
+}
+
+const CATEGORY_SORT_ORDER = ['men', 'women', 'kids', 'accessories', 'sports', 'authentication']
 
 export default async function StickyShopCategoryNav({ activeCategory }: { activeCategory?: string }) {
   const products = await prisma.product.findMany({
     where: { status: { not: 'ARCHIVED' } },
-    select: { category: true, subcategory: true, name: true },
+    select: { category: true, isFeatured: true, isNewArrival: true, isClearance: true, salePriceCents: true },
   })
 
-  const categories = new Set<string>()
+  const categorySet = new Set<string>()
+  let hasFeatured = false
+  let hasNewArrival = false
+  let hasClearance = false
   for (const p of products) {
-    if (p.category) categories.add(p.category)
+    if (p.category) categorySet.add(p.category.toLowerCase())
+    if (p.isFeatured) hasFeatured = true
+    if (p.isNewArrival) hasNewArrival = true
+    if (p.isClearance || p.salePriceCents > 0) hasClearance = true
   }
-  const availableCategories = CATEGORY_ORDER.filter((cat) => cat === 'All' || categories.has(cat))
+
+  const realCategories = Array.from(categorySet).sort((a, b) => {
+    const ai = CATEGORY_SORT_ORDER.indexOf(a)
+    const bi = CATEGORY_SORT_ORDER.indexOf(b)
+    if (ai === -1 && bi === -1) return a.localeCompare(b)
+    if (ai === -1) return 1
+    if (bi === -1) return -1
+    return ai - bi
+  })
+
+  const pills: { label: string; value: string }[] = [
+    { label: 'All', value: 'All' },
+    ...realCategories.map((c) => ({ label: CATEGORY_LABELS[c] ?? c.charAt(0).toUpperCase() + c.slice(1), value: c })),
+    ...(hasFeatured ? [{ label: 'Featured', value: 'Featured' }] : []),
+    ...(hasNewArrival ? [{ label: 'New Arrivals', value: 'New Arrivals' }] : []),
+    ...(hasClearance ? [{ label: 'Sales & Clearance', value: 'Sales & Clearance' }] : []),
+  ]
 
   return (
-    <div className="sticky top-14 sm:top-[5.5rem] xl:top-14 z-20 bg-jays-ice/95 backdrop-blur border-y border-gray-200/60">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
-          {availableCategories.map((cat) => (
-            <Link
-              key={cat}
-              href={cat === 'All' ? '/shop' : `/shop?category=${encodeURIComponent(cat)}`}
-              className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-display font-semibold uppercase tracking-wide transition-all duration-200 ${
-                activeCategory === cat
-                  ? 'bg-gradient-to-r from-jays-navy to-jays-royal text-white shadow-md shadow-jays-navy/20'
-                  : 'bg-white/90 text-jays-navy border border-jays-navy/12 hover:border-jays-navy/30 hover:bg-white hover:shadow-sm'
-              }`}
-            >
-              {cat}
-            </Link>
-          ))}
+    <div className="sticky top-14 sm:top-[5.5rem] xl:top-14 z-20">
+      <div className="relative overflow-hidden border-y border-jays-navy/10 bg-gradient-to-b from-white via-white to-jays-ice/70 shadow-[0_1px_0_rgba(19,74,142,0.06)] backdrop-blur-md">
+        {/* subtle dotted pattern */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, #134A8E 1px, transparent 0)',
+            backgroundSize: '18px 18px',
+          }}
+        />
+        {/* soft brand-color glows for a premium feel */}
+        <div aria-hidden className="pointer-events-none absolute -left-10 -top-16 h-32 w-32 rounded-full bg-jays-royal/10 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-10 -bottom-16 h-32 w-32 rounded-full bg-jays-red/10 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-6">
+          <div className="flex snap-x snap-mandatory items-center gap-2 overflow-x-auto scroll-px-3 pb-0.5 scrollbar-hide [mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)] sm:[mask-image:none]">
+            {pills.map(({ label, value }) => {
+              const isActive = (activeCategory ?? 'All') === value
+              return (
+                <Link
+                  key={value}
+                  href={value === 'All' ? '/shop' : `/shop?category=${encodeURIComponent(value)}`}
+                  className={`shrink-0 snap-start whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-display font-semibold uppercase tracking-wide transition-all duration-300 ease-out sm:px-5 sm:text-xs ${
+                    isActive
+                      ? 'scale-[1.04] bg-gradient-to-r from-jays-navy to-jays-royal text-white shadow-lg shadow-jays-navy/25'
+                      : 'border border-jays-navy/12 bg-white text-jays-navy shadow-sm hover:-translate-y-0.5 hover:border-jays-navy/25 hover:bg-jays-ice/70 hover:shadow-md'
+                  }`}
+                >
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

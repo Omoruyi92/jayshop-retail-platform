@@ -34,6 +34,13 @@ export default function HoldButton({
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
   const [isStadiumHold, setIsStadiumHold] = useState(false)
+  const [precheck, setPrecheck] = useState<{
+    gameDay: boolean
+    extendedAvailable: boolean
+    stadiumHours: number
+    gate5Hours: number | null
+    standardHoldHours: number
+  } | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
     fullName?: string
     phone?: string
@@ -42,6 +49,39 @@ export default function HoldButton({
   }>({})
 
   const hasSizes = sizes.length > 0
+
+  // Fetch game-day / hold-window info when the modal opens so the stadium
+  // queue option can be gated to active game days (server-enforced too) and
+  // the displayed hold windows reflect the admin-configured settings.
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    fetch(`/api/holds/precheck?productId=${product.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        setPrecheck({
+          gameDay: data.gameDay,
+          extendedAvailable: data.extendedAvailable,
+          stadiumHours: data.stadiumHours,
+          gate5Hours: data.gate5Hours,
+          standardHoldHours: data.standardHoldHours,
+        })
+        // Stadium queue is only available on active game days — force back
+        // to standard hold if it was selected before this loaded.
+        if (!data.gameDay) setIsStadiumHold(false)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [open, product.id])
+
+  const standardHoldHours = precheck
+    ? (precheck.extendedAvailable ? precheck.gate5Hours ?? precheck.standardHoldHours : precheck.standardHoldHours)
+    : null
+  const stadiumHoldHours = precheck?.stadiumHours ?? null
+  const stadiumAvailable = precheck?.gameDay ?? false
 
   // When a size is selected and per-size availability is known, cap maxQty to
   // that size's available stock. Otherwise fall back to the total remaining.
@@ -177,25 +217,37 @@ export default function HoldButton({
                   />
                   <div>
                     <p className="text-sm font-semibold text-jays-navy">{hb.standardHoldTitle}</p>
-                    <p className="text-xs text-jays-steel">{hb.standardHoldDesc}</p>
+                    <p className="text-xs text-jays-steel">
+                      {hb.standardHoldDesc(standardHoldHours ?? 3)}
+                    </p>
                   </div>
                 </label>
 
                 <label
-                  className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
-                    isStadiumHold ? 'border-jays-red bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                  className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
+                    !stadiumAvailable
+                      ? 'opacity-40 cursor-not-allowed border-gray-200'
+                      : isStadiumHold
+                      ? 'border-jays-red bg-red-50 cursor-pointer'
+                      : 'border-gray-200 hover:border-gray-300 cursor-pointer'
                   }`}
                 >
                   <input
                     type="radio"
                     name="holdType"
                     checked={isStadiumHold}
-                    onChange={() => setIsStadiumHold(true)}
+                    disabled={!stadiumAvailable}
+                    onChange={() => stadiumAvailable && setIsStadiumHold(true)}
                     className="mt-0.5 accent-jays-red"
                   />
                   <div>
                     <p className="text-sm font-semibold text-jays-navy">{hb.stadiumHoldTitle}</p>
-                    <p className="text-xs text-jays-steel">{hb.stadiumHoldDesc}</p>
+                    <p className="text-xs text-jays-steel">
+                      {hb.stadiumHoldDesc(stadiumHoldHours ?? 24)}
+                    </p>
+                    {!stadiumAvailable && (
+                      <p className="text-xs text-amber-700 mt-0.5">{hb.stadiumUnavailableNote}</p>
+                    )}
                   </div>
                 </label>
               </div>

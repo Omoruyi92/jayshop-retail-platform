@@ -2,12 +2,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
-import PartnerLogosBar from '@/components/ui/PartnerLogosBar'
+import PartnerLogosBar, { LocationBadge } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -25,7 +23,7 @@ const WE_CARE_VALUES = [
   { letter: 'A', word: 'Authentic', desc: 'Genuine products & service' },
   { letter: 'R', word: 'Responsible', desc: 'Committed to doing right' },
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
-] as const
+]
 
 const MOBILE_PARTNERS = [
   { src: '/brand/partners/nike.png', alt: 'Nike', landscape: true },
@@ -37,46 +35,54 @@ const MOBILE_PARTNERS = [
   { src: '/brand/partners/peace-collective.png', alt: 'Peace Collective', landscape: false },
   { src: '/brand/partners/mitchell-ness.png', alt: 'Mitchell & Ness', landscape: true },
   { src: '/brand/partners/bulletin.png', alt: 'Bulletin', landscape: false },
-] as const
+]
 
 export default function Header() {
   const { t, locale, setLocale } = useLanguage()
-  const { status } = useSession()
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [weCareOpen, setWeCareOpen] = useState(false)
-  const [shopDropOpen, setShopDropOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileWeCareOpen, setMobileWeCareOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const weCareRef = useRef<HTMLDivElement>(null)
+
+  const [shopDropOpen, setShopDropOpen] = useState(false)
   const shopDropRef = useRef<HTMLDivElement>(null)
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileWeCareOpen, setMobileWeCareOpen] = useState(false)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   const navLinks = [
-    { href: '/players', label: t.header.popularPlayers },
-    { href: '/about-us', label: t.header.about },
+    { href: '/players',   label: t.header.popularPlayers },
+    { href: '/about-us',  label: t.header.about },
   ]
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node
-      if (dropdownRef.current && !dropdownRef.current.contains(target)) setOpen(false)
-      if (weCareRef.current && !weCareRef.current.contains(target)) setWeCareOpen(false)
-      if (shopDropRef.current && !shopDropRef.current.contains(target)) setShopDropOpen(false)
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(target)) setMobileMenuOpen(false)
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+      if (weCareRef.current && !weCareRef.current.contains(e.target as Node)) {
+        setWeCareOpen(false)
+      }
+      if (shopDropRef.current && !shopDropRef.current.contains(e.target as Node)) {
+        setShopDropOpen(false)
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false)
+      }
     }
-
     if (open || weCareOpen || shopDropOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
-
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open, weCareOpen, shopDropOpen, mobileMenuOpen])
 
   return (
-    <header className="sticky top-0 z-40 overflow-x-clip bg-jays-navy text-white shadow-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-2 sm:px-4">
+    <header className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
+      {/* Main nav row */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 h-14 flex items-center gap-2">
+        {/* Left: Logo + MLB */}
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/" className="flex items-center gap-2 focus-visible:outline-none" aria-label="Jays Shop home">
             <Image
@@ -84,60 +90,68 @@ export default function Header() {
               alt="Blue Jays logo"
               width={44}
               height={44}
-              className="h-9 w-9 object-contain sm:h-10 sm:w-10"
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
               priority
             />
             <span className="flex flex-col leading-none">
-              <span className="font-display text-xl font-bold uppercase tracking-wider leading-none">
+              <span className="font-display font-bold text-xl uppercase tracking-wider leading-none">
                 <span className="text-jays-red">JAYS</span>
                 <span className="text-white"> SHOP</span>
               </span>
-              <span className="mt-0.5 block whitespace-nowrap text-[7px] font-semibold uppercase tracking-[0.1em] text-blue-200/80 sm:text-[9px] sm:tracking-[0.15em]">
+              <span className="block text-[7px] sm:text-[9px] font-semibold uppercase tracking-[0.1em] sm:tracking-[0.15em] text-blue-200/80 mt-0.5 whitespace-nowrap">
                 Toronto Blue Jays
               </span>
             </span>
           </Link>
-          <span className="mx-0.5 hidden h-5 w-px bg-white/20 sm:block" aria-hidden="true" />
-          <MLBLogo size={44} className="hidden shrink-0 opacity-80 sm:block" />
+          <span className="hidden sm:block w-px h-5 bg-white/20 mx-0.5" aria-hidden="true" />
+          <MLBLogo size={44} className="hidden sm:block opacity-80 shrink-0" />
         </div>
 
-        <div className="mx-2 hidden min-w-0 flex-1 overflow-hidden xl:block">
+        {/* Center: Partner logos banner — only on xl+ to avoid overflow */}
+        <div className="hidden xl:block flex-1 mx-2 min-w-0 overflow-hidden">
           <PartnerLogosBar />
         </div>
 
+        {/* Spacer on non-xl screens */}
         <div className="flex-1 xl:hidden" />
 
-        <div className="flex items-center gap-1 shrink-0 sm:gap-2">
+        {/* Right: We Care, Language, Nav */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <HeaderActions />
 
+          {/* "We Care" — clickable with popover */}
           <div className="relative hidden md:block" ref={weCareRef}>
             <button
               onClick={() => setWeCareOpen((prev) => !prev)}
-              className="cursor-pointer whitespace-nowrap text-sm tracking-wide text-blue-200 transition-all duration-200 hover:scale-105 hover:text-white"
-              style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: 'italic' }}
+              className="text-blue-200 italic text-sm tracking-wide hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer whitespace-nowrap"
+              style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
               aria-label="We Care values"
             >
               <span className="inline-block animate-breathe">We Care</span>
             </button>
 
             {weCareOpen && (
-              <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl duration-200">
+              <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Header */}
                 <div className="bg-gradient-to-r from-jays-navy to-jays-royal px-4 py-3">
-                  <p className="font-display text-sm font-bold uppercase tracking-wider text-white">Our Values</p>
-                  <p className="mt-0.5 text-[10px] text-blue-200">What WE CARE means to us</p>
+                  <p className="font-display font-bold text-sm uppercase tracking-wider text-white">
+                    Our Values
+                  </p>
+                  <p className="text-blue-200 text-[10px] mt-0.5">What WE CARE means to us</p>
                 </div>
+                {/* Values list */}
                 <div className="p-2">
-                  {WE_CARE_VALUES.map((value) => (
+                  {WE_CARE_VALUES.map((v, i) => (
                     <div
-                      key={value.word}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2 transition-colors duration-150 hover:bg-jays-ice"
+                      key={i}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-jays-ice transition-colors duration-150"
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-jays-red to-red-600 text-sm font-bold text-white shadow-sm">
-                        {value.letter}
+                      <span className="w-8 h-8 bg-gradient-to-br from-jays-red to-red-600 text-white rounded-lg flex items-center justify-center font-display font-bold text-sm shrink-0 shadow-sm">
+                        {v.letter}
                       </span>
                       <div>
-                        <p className="font-display text-sm font-semibold text-jays-navy">{value.word}</p>
-                        <p className="text-xs text-jays-steel">{value.desc}</p>
+                        <p className="font-display font-semibold text-sm text-jays-navy">{v.word}</p>
+                        <p className="text-[10px] text-jays-steel leading-tight">{v.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -146,17 +160,18 @@ export default function Header() {
             )}
           </div>
 
+          {/* Language selector */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setOpen((prev) => !prev)}
-              className="flex items-center gap-1.5 bg-white/10 backdrop-blur text-white rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="flex items-center gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-label="Select language"
             >
               <span>{LOCALE_LABELS[locale]}</span>
               <svg
-                className={`w-3.5 h-3.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+                className={`w-3 h-3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -191,40 +206,47 @@ export default function Header() {
             )}
           </div>
 
-          <nav className="hidden items-center gap-4 whitespace-nowrap text-sm font-medium sm:flex">
+          {/* Nav links */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm font-medium whitespace-nowrap">
+            {/* Shop & Holds dropdown */}
             <div className="relative" ref={shopDropRef}>
               <button
                 onClick={() => setShopDropOpen((prev) => !prev)}
-                className="relative flex items-center gap-1 pb-0.5 transition-colors duration-150 hover:text-blue-200"
+                className="relative pb-0.5 flex items-center gap-1 hover:text-blue-200 transition-colors duration-150"
               >
                 {t.header.shop}
-                <svg
-                  className={`h-3 w-3 transition-transform duration-150 ${shopDropOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
+                <svg className={`w-3 h-3 transition-transform duration-150 ${shopDropOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-
               {shopDropOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-xl">
-                  <Link href="/shop" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-jays-ice">
-                    <span>Browse Shop</span>
+                <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-xl border border-gray-100 py-1 z-50">
+                  <Link href="/shop" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
+                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                    Browse Shop
                   </Link>
-                  <Link href="/brands" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-jays-ice">
-                    <span>Brands</span>
+                  <Link href="/brands" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
+                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                    Brands
                   </Link>
-                  <Link href="/my-holds" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-jays-ice">
-                    <span>{t.header.myHolds}</span>
+                  <Link href="/my-holds" onClick={() => setShopDropOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors">
+                    <svg className="w-4 h-4 text-jays-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    {t.header.myHolds}
                   </Link>
                 </div>
               )}
             </div>
-
-            {navLinks.map(({ href, label }) => (
+            <Link
+              href="/players"
+              title={t.header.popularPlayers}
+              aria-label={t.header.popularPlayers}
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/10 hover:text-blue-200 transition-colors duration-150"
+            >
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-4.13a4 4 0 10-4-4 4 4 0 004 4zm0 0a4 4 0 014 4v1H8v-1a4 4 0 014-4z" />
+              </svg>
+            </Link>
+            {navLinks.filter(({ href }) => href !== '/players').map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -233,85 +255,101 @@ export default function Header() {
                 {label}
               </Link>
             ))}
-
-            <button
-              onClick={() => router.push(status === 'authenticated' ? '/admin' : '/admin/login')}
-              className="rounded-lg bg-white/10 px-3 py-1.5 text-xs transition-colors duration-150 hover:bg-white/20"
-            >
-              {t.header.staff}
-            </button>
+            <Image
+              src="/brand/canada-flag.png"
+              alt="Canada"
+              width={32}
+              height={32}
+              className="hidden lg:block w-7 h-7 rounded-full object-contain drop-shadow-md"
+            />
           </nav>
 
-          <button
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-white/10 sm:hidden"
-            aria-label="Toggle menu"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="border-t border-white/10 bg-jays-navy/95 px-3 py-2 xl:hidden">
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-          <span className="shrink-0 text-[9px] uppercase tracking-[0.2em] text-blue-200/60">Partners</span>
-          {MOBILE_PARTNERS.map((partner) => (
-            <div key={partner.alt} className="shrink-0 rounded-md px-1 py-0.5 opacity-70">
-              <Image
-                src={partner.src}
-                alt={partner.alt}
-                width={partner.landscape ? 48 : 20}
-                height={20}
-                className="h-4 w-auto object-contain"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {mobileMenuOpen && (
-        <div ref={mobileMenuRef} className="space-y-4 border-t border-white/10 bg-jays-navy px-4 py-4 shadow-2xl sm:hidden">
-          <div>
+          {/* Mobile hamburger menu */}
+          <div className="relative sm:hidden" ref={mobileMenuRef}>
             <button
-              onClick={() => setMobileWeCareOpen((prev) => !prev)}
-              className="flex w-full items-center justify-between text-left text-blue-200"
-              style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: 'italic' }}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
+              aria-label="Open menu"
+              aria-expanded={mobileMenuOpen}
             >
-              <span>We Care</span>
-              <span>{mobileWeCareOpen ? '−' : '+'}</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
-            {mobileWeCareOpen && (
-              <div className="mt-3 space-y-2">
-                {WE_CARE_VALUES.map((value) => (
-                  <div key={value.word} className="rounded-xl bg-white/5 px-3 py-2">
-                    <p className="text-sm font-semibold text-white">{value.word}</p>
-                    <p className="text-xs text-blue-100/70">{value.desc}</p>
-                  </div>
+
+            {mobileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                {navLinks.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {label}
+                  </Link>
                 ))}
+
+                {/* We Care — expandable */}
+                <button
+                  onClick={() => setMobileWeCareOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <svg className="w-4 h-4 text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    We Care
+                  </span>
+                  <svg className={`w-3 h-3 text-gray-400 transition-transform duration-150 ${mobileWeCareOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {mobileWeCareOpen && (
+                  <div className="px-4 pb-2 pt-1 bg-jays-ice/50">
+                    {WE_CARE_VALUES.map((v, i) => (
+                      <div key={i} className="flex items-center gap-2.5 py-1.5">
+                        <span className="w-6 h-6 bg-gradient-to-br from-jays-red to-red-600 text-white rounded-md flex items-center justify-center font-display font-bold text-xs shrink-0">
+                          {v.letter}
+                        </span>
+                        <div>
+                          <p className="font-display font-semibold text-xs text-jays-navy leading-tight">{v.word}</p>
+                          <p className="text-[10px] text-jays-steel leading-tight">{v.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white">Browse Shop</Link>
-            <Link href="/players" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white">{t.header.popularPlayers}</Link>
-            <Link href="/about-us" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white">{t.header.about}</Link>
-            <Link href="/my-holds" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white">{t.header.myHolds}</Link>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                router.push(status === 'authenticated' ? '/admin' : '/admin/login')
-              }}
-              className="block text-sm text-white"
-            >
-              {t.header.staff}
-            </button>
+      {/* Secondary strip: Location + scrolling partner logos (below xl) */}
+      <div className="xl:hidden bg-jays-royal/80 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3">
+          <LocationBadge compact />
+          <span className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+          <div className="overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+            <div className="animate-marquee flex items-center gap-3 w-max">
+              {Array.from({ length: 2 }).map((_, setIdx) => (
+                <div key={setIdx} className="flex items-center gap-3 shrink-0">
+                  {MOBILE_PARTNERS.map((p) => (
+                    <Image
+                      key={p.alt}
+                      src={p.src}
+                      alt={p.alt}
+                      width={p.landscape ? 44 : 18}
+                      height={18}
+                      className="h-4 w-auto object-contain opacity-60 shrink-0"
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }

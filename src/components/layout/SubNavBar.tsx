@@ -3,21 +3,20 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home,
-  Shield,
-  Users,
-  Package,
-  Shirt,
+  Info,
+  Landmark,
   Ruler,
-  Compass,
+  Package,
+  Users,
 } from 'lucide-react'
 
 const links = [
-  { href: '/',           label: 'Home',          icon: Home },
-  { href: '/brands',     label: 'Brands',        icon: Shield },
-  { href: '/players',    label: 'Shop by Player', icon: Users },
-  { href: '/my-holds',   label: 'My Holds',      icon: Package },
-  { href: '/shop',       label: 'Explore',       icon: Compass },
-  { href: '/size-chart', label: 'Size Chart',    icon: Ruler },
+  { href: '/',            label: 'Home',           icon: Home },
+  { href: '/about-us',    label: 'About Us',       icon: Info },
+  { href: '/about',       label: 'Our Heritage',   icon: Landmark },
+  { href: '/size-chart',  label: 'Size Chart',     icon: Ruler },
+  { href: '/my-holds',    label: 'My Holds',       icon: Package },
+  { href: '/players',     label: 'Shop by Player', icon: Users },
 ]
 
 export default function SubNavBar() {

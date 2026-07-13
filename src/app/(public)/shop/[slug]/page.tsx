@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import ProductDetails from '@/components/shop/ProductDetails'
+import ProductImageGallery from '@/components/shop/ProductImageGallery'
+import ProductReviews from '@/components/shop/ProductReviews'
+import RecentlyViewed from '@/components/shop/RecentlyViewed'
+import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
 
 export const revalidate = 30
 
@@ -46,18 +49,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
       ? sizeRows.map((r) => ({ size: r.size, available: Math.max(0, r.quantity - r.heldQuantity) }))
       : null
 
+  const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <TrackRecentlyViewed
+        id={product.id}
+        slug={product.slug}
+        name={product.name}
+        imageUrl={product.imageUrl}
+        priceCents={product.priceCents}
+      />
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="relative aspect-[4/3] bg-gray-100">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            sizes="(max-width: 672px) 100vw, 672px"
-            className="object-contain"
-            priority
-          />
+          <ProductImageGallery images={images} alt={product.name} />
         </div>
         <ProductDetails
           product={product}
@@ -68,6 +73,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
           sizeAvailability={sizeAvailability}
         />
       </div>
+
+      <div className="mt-6">
+        <ProductReviews productId={product.id} />
+      </div>
+
+      <RecentlyViewed />
     </div>
   )
 }
