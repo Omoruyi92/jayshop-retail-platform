@@ -14,7 +14,7 @@ export const translations = {
       storeHours: 'Store Hours: Sun–Sat 10am – 5pm',
       shop: 'Shop',
       myHolds: 'My Holds',
-      staffLogin: 'Staff Login',
+      staffLogin: 'Personnel',
       popularPlayers: 'Popular Players',
       copyright: 'All merchandise & trademarks belong to the Toronto Blue Jays. Prices in CAD.',
     },

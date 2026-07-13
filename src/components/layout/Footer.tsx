@@ -47,6 +47,14 @@ function ConcernsIcon({ className = 'w-4 h-4' }: { className?: string }) {
     </svg>
   )
 }
+function StoreLocationIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )
+}
 function BrandIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -128,6 +136,12 @@ export default function Footer() {
                 <SupportIcon className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" />
                 <span className="truncate">Support</span>
               </Link>
+              <a href="https://www.google.com/maps/search/?api=1&query=1+Blue+Jays+Way%2C+Toronto%2C+ON+M5V+1J4"
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-2 py-[5px] rounded-md text-sm text-blue-200 hover:bg-white/10 hover:text-white transition-all duration-150 group min-w-0">
+                <StoreLocationIcon className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" />
+                <span className="truncate">Store Location</span>
+              </a>
               <Link href="/admin"
                 className="hidden sm:flex items-center gap-2 px-2 py-[5px] rounded-md text-sm text-blue-200 hover:bg-white/10 hover:text-white transition-all duration-150 group min-w-0">
                 <svg className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
