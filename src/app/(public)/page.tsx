@@ -94,7 +94,7 @@ export default function HomePage() {
         <BrandWatermarks className="z-0" />
         <LetsGoJaysWatermark className="z-0" />
 
-        <div className="group absolute right-3 top-3 z-10 flex items-center gap-2 sm:right-5 sm:top-5">
+        <div className="group absolute right-3 top-3 z-10 flex items-center gap-2 sm:right-5 sm:top-20">
           <div className="absolute -top-1 right-12 animate-pulse text-xs text-yellow-300">✦</div>
           <div className="absolute -right-1 bottom-0 animate-pulse text-[8px] text-yellow-300/60" style={{ animationDelay: '0.5s' }}>✦</div>
 
