@@ -32,6 +32,12 @@ model Category {
   children  Category[] @relation("CategoryChildren")
   isActive  Boolean    @default(true)
   sortOrder Int        @default(0)
+  // Merchandising priority bucket used to order products on the default,
+  // unfiltered Shop catalog view (e.g. Jerseys=1, Hats=2, Fleece=3,
+  // Accessories=4). Null means "no priority bucket" and sorts last.
+  // Distinct from sortOrder, which only controls sibling display order
+  // within the admin category tree / nav, not cross-category product sort.
+  sortPriority Int?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

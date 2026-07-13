@@ -42,6 +42,22 @@ const CAT_NAME_OVERRIDES = {
   authentication: 'Authentic',
 }
 
+// Default merchandising priority buckets for the unfiltered "All" Shop
+// catalog view. Applied to every subcategory row whose slug matches,
+// regardless of which main category it lives under (e.g. "jerseys" under
+// men/women/kids/sport/authentication all get priority 1). Subcategories
+// not listed here are left with sortPriority = null and sort last.
+// Admins can override any of these later from /admin/categories.
+const SUB_PRIORITY_BY_SLUG = {
+  jerseys: 1,
+  hats: 2,
+  fleece: 3,
+  hoodies: 3, // cold-weather apparel bucketed with Fleece
+  accessories: 4,
+  mugs: 4,
+  bobbleheads: 4,
+}
+
 async function main() {
   for (let i = 0; i < MAIN_CATEGORIES.length; i++) {
     const catSlug = MAIN_CATEGORIES[i]
@@ -60,11 +76,15 @@ async function main() {
         where: { parentId: parent.id, slug: subSlug },
       })
       const subName = SUB_NAME_OVERRIDES[subSlug] ?? titleCase(subSlug)
+      const subPriority = SUB_PRIORITY_BY_SLUG[subSlug] ?? null
       if (existingSub) {
-        await prisma.category.update({ where: { id: existingSub.id }, data: { sortOrder: j, name: subName } })
+        await prisma.category.update({
+          where: { id: existingSub.id },
+          data: { sortOrder: j, name: subName, sortPriority: subPriority },
+        })
       } else {
         await prisma.category.create({
-          data: { name: subName, slug: subSlug, parentId: parent.id, sortOrder: j },
+          data: { name: subName, slug: subSlug, parentId: parent.id, sortOrder: j, sortPriority: subPriority },
         })
       }
     }

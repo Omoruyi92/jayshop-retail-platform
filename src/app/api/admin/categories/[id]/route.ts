@@ -54,6 +54,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
     if (typeof body.isActive === 'boolean') data.isActive = body.isActive
     if (typeof body.sortOrder === 'number') data.sortOrder = body.sortOrder
+    if (body.sortPriority === null || typeof body.sortPriority === 'number') data.sortPriority = body.sortPriority
 
     const updated = await prisma.category.update({ where: { id: category.id }, data })
     return NextResponse.json({ category: updated })

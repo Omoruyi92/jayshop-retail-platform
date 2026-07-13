@@ -14,6 +14,7 @@ interface Category {
   parentId: string | null
   isActive: boolean
   sortOrder: number
+  sortPriority: number | null
   children: Category[]
 }
 
@@ -163,6 +164,22 @@ export default function AdminCategoriesPage() {
         >
           {cat.isActive ? 'Active' : 'Inactive'}
         </button>
+
+        <label className="flex items-center gap-1 text-[10px] font-semibold uppercase text-jays-steel" title="Merchandising priority for the default Shop catalog sort order (lower = shown first). Leave blank for no priority.">
+          Priority
+          <input
+            type="number"
+            defaultValue={cat.sortPriority ?? ''}
+            placeholder="—"
+            onBlur={(e) => {
+              const raw = e.target.value.trim()
+              const value = raw === '' ? null : Number(raw)
+              if (value === cat.sortPriority) return
+              patchMutation.mutate({ id: cat.id, body: { sortPriority: value } })
+            }}
+            className="w-14 rounded-lg border border-border px-1.5 py-1 text-xs font-normal normal-case text-jays-navy focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+          />
+        </label>
 
         <div className="flex items-center gap-1">
           <button

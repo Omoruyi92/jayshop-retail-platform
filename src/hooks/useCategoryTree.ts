@@ -8,6 +8,7 @@ export interface CategoryNode {
   slug: string
   isActive: boolean
   sortOrder: number
+  sortPriority: number | null
   children: CategoryNode[]
 }
 
@@ -45,11 +46,31 @@ export function useCategoryTree() {
       ])
     : {}
 
+  // Merchandising priority per subcategory slug (e.g. jerseys=1, hats=2,
+  // fleece=3, accessories=4), sourced from Category.sortPriority so admins
+  // can tune the default Shop catalog ordering without a code change. When
+  // the same slug appears under multiple parent categories, the lowest
+  // (highest-priority) value wins. Slugs with no priority set are omitted
+  // here and fall back to "sort last" wherever this map is consumed.
+  const subPriorityBySlug: Record<string, number> = {}
+  if (categories?.length) {
+    for (const cat of categories) {
+      for (const sub of cat.children) {
+        if (typeof sub.sortPriority !== 'number') continue
+        const existing = subPriorityBySlug[sub.slug]
+        if (existing === undefined || sub.sortPriority < existing) {
+          subPriorityBySlug[sub.slug] = sub.sortPriority
+        }
+      }
+    }
+  }
+
   return {
     categories: categories ?? [],
     mainCategories,
     subsByCat,
     labelsBySlug,
+    subPriorityBySlug,
     loading: categories === null,
   }
 }

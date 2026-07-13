@@ -113,7 +113,7 @@ function PillRow({
 
 export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const { t } = useLanguage()
-  const { subsByCat } = useCategoryTree()
+  const { subsByCat, subPriorityBySlug } = useCategoryTree()
   const s = t.shop
   const searchParams = useSearchParams()
 
@@ -288,7 +288,22 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     return catMatch && subMatch && hatStyleMatch && brandMatch && priceMatch && stockMatch && searchMatch
   })
 
+  // Default merchandising order (Jerseys -> Hats -> Fleece -> Accessories,
+  // per Category.sortPriority) only applies to the unfiltered "All" catalog
+  // view while the sort dropdown is at its default (Price: Low to High).
+  // Any explicit category/subcategory/brand pill, or an explicit sort
+  // selection, drops straight into plain price/name sorting so filtered
+  // views "just work" without surprise reordering.
+  const useMerchandisingOrder = activeCategory === 'All' && sortBy === 'price-asc'
+
   const sorted = [...filtered].sort((a, b) => {
+    if (useMerchandisingOrder) {
+      const FALLBACK_PRIORITY = 999
+      const priorityA = subPriorityBySlug[a.subcategory.toLowerCase()] ?? FALLBACK_PRIORITY
+      const priorityB = subPriorityBySlug[b.subcategory.toLowerCase()] ?? FALLBACK_PRIORITY
+      if (priorityA !== priorityB) return priorityA - priorityB
+      return effectivePriceCents(a) - effectivePriceCents(b)
+    }
     switch (sortBy) {
       case 'price-asc':
         return effectivePriceCents(a) - effectivePriceCents(b)
