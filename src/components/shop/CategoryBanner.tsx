@@ -131,6 +131,17 @@ const BANNERS: Record<string, BannerConfig> = {
     ctaLabel: 'Shop Deals',
     tags: [],
   },
+  Blanks: {
+    eyebrow: 'Build Your Own',
+    title: 'BLANKS',
+    subtitle: 'Unbranded jerseys and tees ready for your own name, number, or design.',
+    gradient: 'from-slate-500 via-slate-600 to-jays-navy',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
+    icon: Shirt,
+    ctaLabel: 'Shop Blanks',
+    tags: [],
+  },
 }
 
 export default function CategoryBanner({ activeCategory }: { activeCategory: string }) {

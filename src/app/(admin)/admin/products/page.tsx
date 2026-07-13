@@ -39,7 +39,7 @@ interface Product {
   isClearance: boolean
   isFeatured: boolean
   isSport: boolean
-  isAuthenticated: boolean
+  isBlankJersey: boolean
   colors: any
   _count?: { holds: number }
 }
@@ -47,7 +47,7 @@ interface Product {
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
 
 export default function AdminProductsPage() {
-  const { mainCategories, subsByCat } = useCategoryTree()
+  const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading]   = useState(true)
   const [showAdd, setShowAdd]   = useState(false)
@@ -55,7 +55,7 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
-    isFeatured: false, isSport: false, isAuthenticated: false, colors: [] as string[], hatStyle: ''
+    isFeatured: false, isSport: false, isBlankJersey: false, colors: [] as string[], hatStyle: ''
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [images, setImages] = useState<{url: string; file: File | null}[]>([])
@@ -162,7 +162,7 @@ export default function AdminProductsPage() {
     body.append('isClearance',  String(form.isClearance))
     body.append('isFeatured',   String(form.isFeatured))
     body.append('isSport',      String(form.isSport))
-    body.append('isAuthenticated', String(form.isAuthenticated))
+    body.append('isBlankJersey', String(form.isBlankJersey))
     body.append('colors',       JSON.stringify(form.colors))
     
 
@@ -179,7 +179,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isAuthenticated: false, colors: [], hatStyle: '' })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -246,13 +246,13 @@ export default function AdminProductsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Main Category</label>
               <select value={form.category} onChange={(e) => { const cat = e.target.value; const firstSub = subsByCat[cat]?.[0] ?? ''; setForm(f => ({ ...f, category: cat, subcategory: firstSub, sizes: getDefaultSizes(firstSub) })) }} className={INPUT_CLS}>
-                {mainCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                {mainCategories.map(c => <option key={c} value={c}>{labelsBySlug[c] ?? c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Subcategory</label>
               <select value={form.subcategory} onChange={(e) => setForm(f => ({ ...f, subcategory: e.target.value, sizes: getDefaultSizes(e.target.value) }))} className={INPUT_CLS}>
-                {(subsByCat[form.category] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                {(subsByCat[form.category] ?? []).map(s => <option key={s} value={s}>{labelsBySlug[s] ?? s}</option>)}
               </select>
             </div>
             {form.subcategory === 'hats' && (
@@ -370,11 +370,11 @@ export default function AdminProductsPage() {
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  checked={form.isAuthenticated}
-                  onChange={(e) => setForm(f => ({ ...f, isAuthenticated: e.target.checked }))}
+                  checked={form.isBlankJersey}
+                  onChange={(e) => setForm(f => ({ ...f, isBlankJersey: e.target.checked }))}
                   className="w-4 h-4 rounded border-gray-300 accent-emerald-600"
                 />
-                <span className="font-medium text-jays-navy">Authentic Collection</span>
+                <span className="font-medium text-jays-navy">Blanks</span>
               </label>
             </div>
           </div>
@@ -426,7 +426,7 @@ export default function AdminProductsPage() {
         >
           <option value="all">All categories</option>
           {mainCategories.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>{labelsBySlug[c] ?? c}</option>
           ))}
         </select>
         <select

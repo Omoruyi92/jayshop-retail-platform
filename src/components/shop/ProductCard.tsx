@@ -24,7 +24,6 @@ type ProductCardProduct = {
   isFeatured?: boolean
   isNewArrival?: boolean
   isClearance?: boolean
-  isAuthenticated?: boolean
   priceCents: number
   salePriceCents?: number
   colors?: any

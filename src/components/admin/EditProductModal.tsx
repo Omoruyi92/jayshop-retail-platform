@@ -32,7 +32,7 @@ interface Product {
   isClearance: boolean
   isFeatured: boolean
   isSport: boolean
-  isAuthenticated: boolean
+  isBlankJersey: boolean
   colors: any
   _count?: { holds: number }
 }
@@ -64,7 +64,7 @@ function buildInitialForm(product: Product) {
     isClearance:  product.isClearance,
     isFeatured:   product.isFeatured,
     isSport:      product.isSport,
-    isAuthenticated: product.isAuthenticated,
+    isBlankJersey: product.isBlankJersey,
     imageUrl:    product.imageUrl,
     imageUrl2:   product.imageUrl2,
     imageUrl3:   product.imageUrl3,
@@ -80,7 +80,7 @@ function buildInitialSizeQtys(product: Product): Record<string, string> {
 }
 
 export default function EditProductModal({ product, onClose, onSaved }: EditProductModalProps) {
-  const { mainCategories, subsByCat } = useCategoryTree()
+  const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [form, setForm] = useState(() => product ? buildInitialForm(product) : null)
   const [sizeQtys, setSizeQtys] = useState<Record<string, string>>(() => product ? buildInitialSizeQtys(product) : {})
   const [images, setImages] = useState<{ url: string; file: File | null }[]>(() => {
@@ -185,7 +185,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('isClearance', String(form.isClearance))
     formData.append('isFeatured', String(form.isFeatured))
     formData.append('isSport', String(form.isSport))
-    formData.append('isAuthenticated', String(form.isAuthenticated))
+    formData.append('isBlankJersey', String(form.isBlankJersey))
     formData.append('quantity', (parseInt(form.quantity, 10) || 1).toString())
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
@@ -272,14 +272,14 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Main Category</label>
             <select value={form.category} onChange={(e) => handleCategoryChange(e.target.value)} className={INPUT_CLS}>
-              {mainCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+              {mainCategories.map((c) => <option key={c} value={c}>{labelsBySlug[c] ?? c}</option>)}
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Subcategory</label>
             <select value={form.subcategory} onChange={(e) => handleSubcategoryChange(e.target.value)} className={INPUT_CLS}>
-              {(subsByCat[form.category] ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
+              {(subsByCat[form.category] ?? []).map((s) => <option key={s} value={s}>{labelsBySlug[s] ?? s}</option>)}
             </select>
           </div>
 
@@ -378,8 +378,8 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
                 <span className="font-medium text-jays-navy">Sales & Clearance</span>
               </label>
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                <input type="checkbox" checked={form.isAuthenticated} onChange={(e) => setForm((f) => f ? ({ ...f, isAuthenticated: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-emerald-600" />
-                <span className="font-medium text-jays-navy">Authentic Collection</span>
+                <input type="checkbox" checked={form.isBlankJersey} onChange={(e) => setForm((f) => f ? ({ ...f, isBlankJersey: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-emerald-600" />
+                <span className="font-medium text-jays-navy">Blanks</span>
               </label>
             </div>
           </div>

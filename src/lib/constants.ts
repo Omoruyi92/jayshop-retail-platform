@@ -1,4 +1,4 @@
-export const MAIN_CATEGORIES = ['men', 'women', 'kids', 'accessories', 'sport', 'blanks'] as const
+export const MAIN_CATEGORIES = ['men', 'women', 'kids', 'accessories', 'sport', 'blanks', 'authentication'] as const
 
 export function brandToSlug(name: string): string {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -11,6 +11,7 @@ export const SUBS_BY_CAT: Record<string, string[]> = {
   accessories: ['mugs', 'bobbleheads', 'accessories'],
   sport:       ['jerseys', 'fleece', 't-shirts', 'hats'],
   blanks:      ['t-shirts', 'jerseys', 'hoodies'],
+  authentication: ['mens', 'womens', 'kids', 'accessories', 'game-used', 'other'],
 }
 
 export const POPULAR_BRANDS = [
@@ -33,6 +34,7 @@ export const BRANDS_BY_CAT: Record<string, string[]> = {
   accessories: ['Nike', 'New Era', '47 Brand', 'Fanatics', 'Mitchell & Ness'],
   sport:       ['Nike', 'Adidas', 'Under Armour', 'Champion', 'Fanatics'],
   blanks:      ['Fanatics', 'Champion', 'Majestic'],
+  authentication: ['Fanatics', 'Mitchell & Ness', 'Majestic'],
 }
 
 export const SIZELESS_SUBS = new Set(['accessories', 'mugs', 'bobbleheads'])

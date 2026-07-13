@@ -83,7 +83,7 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
         </div>
       </div>
 
-      {(product.isFeatured || product.isNewArrival || product.isAuthenticated || product.isLicensed || product.isChampion) && (
+      {(product.isFeatured || product.isNewArrival || product.category.toLowerCase() === 'authentication' || product.isLicensed || product.isChampion) && (
         <div className="flex flex-wrap gap-2 mb-3">
           {product.isFeatured && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wide text-jays-navy shadow-sm">
@@ -98,7 +98,7 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
               New Arrival
             </span>
           )}
-          {product.isAuthenticated && (
+          {product.category.toLowerCase() === 'authentication' && (
             <span className="rounded-full bg-jays-steel px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wide text-white shadow-sm">
               Authentic
             </span>

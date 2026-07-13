@@ -67,7 +67,6 @@ model Product {
   highlights         String                 @default("")
   imageUrl2          String                 @default("")
   imageUrl3          String                 @default("")
-  isAuthenticated    Boolean                @default(false)
   isFeatured         Boolean                @default(false)
   isNewArrival       Boolean                @default(false)
   isSport            Boolean                @default(false)
