@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import HoldButton from '@/components/shop/HoldButton'
+import StadiumAvailability, { LocationInventory } from '@/components/shop/StadiumAvailability'
 import AddToCartButton from '@/components/shop/AddToCartButton'
 import StatusChip from '@/components/ui/StatusChip'
 import LicensedBadge from '@/components/ui/LicensedBadge'
@@ -24,9 +25,10 @@ interface Props {
   sizes: string[]
   displayStatus: string
   sizeAvailability: SizeAvailability[] | null
+  locationInventory?: LocationInventory[]
 }
 
-export default function ProductDetails({ product, remaining, isSoldOut, sizes, displayStatus, sizeAvailability }: Props) {
+export default function ProductDetails({ product, remaining, isSoldOut, sizes, displayStatus, sizeAvailability, locationInventory }: Props) {
   const { t } = useLanguage()
   const pd = t.product
   const { isLiked, toggle } = useFavorites()
@@ -148,6 +150,10 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
           sizeAvailability={sizeAvailability}
         />
       </div>
+
+      {locationInventory && locationInventory.length > 0 && (
+        <StadiumAvailability locations={locationInventory} selectedSize={selectedSize || null} />
+      )}
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

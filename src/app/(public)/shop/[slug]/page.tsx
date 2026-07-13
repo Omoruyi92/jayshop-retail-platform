@@ -25,7 +25,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
   // Fetch per-size availability if SizeInventory rows exist
   const sizeRows = await prisma.sizeInventory.findMany({
     where: { productId: product.id },
-    select: { size: true, quantity: true, heldQuantity: true },
+    select: { 
+      size: true, 
+      quantity: true, 
+      heldQuantity: true,
+      location: { select: { id: true, name: true, code: true, isMainStore: true } }
+    },
   })
 
   const hasSizes = sizeRows.length > 0
@@ -44,10 +49,41 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const sizes = product.sizes ? product.sizes.split(',').filter(Boolean) : []
   const displayStatus = isSoldOut ? 'SOLD_OUT' : 'AVAILABLE'
 
-  const sizeAvailability: { size: string; available: number }[] | null =
-    hasSizes
-      ? sizeRows.map((r) => ({ size: r.size, available: Math.max(0, r.quantity - r.heldQuantity) }))
-      : null
+  
+  let sizeAvailability: { size: string; available: number }[] | null = null
+  let locationInventory: any[] = []
+
+  if (hasSizes) {
+    // Group sizes properly for the dropdown
+    const sizeMap = new Map<string, number>()
+    sizeRows.forEach(r => {
+      const avail = Math.max(0, r.quantity - r.heldQuantity)
+      sizeMap.set(r.size, (sizeMap.get(r.size) || 0) + avail)
+    })
+    sizeAvailability = Array.from(sizeMap.entries()).map(([size, available]) => ({ size, available }))
+
+    // Group by location for the stadium omnichannel feature
+    const locMap = new Map<string, any>()
+    sizeRows.forEach(r => {
+      const locId = r.location.id
+      if (!locMap.has(locId)) {
+        locMap.set(locId, {
+          id: r.location.id,
+          name: r.location.name,
+          code: r.location.code,
+          isMainStore: r.location.isMainStore,
+          sizes: [],
+          totalAvailable: 0
+        })
+      }
+      const avail = Math.max(0, r.quantity - r.heldQuantity)
+      const locData = locMap.get(locId)
+      locData.sizes.push({ size: r.size, available: avail })
+      locData.totalAvailable += avail
+    })
+    locationInventory = Array.from(locMap.values())
+  }
+
 
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
@@ -78,6 +114,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             sizes={sizes}
             displayStatus={displayStatus}
             sizeAvailability={sizeAvailability}
+            locationInventory={locationInventory}
           />
         </div>
       </div>
