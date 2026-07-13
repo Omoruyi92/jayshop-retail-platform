@@ -22,6 +22,7 @@ type ProductCardProduct = {
   isLicensed: boolean
   isChampion: boolean
   priceCents: number
+  salePriceCents?: number
   colors?: any
 }
 
@@ -43,6 +44,8 @@ export default function ProductCard({
     product.status === 'ARCHIVED' ||
     (hasSizes ? allSizesOos === true : remaining <= 0)
   const displayStatus = isSoldOut ? 'SOLD_OUT' : 'AVAILABLE'
+  const isOnSale = !!product.salePriceCents && product.salePriceCents > 0 && product.salePriceCents < product.priceCents
+  const isLowStock = !isSoldOut && remaining > 0 && remaining <= 3
 
   function handleClick() {
     if (currentFilters) {
@@ -68,8 +71,13 @@ export default function ProductCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
             <StatusChip status={displayStatus} />
+            {isOnSale && !isSoldOut && (
+              <span className="rounded-full bg-jays-red px-2 py-0.5 text-[10px] font-display font-bold uppercase tracking-wide text-white shadow-sm">
+                Sale
+              </span>
+            )}
           </div>
           {!isSoldOut && (product.isLicensed || product.isChampion) && (
             <div className="absolute bottom-2 left-2 flex flex-col gap-1">
@@ -82,9 +90,18 @@ export default function ProductCard({
           <p className="font-display font-semibold text-jays-navy uppercase text-sm leading-tight line-clamp-2 tracking-wide" title={product.name}>
             {product.name}
           </p>
-          <p className="font-bold text-jays-red mt-1.5 text-base">{formatCAD(product.priceCents)}</p>
+          <div className="mt-1.5 flex items-baseline gap-2">
+            <p className="font-bold text-jays-red text-base">
+              {formatCAD(isOnSale ? product.salePriceCents! : product.priceCents)}
+            </p>
+            {isOnSale && (
+              <p className="text-xs text-jays-steel line-through">{formatCAD(product.priceCents)}</p>
+            )}
+          </div>
           {!isSoldOut && (
-            <p className="text-xs text-jays-steel mt-1">{remaining} left</p>
+            <p className={`text-xs mt-1 ${isLowStock ? 'font-semibold text-amber-600' : 'text-jays-steel'}`}>
+              {isLowStock ? `Only ${remaining} left!` : `${remaining} left`}
+            </p>
           )}
         </div>
       </div>

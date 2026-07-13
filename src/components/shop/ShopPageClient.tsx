@@ -39,6 +39,30 @@ interface Product {
 
 const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance'])
 
+type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'name-asc' | 'newest'
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'newest', label: 'Newest Arrivals' },
+  { value: 'price-asc', label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
+  { value: 'name-asc', label: 'Name: A to Z' },
+]
+
+const PRICE_RANGES: { value: string; label: string; min: number; max: number }[] = [
+  { value: 'All', label: 'All Prices', min: 0, max: Infinity },
+  { value: 'under-25', label: 'Under $25', min: 0, max: 2499 },
+  { value: '25-50', label: '$25 – $50', min: 2500, max: 4999 },
+  { value: '50-100', label: '$50 – $100', min: 5000, max: 9999 },
+  { value: '100-plus', label: '$100+', min: 10000, max: Infinity },
+]
+
+function effectivePriceCents(product: Product): number {
+  return product.salePriceCents > 0 && product.salePriceCents < product.priceCents
+    ? product.salePriceCents
+    : product.priceCents
+}
+
 function categoryMatches(product: Product, activeCategory: string): boolean {
   if (activeCategory === 'All') return true
   if (activeCategory === 'Featured') return product.isFeatured
@@ -93,6 +117,9 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<string>('All')
   const [activeSub, setActiveSub] = useState<string>('All')
   const [activeBrand, setActiveBrand] = useState<string>('All')
+  const [activePriceRange, setActivePriceRange] = useState<string>('All')
+  const [inStockOnly, setInStockOnly] = useState(false)
+  const [sortBy, setSortBy] = useState<SortOption>('featured')
   const [loading, setLoading] = useState(true)
   const [livePulse, setLivePulse] = useState(false)
   const [searchInput, setSearchInput] = useState('')
@@ -208,6 +235,12 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     const subMatch = isSpecialCategory || activeSub === 'All' || product.subcategory.toLowerCase() === activeSub.toLowerCase()
     const brandMatch = isSpecialCategory || activeBrand === 'All' || product.brand === activeBrand
 
+    const range = PRICE_RANGES.find((r) => r.value === activePriceRange) ?? PRICE_RANGES[0]
+    const price = effectivePriceCents(product)
+    const priceMatch = price >= range.min && price <= range.max
+
+    const stockMatch = !inStockOnly || (product.hasSizes ? !product.allSizesOos : product.remaining > 0)
+
     let searchMatch = true
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase()
@@ -219,10 +252,27 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         product.subcategory.toLowerCase().includes(query)
     }
 
-    return catMatch && subMatch && brandMatch && searchMatch
+    return catMatch && subMatch && brandMatch && priceMatch && stockMatch && searchMatch
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return effectivePriceCents(a) - effectivePriceCents(b)
+      case 'price-desc':
+        return effectivePriceCents(b) - effectivePriceCents(a)
+      case 'name-asc':
+        return a.name.localeCompare(b.name)
+      case 'newest':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      default:
+        return 0
+    }
   })
 
   const isSearching = searchQuery.trim().length > 0
+  const hasActiveFilters =
+    isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeBrand !== 'All' || activePriceRange !== 'All' || inStockOnly
 
   const currentFilters = {
     category: activeCategory,
@@ -266,15 +316,54 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             onSelect={setActiveBrand}
             formatLabel={(brand) => (brand === 'All' ? 'All Brands' : brand)}
           />
+
+          <PillRow
+            label="Price"
+            options={PRICE_RANGES.map((r) => r.value)}
+            active={activePriceRange}
+            onSelect={setActivePriceRange}
+            formatLabel={(value) => PRICE_RANGES.find((r) => r.value === value)?.label ?? value}
+          />
         </div>
 
-        {!loading && (
-          <p className="mb-4 text-sm text-jays-steel">
-            {isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeBrand !== 'All'
-              ? `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'} found`
-              : `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`}
-          </p>
-        )}
+        <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            {!loading && (
+              <p className="text-sm text-jays-steel">
+                {hasActiveFilters
+                  ? `${sorted.length} ${sorted.length === 1 ? 'item' : 'items'} found`
+                  : `${sorted.length} ${sorted.length === 1 ? 'item' : 'items'}`}
+              </p>
+            )}
+            <label className="flex items-center gap-1.5 cursor-pointer select-none text-sm text-jays-navy">
+              <input
+                type="checkbox"
+                checked={inStockOnly}
+                onChange={(e) => setInStockOnly(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-jays-navy focus:ring-jays-navy/40"
+              />
+              In Stock Only
+            </label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="shop-sort" className="text-xs font-semibold uppercase tracking-wide text-jays-steel">
+              Sort by
+            </label>
+            <select
+              id="shop-sort"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {loading ? (
           <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
@@ -288,14 +377,14 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <EmptyState
             title={isSearching ? 'No results found' : s.noProducts}
             body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
           />
         ) : (
           <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-            {filtered.map((product) => (
+            {sorted.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

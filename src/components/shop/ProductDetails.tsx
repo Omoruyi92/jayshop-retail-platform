@@ -42,6 +42,7 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
       ).filter((c) => c.hex)
     : []
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]?.name || '')
+  const isOnSale = !!product.salePriceCents && product.salePriceCents > 0 && product.salePriceCents < product.priceCents
 
   function isSizeOos(size: string): boolean {
     if (!sizeAvailability) return false
@@ -89,9 +90,21 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
         </div>
       )}
 
-      <p className="font-display text-3xl font-bold text-jays-red mb-2">
-        {formatCAD(product.priceCents)}
-      </p>
+      <div className="flex items-baseline gap-3 mb-2">
+        <p className="font-display text-3xl font-bold text-jays-red">
+          {formatCAD(isOnSale ? product.salePriceCents! : product.priceCents)}
+        </p>
+        {isOnSale && (
+          <>
+            <p className="font-display text-lg text-jays-steel line-through">
+              {formatCAD(product.priceCents)}
+            </p>
+            <span className="rounded-full bg-jays-red px-2.5 py-0.5 text-[11px] font-display font-bold uppercase tracking-wide text-white">
+              Sale
+            </span>
+          </>
+        )}
+      </div>
 
       {product.brand && (
         <p className="text-xs font-semibold uppercase tracking-widest text-jays-steel mb-3">
