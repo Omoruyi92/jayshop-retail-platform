@@ -8,8 +8,10 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { MAIN_CATEGORIES, SUBS_BY_CAT, SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch } from '@/lib/constants'
+import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
+import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
 import RestockModal from '@/components/admin/RestockModal'
 
@@ -43,6 +45,7 @@ interface Product {
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
 
 export default function AdminProductsPage() {
+  const { mainCategories, subsByCat } = useCategoryTree()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading]   = useState(true)
   const [showAdd, setShowAdd]   = useState(false)
@@ -235,14 +238,14 @@ export default function AdminProductsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Main Category</label>
-              <select value={form.category} onChange={(e) => { const cat = e.target.value; const firstSub = SUBS_BY_CAT[cat]?.[0] ?? ''; setForm(f => ({ ...f, category: cat, subcategory: firstSub, sizes: getDefaultSizes(firstSub) })) }} className={INPUT_CLS}>
-                {MAIN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              <select value={form.category} onChange={(e) => { const cat = e.target.value; const firstSub = subsByCat[cat]?.[0] ?? ''; setForm(f => ({ ...f, category: cat, subcategory: firstSub, sizes: getDefaultSizes(firstSub) })) }} className={INPUT_CLS}>
+                {mainCategories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Subcategory</label>
               <select value={form.subcategory} onChange={(e) => setForm(f => ({ ...f, subcategory: e.target.value, sizes: getDefaultSizes(e.target.value) }))} className={INPUT_CLS}>
-                {(SUBS_BY_CAT[form.category] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
+                {(subsByCat[form.category] ?? []).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -307,14 +310,15 @@ export default function AdminProductsPage() {
 
             <div className="sm:col-span-2 border-t border-border pt-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">Colors</label>
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2">
+                <ColorPickerModal selected={form.colors} onChange={(colors) => setForm(f => ({ ...f, colors }))} />
                 <input value={colorInput} onChange={e => setColorInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor())} placeholder="e.g. Red, Blue, #1E2761" className={INPUT_CLS} />
                 <button type="button" onClick={handleAddColor} className="px-4 py-2 bg-jays-ice text-jays-navy font-semibold rounded-xl text-sm">Add</button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {form.colors.map((c: string) => (
                   <span key={c} className="px-3 py-1 bg-jays-ice text-jays-navy rounded-full text-xs font-medium flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c }}></span>
+                    <span className="w-3 h-3 rounded-full border border-black/10" style={{ background: colorToSwatch(c) }}></span>
                     {c}
                     <button type="button" onClick={() => handleRemoveColor(c)} className="text-jays-steel hover:text-red-500 font-bold">×</button>
                   </span>
@@ -391,7 +395,7 @@ export default function AdminProductsPage() {
           className={`${INPUT_CLS} w-40`}
         >
           <option value="all">All categories</option>
-          {MAIN_CATEGORIES.map((c) => (
+          {mainCategories.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>

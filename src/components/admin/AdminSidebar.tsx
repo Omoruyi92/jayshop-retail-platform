@@ -8,7 +8,7 @@ import {
   BarChart2, Bell, LogOut, ExternalLink, Menu, X,
   Tag, Image as ImageIcon, Users, Megaphone, Calendar,
   Clock, Boxes, KeyRound, Radio, Terminal, LineChart,
-  ScrollText, Star, MessageSquare, UserCog, Settings,
+  ScrollText, Star, MessageSquare, UserCog, Settings, FolderTree,
 } from 'lucide-react'
 
 const linkGroups = [
@@ -22,6 +22,7 @@ const linkGroups = [
     label: 'Catalog',
     links: [
       { href: '/admin/products',      label: 'Products',      icon: Package },
+      { href: '/admin/categories',    label: 'Categories',    icon: FolderTree },
       { href: '/admin/brands',        label: 'Brands',        icon: Tag },
       { href: '/admin/gallery',       label: 'Gallery',       icon: ImageIcon },
       { href: '/admin/players',       label: 'Players',       icon: Users },

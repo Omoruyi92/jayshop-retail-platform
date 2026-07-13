@@ -23,6 +23,23 @@ model Tenant {
   @@index([isDefault])
 }
 
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String
+  parentId  String?
+  parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Category[] @relation("CategoryChildren")
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([parentId, slug])
+  @@index([parentId])
+  @@index([isActive])
+}
+
 model Product {
   id                 String                 @id @default(cuid())
   name               String

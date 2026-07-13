@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/shop/ProductCard'
 import ShopHero from '@/components/shop/ShopHero'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { SUBS_BY_CAT, BRANDS_BY_CAT } from '@/lib/constants'
+import { BRANDS_BY_CAT } from '@/lib/constants'
+import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState } from '@/lib/shop/shopState'
 
@@ -110,6 +111,7 @@ function PillRow({
 
 export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const { t } = useLanguage()
+  const { subsByCat } = useCategoryTree()
   const s = t.shop
   const searchParams = useSearchParams()
 
@@ -222,7 +224,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
 
   const availableSubs = activeCategory === 'All' || isSpecialCategory
     ? []
-    : ['All', ...(SUBS_BY_CAT[activeCategory.toLowerCase()] ?? [])]
+    : ['All', ...(subsByCat[activeCategory.toLowerCase()] ?? [])]
 
   const catFilteredProducts = products.filter((product) => categoryMatches(product, activeCategory))
   const brandsFromProducts = Array.from(new Set(catFilteredProducts.map((product) => product.brand).filter(Boolean)))
