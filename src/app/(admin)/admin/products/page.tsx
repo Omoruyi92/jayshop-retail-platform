@@ -119,7 +119,7 @@ export default function AdminProductsPage() {
 
   function handleRemoveColor(col: string) {
     setForm(f => ({ ...f, colors: f.colors.filter(c => c !== col) }))
-
+  }
 
   const needsSizes = !SIZELESS_SUBS.has(form.subcategory)
 
@@ -542,5 +542,4 @@ export default function AdminProductsPage() {
       />
     </div>
   )
-}
 }
