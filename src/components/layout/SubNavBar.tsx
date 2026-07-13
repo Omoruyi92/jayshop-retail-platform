@@ -11,6 +11,7 @@ import {
   Users,
   ShoppingBag,
   Globe,
+  Image as ImageIcon,
 } from 'lucide-react'
 
 const links = [
@@ -22,6 +23,7 @@ const links = [
   { href: '/size-chart',  label: 'Size Chart',     icon: Ruler },
   { href: '/my-holds',    label: 'My Holds',       icon: Package },
   { href: '/players',     label: 'Shop by Player', icon: Users },
+  { href: '/gallery',     label: 'Gallery',        icon: ImageIcon },
 ]
 
 export default function SubNavBar() {
