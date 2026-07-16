@@ -342,8 +342,15 @@ export default function HoldButton({
                 <label className="block text-sm font-medium text-gray-700 mb-1">{hb.phoneNumber}</label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setFieldErrors((prev) => ({ ...prev, phone: undefined })) }}
+                  onChange={(e) => {
+                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
+                    setPhone(digitsOnly)
+                    setFieldErrors((prev) => ({ ...prev, phone: undefined }))
+                  }}
                   placeholder={hb.phonePlaceholder}
                   aria-invalid={!!fieldErrors.phone}
                   className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy ${fieldErrors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}

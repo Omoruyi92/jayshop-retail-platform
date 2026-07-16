@@ -26,8 +26,8 @@ export default function PosSimulatorPage() {
   const [availableSizes, setAvailableSizes] = useState<string[]>([])
 
   useEffect(() => {
-    fetch('/api/store-locations').then((r) => r.json()).then((d) => setLocations(d.locations ?? []))
-    fetch('/api/admin/products').then((r) => r.json()).then((d) => setProducts(d.products ?? d ?? []))
+    fetch('/api/store-locations').then((r) => r.ok ? r.json() : { locations: [] }).then((d) => setLocations(d.locations ?? []))
+    fetch('/api/products').then((r) => r.ok ? r.json() : { products: [] }).then((d) => setProducts(d.products ?? d ?? []))
   }, [])
 
   useEffect(() => {
