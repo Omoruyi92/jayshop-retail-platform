@@ -29,7 +29,7 @@ export default function AdminPlayersPage() {
   const playerList = useMemo(() => players ?? [], [players])
 
   const fetchProducts = useCallback(async (): Promise<ProductOption[]> => {
-    const res = await fetch('/api/admin/products')
+    const res = await fetch('/api/products?includeArchived=true')
     const data = await res.json()
     return (data.products ?? []).map((p: { id: string; name: string; slug: string; imageUrl: string }) => ({
       id: p.id, name: p.name, slug: p.slug, imageUrl: p.imageUrl,

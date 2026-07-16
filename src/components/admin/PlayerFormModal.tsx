@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { useMutation } from '@/components/sync/hooks/useMutation'
@@ -71,6 +71,7 @@ export default function PlayerFormModal({
     }
     return initial
   })
+  const [productSearch, setProductSearch] = useState('')
 
   function handleHeroFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null
@@ -98,6 +99,12 @@ export default function PlayerFormModal({
     setGalleryFiles((prev) => prev.filter((_, i) => i !== index))
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== index))
   }
+
+  const filteredProductOptions = useMemo(() => {
+    const q = productSearch.trim().toLowerCase()
+    if (!q) return productOptions
+    return productOptions.filter((p) => p.name.toLowerCase().includes(q))
+  }, [productOptions, productSearch])
 
   function toggleProduct(id: string) {
     setSelectedProducts((prev) => {
@@ -254,11 +261,22 @@ export default function PlayerFormModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Linked Gear (SKU mapping)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-gray-600">Link Gear ({Object.keys(selectedProducts).length} selected)</label>
+            </div>
+            <input
+              type="search"
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              placeholder="Search products by name…"
+              className={`${INPUT_CLS} mb-2`}
+            />
             <div className="max-h-48 overflow-y-auto border border-border rounded-xl divide-y divide-border">
               {productOptions.length === 0 ? (
                 <p className="p-3 text-sm text-jays-steel">No products available.</p>
-              ) : productOptions.map((p) => {
+              ) : filteredProductOptions.length === 0 ? (
+                <p className="p-3 text-sm text-jays-steel">No products match &quot;{productSearch}&quot;.</p>
+              ) : filteredProductOptions.map((p) => {
                 const checked = p.id in selectedProducts
                 return (
                   <div key={p.id} className="flex items-center gap-2 px-3 py-2">
