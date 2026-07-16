@@ -6,6 +6,7 @@ import { isGameDay } from '@/lib/holds/isGameDay'
 import { getEffectiveHoldHours } from '@/lib/holds/getEffectiveHoldHours'
 import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
+import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 
 export async function createHold(
   productId: string,
@@ -140,6 +141,13 @@ export async function createHold(
       where: { id: productId },
       data: { heldQuantity: { increment: qty } },
     })
+
+    // Product-level held/picked/quantity are denormalized aggregates over
+    // SizeInventory. Resync from the (now-updated) SizeInventory rows so the
+    // aggregate never drifts from the true per-size/location source of truth.
+    if (hasSizes) {
+      await syncProductTotalsFromSizeInventory(tx, productId)
+    }
 
     // Mark product as SOLD when all available stock is now held.
     // For size-tracked products use the updated size-level totals;

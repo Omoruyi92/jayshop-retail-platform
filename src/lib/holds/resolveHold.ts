@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { generateReservationCode } from '@/lib/utils'
 import { getHoldReservationLocationId } from '@/lib/store-locations'
 import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
+import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 
 export type FinalStatus = 'PICKED_UP' | 'RELEASED' | 'EXPIRED'
 
@@ -145,6 +146,13 @@ export async function resolveHold(
           note: `Hold ${hold.reservationCode} ${effectiveStatus.toLowerCase()}`,
         })
       }
+    }
+
+    // Product-level held/picked/quantity are denormalized aggregates over
+    // SizeInventory. Resync from the (now-updated) SizeInventory rows so the
+    // aggregate never drifts from the true per-size/location source of truth.
+    if (hold.size) {
+      await syncProductTotalsFromSizeInventory(tx, hold.productId)
     }
 
     // Create a new ACTIVE hold for remaining quantity (partial pickup only)
