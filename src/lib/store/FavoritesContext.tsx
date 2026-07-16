@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from 'react'
 
 export interface FavoriteInput {
@@ -72,6 +73,13 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([])
   const [isHydrated, setIsHydrated] = useState(false)
 
+  // Tracks every optimistic like/unlike mutation so the mount-time
+  // reconciliation fetch (below) never clobbers a click the user made
+  // while that fetch was still in flight. Without this, a fast click right
+  // after page load could be silently reverted when the (now-stale) GET
+  // response resolved after the click — requiring a second click to "fix" it.
+  const mutationVersionRef = useRef(0)
+
   useEffect(() => {
     setFavorites(readCache())
     setIsHydrated(true)
@@ -79,9 +87,15 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     const sid = getSessionId()
     if (!sid) return
 
+    const versionAtFetchStart = mutationVersionRef.current
     fetch(`/api/likes?sessionId=${encodeURIComponent(sid)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        // If the user liked/unliked something while this reconciliation
+        // request was in flight, our local optimistic state is already
+        // more current than this response — skip applying it so we don't
+        // stomp on the user's action.
+        if (mutationVersionRef.current !== versionAtFetchStart) return
         if (data && Array.isArray(data.favorites)) {
           setFavorites(data.favorites)
           writeCache(data.favorites)
@@ -128,6 +142,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = useCallback((product: FavoriteInput) => {
+    mutationVersionRef.current += 1
     setFavorites((prev) => {
       const exists = prev.some((f) => f.productId === product.productId)
       const next = exists
@@ -140,6 +155,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [persist])
 
   const remove = useCallback((productId: string) => {
+    mutationVersionRef.current += 1
     setFavorites((prev) => {
       const next = prev.filter((f) => f.productId !== productId)
       writeCache(next)
