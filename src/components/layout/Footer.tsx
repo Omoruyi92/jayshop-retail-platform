@@ -262,13 +262,14 @@ export default function Footer() {
               {/* TD Logo */}
               <a href="https://www.td.com/ca" target="_blank" rel="noopener noreferrer"
                 className="shrink-0 group">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-lg shadow-[#00A800]/20 group-hover:shadow-[#00A800]/40 group-hover:scale-105 transition-all duration-300 ring-2 ring-[#00A800]/30">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-lg shadow-[#00A800]/20 group-hover:shadow-[#00A800]/40 group-hover:scale-105 transition-all duration-300 ring-2 ring-[#00A800]/30" style={{ position: 'relative' }}>
                   <Image
                     src="/brand/td-bank.png"
                     alt="TD Bank — Official Sponsor"
                     fill
                     className="object-cover"
                     sizes="64px"
+                    style={{ position: 'absolute' }}
                   />
                 </div>
               </a>

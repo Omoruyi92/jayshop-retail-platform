@@ -4,6 +4,7 @@ import { Oswald, Inter } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { Toaster } from 'sonner'
 import RootSessionProvider from '@/components/layout/RootSessionProvider'
+import DevServiceWorkerCleanup from '@/components/layout/DevServiceWorkerCleanup'
 
 const oswald = Oswald({
   subsets: ['latin'],
@@ -62,6 +63,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className="font-sans bg-jays-ice text-gray-900 antialiased">
+        <DevServiceWorkerCleanup />
         <RootSessionProvider>
           {children}
         </RootSessionProvider>
