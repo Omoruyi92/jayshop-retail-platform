@@ -61,7 +61,7 @@ export default function ShopHero({
             </h1>
 
             <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100/90 sm:text-base">
-              Reserve merchandise for free — pick up in store within 48 hours.
+              Rogers Centre
             </p>
 
             {/* Promo tagline pill, marquee-style */}

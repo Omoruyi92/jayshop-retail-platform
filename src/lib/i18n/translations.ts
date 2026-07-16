@@ -25,7 +25,7 @@ export const translations = {
     },
     shop: {
       title: 'Blue Jays Shop',
-      subtitle: 'Reserve merchandise for free — pick up in store within 48 hours.',
+      subtitle: 'Rogers Centre',
       live: 'Live',
       allSubcategories: 'All Subcategories',
       noProducts: 'No Products Available',
