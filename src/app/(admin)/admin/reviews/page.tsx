@@ -135,8 +135,8 @@ export default function ReviewsAnalyticsPage() {
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | 'ALL'>('ALL')
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
 
-  async function fetchData() {
-    setLoading(true)
+  async function fetchData(silent = false) {
+    if (!silent) setLoading(true)
     try {
       const url = statusFilter !== 'ALL' ? `/api/admin/reviews?status=${statusFilter}` : '/api/admin/reviews'
       const [reviewsRes, likesRes] = await Promise.all([
@@ -146,10 +146,22 @@ export default function ReviewsAnalyticsPage() {
       if (reviewsRes.ok) setData(await reviewsRes.json())
       if (likesRes.ok) setLikesData(await likesRes.json())
     } catch { /* ignore */ }
-    setLoading(false)
+    if (!silent) setLoading(false)
   }
 
   useEffect(() => { fetchData() }, [statusFilter])
+
+  // Keep engagement/likes data close to real-time without requiring a
+  // manual refresh: poll silently in the background while the tab is visible.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchData(true)
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter])
 
   async function updateReviewStatus(id: string, status: ReviewStatus) {
     setActionLoading((prev) => ({ ...prev, [id]: true }))
@@ -229,7 +241,7 @@ export default function ReviewsAnalyticsPage() {
           <p className="text-sm text-jays-steel mt-0.5">Customer sentiment and product feedback analytics</p>
         </div>
         <button
-          onClick={fetchData}
+          onClick={() => fetchData()}
           className="flex items-center gap-1.5 text-sm text-jays-navy hover:text-jays-red transition-colors"
         >
           <RefreshCw size={14} />

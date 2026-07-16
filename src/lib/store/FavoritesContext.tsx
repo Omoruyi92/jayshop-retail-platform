@@ -95,27 +95,30 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     [favorites]
   )
 
-  const persist = useCallback((productId: string, wasLiked: boolean, snapshotBefore: FavoriteItem[]) => {
+  const persist = useCallback((productId: string, action: 'like' | 'unlike', snapshotBefore: FavoriteItem[]) => {
     const sid = getSessionId()
     if (!sid) return
 
     fetch('/api/likes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, sessionId: sid }),
+      body: JSON.stringify({ productId, sessionId: sid, action }),
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('like request failed'))))
       .then((data: { liked: boolean }) => {
-        // Reconcile in case the server's toggle result disagrees with our
-        // optimistic guess (e.g. a duplicate click raced another tab).
-        if (data.liked === wasLiked) return
-        if (!data.liked) {
-          setFavorites((prev) => {
-            const next = prev.filter((f) => f.productId !== productId)
-            writeCache(next)
-            return next
-          })
-        }
+        // The mutation is idempotent and explicit, so the server result
+        // should always match the requested action. If it doesn't (e.g. a
+        // transient error surfaced as a 200 with unexpected payload),
+        // reconcile the client to match the confirmed DB state.
+        const expectedLiked = action === 'like'
+        if (data.liked === expectedLiked) return
+        setFavorites((prev) => {
+          const next = data.liked
+            ? prev
+            : prev.filter((f) => f.productId !== productId)
+          writeCache(next)
+          return next
+        })
       })
       .catch(() => {
         // Revert the optimistic update on failure
@@ -131,7 +134,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         ? prev.filter((f) => f.productId !== product.productId)
         : [{ ...product, likedAt: Date.now() }, ...prev]
       writeCache(next)
-      persist(product.productId, !exists, prev)
+      persist(product.productId, exists ? 'unlike' : 'like', prev)
       return next
     })
   }, [persist])
@@ -140,10 +143,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     setFavorites((prev) => {
       const next = prev.filter((f) => f.productId !== productId)
       writeCache(next)
-      // Was liked (present in prev), so removing = unliking server-side.
-      if (prev.some((f) => f.productId === productId)) {
-        persist(productId, false, prev)
-      }
+      // Always send an explicit, idempotent unlike regardless of what the
+      // client believed the prior state was (deleteMany is a no-op if the
+      // row is already gone) — so a single click reliably removes the item
+      // even if client/server state had drifted.
+      persist(productId, 'unlike', prev)
       return next
     })
   }, [persist])
