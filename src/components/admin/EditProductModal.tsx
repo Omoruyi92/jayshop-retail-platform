@@ -34,7 +34,7 @@ interface Product {
   isSport: boolean
   isBlankJersey: boolean
   colors: any
-  _count?: { holds: number }
+  _count?: { holds: number; likes?: number }
 }
 
 interface EditProductModalProps {

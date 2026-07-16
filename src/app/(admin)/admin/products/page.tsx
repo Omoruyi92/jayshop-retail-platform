@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatCAD } from '@/lib/utils'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { Heart } from 'lucide-react'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -41,7 +42,7 @@ interface Product {
   isSport: boolean
   isBlankJersey: boolean
   colors: any
-  _count?: { holds: number }
+  _count?: { holds: number; likes?: number }
 }
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
@@ -470,15 +471,16 @@ export default function AdminProductsPage() {
               <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Category</th>
               <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Price</th>
               <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Inventory</th>
+              <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Likes</th>
               <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Status</th>
               <th className="px-3 py-2 font-medium text-jays-steel text-xs uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-              <tr><td colSpan={8} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
+              <tr><td colSpan={9} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
             ) : filteredProducts.length === 0 ? (
-              <tr><td colSpan={8}><EmptyState
+              <tr><td colSpan={9}><EmptyState
                 title={products.length === 0 ? "No products yet" : "No results"}
                 body={products.length === 0 ? "Click + Add Product to create your first item." : "Try adjusting your search or filters."}
               /></td></tr>
@@ -524,6 +526,13 @@ export default function AdminProductsPage() {
                   <td className="px-3 py-2 whitespace-nowrap">
                     <span className={`font-semibold ${remaining <= 0 ? 'text-red-600' : 'text-green-600'}`}>{remaining} rem</span>
                     <span className="text-jays-steel text-xs ml-1">/ {p._count?.holds ?? 0} held</span>
+                  </td>
+                  {/* Likes */}
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-jays-steel">
+                      <Heart className="w-3.5 h-3.5 text-jays-red fill-jays-red/10" />
+                      <span className="font-semibold text-jays-navy">{p._count?.likes ?? 0}</span>
+                    </span>
                   </td>
                   {/* Status */}
                   <td className="px-3 py-2">

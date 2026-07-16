@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
       sizeInventories: { select: { size: true, quantity: true, heldQuantity: true } },
-      ...(includeArchived && { _count: { select: { holds: true } } }),
+      _count: { select: { likes: true, ...(includeArchived && { holds: true }) } },
     },
   })
 
