@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** GET — return liked product IDs for a session */
+/** GET — return liked products (with product details) for a session, sourced live from the DB */
 export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get('sessionId')
   if (!sessionId) {
@@ -41,8 +41,24 @@ export async function GET(req: NextRequest) {
 
   const likes = await prisma.productLike.findMany({
     where: { sessionId },
-    select: { productId: true },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      product: {
+        select: { id: true, slug: true, name: true, imageUrl: true, priceCents: true },
+      },
+    },
   })
 
-  return NextResponse.json({ likes: likes.map((l) => l.productId) })
+  const favorites = likes
+    .filter((l) => l.product)
+    .map((l) => ({
+      productId: l.product!.id,
+      slug: l.product!.slug,
+      name: l.product!.name,
+      imageUrl: l.product!.imageUrl,
+      priceCents: l.product!.priceCents,
+      likedAt: l.createdAt.getTime(),
+    }))
+
+  return NextResponse.json({ likes: favorites.map((f) => f.productId), favorites })
 }
