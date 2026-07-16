@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
-import PartnerLogosBar, { LocationBadge } from '@/components/ui/PartnerLogosBar'
+import PartnerLogosBar, { LocationBadge, PromoMarquee, usePromotions } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -25,17 +25,18 @@ const WE_CARE_VALUES = [
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
 ]
 
-const MOBILE_PARTNERS = [
-  { src: '/brand/partners/nike.png', alt: 'Nike', landscape: true },
-  { src: '/brand/partners/new-era.png', alt: 'New Era', landscape: false },
-  { src: '/brand/partners/fanatics.png', alt: 'Fanatics', landscape: true },
-  { src: '/brand/partners/levelwear.png', alt: 'Levelwear', landscape: false },
-  { src: '/brand/partners/47brand.jpg', alt: '47 Brand', landscape: false },
-  { src: '/brand/partners/roots.jpg', alt: 'Roots', landscape: true },
-  { src: '/brand/partners/peace-collective.png', alt: 'Peace Collective', landscape: false },
-  { src: '/brand/partners/mitchell-ness.png', alt: 'Mitchell & Ness', landscape: true },
-  { src: '/brand/partners/bulletin.png', alt: 'Bulletin', landscape: false },
-]
+/* Only shows the divider + marquee when there's an active promotion. */
+function PromoMarqueeStrip() {
+  const promotions = usePromotions()
+  if (promotions.length === 0) return null
+
+  return (
+    <>
+      <span className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <PromoMarquee compact />
+    </>
+  )
+}
 
 export default function Header() {
   const { t, locale, setLocale } = useLanguage()
@@ -272,29 +273,12 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Secondary strip: Location + scrolling partner logos (below xl) */}
+      {/* Secondary strip: Location + promotion marquee (below xl) — the
+          marquee only renders when there's an active admin promotion. */}
       <div className="xl:hidden bg-jays-royal/80 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3">
           <LocationBadge compact />
-          <span className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
-          <div className="overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
-            <div className="animate-marquee flex items-center gap-3 w-max">
-              {Array.from({ length: 2 }).map((_, setIdx) => (
-                <div key={setIdx} className="flex items-center gap-3 shrink-0">
-                  {MOBILE_PARTNERS.map((p) => (
-                    <Image
-                      key={p.alt}
-                      src={p.src}
-                      alt={p.alt}
-                      width={p.landscape ? 44 : 18}
-                      height={18}
-                      className="h-4 w-auto object-contain opacity-60 shrink-0"
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
+          <PromoMarqueeStrip />
         </div>
       </div>
     </header>

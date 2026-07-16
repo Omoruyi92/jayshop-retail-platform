@@ -1,6 +1,5 @@
-// PartnerLogosBar.tsx — inline banner with location status + animated promotions/partner logos
+// PartnerLogosBar.tsx — inline banner with location status + promotion marquee
 'use client'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
@@ -68,36 +67,13 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
   )
 }
 
-/* Duplicated logo set for seamless marquee loop */
-function LogoStrip() {
-  return (
-    <>
-      {PARTNERS.map((p) => (
-        <div
-          key={p.alt}
-          className="shrink-0 rounded-md px-1 py-0.5 opacity-70 grayscale-[30%] hover:opacity-100 hover:grayscale-0 hover:scale-110 hover:bg-white/10 transition-all duration-200 cursor-pointer"
-          title={p.alt}
-        >
-          <Image
-            src={p.src}
-            alt={p.alt}
-            width={p.landscape ? 52 : 22}
-            height={22}
-            className="h-[18px] w-auto object-contain"
-          />
-        </div>
-      ))}
-    </>
-  )
-}
-
 interface Promotion {
   id: string
   text: string
   link: string | null
 }
 
-function usePromotions() {
+export function usePromotions() {
   const [promotions, setPromotions] = useState<Promotion[]>([])
 
   useEffect(() => {
@@ -133,46 +109,47 @@ function PromoStrip({ promotions }: { promotions: Promotion[] }) {
   )
 }
 
+/**
+ * Marquee that only renders while there is at least one active admin-published
+ * promotion. Renders nothing otherwise — there is no "partners" fallback
+ * marquee anymore; the scrolling logo strip was removed from the header.
+ * Shared between the desktop pill (PartnerLogosBar) and the mobile strip
+ * (Header's secondary row) so both stay in sync with the same promotions.
+ */
+export function PromoMarquee({ compact = false }: { compact?: boolean }) {
+  const promotions = usePromotions()
+  if (promotions.length === 0) return null
+
+  return (
+    <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
+      <span className={`text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1 ${compact ? 'text-[6px]' : 'text-[7px]'}`}>
+        Deals
+      </span>
+      <div className="group/promo overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <div className="animate-marquee flex items-center gap-2 w-max group-hover/promo:[animation-play-state:paused]">
+          <PromoStrip promotions={promotions} />
+          {/* Duplicate for seamless loop */}
+          <PromoStrip promotions={promotions} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function PartnerLogosBar() {
   const promotions = usePromotions()
   const hasPromotions = promotions.length > 0
 
   return (
-    <div className="flex items-center justify-between bg-white/[0.06] rounded-full px-3 py-1 border border-white/10 gap-2">
+    <div className={`flex items-center bg-white/[0.06] rounded-full px-3 py-1 border border-white/10 gap-2 ${hasPromotions ? 'justify-between' : ''}`}>
       {/* Location + Status */}
       <LocationBadge />
 
-      {/* Divider */}
-      <span className="w-px h-6 bg-white/10 shrink-0" aria-hidden="true" />
-
-      {hasPromotions ? (
-        /* Promotions — marquee animation */
-        <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
-          <span className="text-[7px] text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1">
-            Deals
-          </span>
-          <div className="group/promo overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="animate-marquee flex items-center gap-2 w-max group-hover/promo:[animation-play-state:paused]">
-              <PromoStrip promotions={promotions} />
-              {/* Duplicate for seamless loop */}
-              <PromoStrip promotions={promotions} />
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Fallback — partner logos marquee when no active promotions */
-        <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
-          <span className="text-[7px] text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1">
-            Partners
-          </span>
-          <div className="overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="animate-marquee flex items-center gap-2 w-max">
-              <LogoStrip />
-              {/* Duplicate for seamless loop */}
-              <LogoStrip />
-            </div>
-          </div>
-        </div>
+      {hasPromotions && (
+        <>
+          <span className="w-px h-6 bg-white/10 shrink-0" aria-hidden="true" />
+          <PromoMarquee />
+        </>
       )}
     </div>
   )
