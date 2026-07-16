@@ -61,6 +61,36 @@ export default function RootLayout({
     <html lang="en" className={cn(oswald.variable, inter.variable)}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {process.env.NODE_ENV !== 'production' && (
+          // Runs synchronously during HTML parsing, before React hydrates and
+          // before any stylesheet/script fetch has a chance to be intercepted.
+          // Guards against a stale PWA service worker (registered from a prior
+          // `next build && next start` run) serving cached/mismatched CSS or JS
+          // chunks to the dev server, which otherwise breaks Tailwind styling
+          // entirely (raw unstyled markup, next/image `fill` elements ballooning
+          // to viewport size) until the worker is unregistered.
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function (regs) {
+                    if (regs.length === 0) return;
+                    regs.forEach(function (r) { r.unregister(); });
+                    if ('caches' in window) {
+                      caches.keys().then(function (keys) {
+                        keys.forEach(function (k) { caches.delete(k); });
+                      });
+                    }
+                    if (!sessionStorage.getItem('jays-shop-dev-sw-cleanup-reloaded')) {
+                      sessionStorage.setItem('jays-shop-dev-sw-cleanup-reloaded', '1');
+                      window.location.reload();
+                    }
+                  }).catch(function () {});
+                }
+              `,
+            }}
+          />
+        )}
       </head>
       <body className="font-sans bg-jays-ice text-gray-900 antialiased">
         <DevServiceWorkerCleanup />
