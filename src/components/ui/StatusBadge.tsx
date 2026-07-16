@@ -16,6 +16,8 @@ const BADGE_STYLES: Record<string, string> = {
 
 const BADGE_LABELS: Record<string, string> = {
   AVAILABLE: 'In Stock',
+  ON_HOLD: 'Held',
+  SOLD: 'Sold',
 }
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {

@@ -47,6 +47,20 @@ interface Product {
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
 
+/**
+ * Product.status is the authoritative AVAILABLE/SOLD signal computed from
+ * live inventory (quantity - held - picked, see computeProductStatus). But
+ * "no stock left" can mean either "everything is currently on hold" (not
+ * yet sold, reversible) or "actually sold/picked up" — those are very
+ * different states for an admin. Refine the raw status using heldQuantity
+ * so the badge accurately reflects Held vs Sold in real time.
+ */
+function getDisplayStatus(p: Product): string {
+  if (p.status !== 'AVAILABLE' && p.status !== 'SOLD') return p.status
+  if (p.status === 'SOLD' && p.heldQuantity > 0) return 'ON_HOLD'
+  return p.status
+}
+
 export default function AdminProductsPage() {
   const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [products, setProducts] = useState<Product[]>([])
@@ -536,7 +550,7 @@ export default function AdminProductsPage() {
                   </td>
                   {/* Status */}
                   <td className="px-3 py-2">
-                    <StatusBadge status={p.status} />
+                    <StatusBadge status={getDisplayStatus(p)} />
                   </td>
                   {/* Actions */}
                   <td className="px-3 py-2">
