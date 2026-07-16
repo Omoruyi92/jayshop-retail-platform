@@ -67,13 +67,14 @@ export default function ProductCard({
       className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 rounded-2xl ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
     >
       <div className="bg-white rounded-2xl overflow-hidden border border-border shadow-sm transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-jays-navy/10 group-hover:border-jays-navy/25">
-        <div className="relative aspect-[3/4] bg-jays-ice overflow-hidden">
+        <div className="relative aspect-[3/4] bg-jays-ice overflow-hidden" style={{ position: 'relative' }}>
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain transition-transform duration-300 group-hover:scale-105"
+            style={{ position: 'absolute', inset: 0 }}
           />
           {!isSoldOut && (product.isFeatured || product.isNewArrival) && (
             <div className="absolute top-2 left-2 flex flex-col gap-1">

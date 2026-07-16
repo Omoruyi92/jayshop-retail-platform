@@ -101,7 +101,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Gallery Column */}
         <div className="lg:col-span-7 lg:sticky lg:top-24">
-          <div className="bg-white rounded-3xl shadow-sm overflow-hidden relative aspect-[4/3] md:aspect-[4/3] w-full border border-gray-100/50">
+          <div
+            className="bg-white rounded-3xl shadow-sm overflow-hidden relative aspect-[4/3] md:aspect-[4/3] w-full border border-gray-100/50"
+            style={{ position: 'relative' }}
+          >
             <ProductImageGallery images={images} alt={product.name} />
           </div>
         </div>

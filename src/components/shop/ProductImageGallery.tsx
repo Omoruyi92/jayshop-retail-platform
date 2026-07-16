@@ -84,13 +84,14 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
 
   if (!hasMultiple) {
     return (
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" style={{ position: 'absolute', inset: 0 }}>
         <Image
           src={images[0] || '/placeholder.png'}
           alt={alt}
           fill
           sizes="(max-width: 1280px) 100vw, 50vw"
           className="object-contain p-4"
+          style={{ position: 'absolute', inset: 0 }}
           priority
         />
         {arrows}
@@ -99,10 +100,11 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col">
+    <div className="absolute inset-0 flex flex-col" style={{ position: 'absolute', inset: 0 }}>
       {/* Main image */}
       <div
         className="relative flex-1 min-h-0 [perspective:1200px] cursor-pointer"
+        style={{ position: 'relative' }}
         onClick={handleTap}
       >
         <Image
@@ -112,6 +114,7 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
           fill
           sizes="(max-width: 1280px) 100vw, 50vw"
           className={`object-contain p-4 ${animateTick > 0 ? 'animate-image-cycle' : ''}`}
+          style={{ position: 'absolute', inset: 0 }}
           priority={activeIndex === 0}
         />
 

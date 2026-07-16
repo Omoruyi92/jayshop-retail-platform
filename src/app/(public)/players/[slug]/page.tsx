@@ -106,7 +106,10 @@ export default function PlayerDetailPage() {
         Popular Players
       </Link>
 
-      <div className="relative aspect-[4/3] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-jays-ice mb-6">
+      <div
+        className="relative aspect-[4/3] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-jays-ice mb-6"
+        style={{ position: 'relative' }}
+      >
         <ProductImageGallery images={galleryImages} alt={player.name} />
         <PlayerBadge
           isFeatured={player.isFeatured}
