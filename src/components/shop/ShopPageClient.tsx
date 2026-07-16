@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { saveShopState, loadShopState, clearShopState } from '@/lib/shop/shopState'
+import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
 
 interface Product {
   id: string
@@ -328,6 +328,17 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     brand: activeBrand,
     search: searchInput,
   }
+
+  // Persist the exact filtered/sorted product sequence the customer is
+  // currently viewing so the product detail page can offer Previous/Next
+  // navigation within this same category/filter/sort context, without
+  // redirecting back to /shop.
+  useEffect(() => {
+    if (loading) return
+    saveProductListContext(sorted.map((product) => ({ slug: product.slug, name: product.name, imageUrl: product.imageUrl })))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, sorted.map((product) => product.slug).join(',')])
+
 
   return (
     <>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import ProductDetails from '@/components/shop/ProductDetails'
+import ProductCategoryNav from '@/components/shop/ProductCategoryNav'
 import ProductImageGallery from '@/components/shop/ProductImageGallery'
 import ProductReviews from '@/components/shop/ProductReviews'
 import RecentlyViewed from '@/components/shop/RecentlyViewed'
@@ -97,7 +98,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
         imageUrl={product.imageUrl}
         priceCents={product.priceCents}
       />
-      
+
+      <ProductCategoryNav currentSlug={product.slug} />
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Gallery Column */}
         <div className="lg:col-span-7 lg:sticky lg:top-24">
