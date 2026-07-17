@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { loadProductListContext, type ProductListContextItem } from '@/lib/shop/shopState'
 
@@ -34,19 +33,14 @@ export default function ProductCategoryNav({ currentSlug }: { currentSlug: strin
       {prev ? (
         <Link
           href={`/shop/${prev.slug}`}
-          className="group flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-jays-ice"
+          aria-label="Previous product"
+          className="group flex shrink-0 items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
         >
           <ChevronLeft
             size={18}
-            className="shrink-0 text-jays-steel transition-transform duration-150 group-hover:-translate-x-0.5"
+            className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5"
           />
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-jays-ice">
-            <Image src={prev.imageUrl} alt={prev.name} fill sizes="36px" className="object-contain" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-jays-steel">Previous</p>
-            <p className="truncate text-xs font-semibold text-jays-navy">{prev.name}</p>
-          </div>
+          Previous
         </Link>
       ) : (
         <div className="flex-1" />
@@ -59,18 +53,13 @@ export default function ProductCategoryNav({ currentSlug }: { currentSlug: strin
       {next ? (
         <Link
           href={`/shop/${next.slug}`}
-          className="group flex min-w-0 flex-1 items-center justify-end gap-2 rounded-xl px-2 py-1.5 text-right transition-colors hover:bg-jays-ice"
+          aria-label="Next product"
+          className="group flex shrink-0 items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
         >
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-jays-steel">Next</p>
-            <p className="truncate text-xs font-semibold text-jays-navy">{next.name}</p>
-          </div>
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-jays-ice">
-            <Image src={next.imageUrl} alt={next.name} fill sizes="36px" className="object-contain" />
-          </div>
+          Next
           <ChevronRight
             size={18}
-            className="shrink-0 text-jays-steel transition-transform duration-150 group-hover:translate-x-0.5"
+            className="shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
           />
         </Link>
       ) : (
