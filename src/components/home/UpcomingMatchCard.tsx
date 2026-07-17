@@ -57,20 +57,21 @@ export default function UpcomingMatchCard() {
     }
   }, [])
 
-  if (!loaded) return null
+  // Nothing to show when the fetch hasn't resolved yet, or no upcoming home
+  // game is scheduled — this card is purely informational, so it should
+  // disappear entirely rather than render an empty state.
+  if (!loaded || !gameDay) return null
 
-  const opponentTeam = gameDay ? findMlbTeam(gameDay.opponent) : null
+  const opponentTeam = findMlbTeam(gameDay.opponent)
 
   return (
     <div className="mx-auto max-w-md sm:max-w-lg mb-4">
       <div className="relative rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2.5 sm:px-5 sm:py-3 shadow-lg">
         <p className="text-center text-[9px] sm:text-[10px] font-display uppercase tracking-[0.2em] text-blue-200/70 mb-1.5">
-          {gameDay ? 'Upcoming Home Game' : 'Rogers Centre'}
+          Upcoming Home Game
         </p>
 
-        {gameDay ? (
-          <>
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
               {/* Blue Jays */}
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-white/90 flex items-center justify-center overflow-hidden shadow-sm">
@@ -120,12 +121,6 @@ export default function UpcomingMatchCard() {
                 </>
               )}
             </p>
-          </>
-        ) : (
-          <p className="text-center text-blue-100/70 text-xs sm:text-sm">
-            No home game currently scheduled — check back soon for the next matchup.
-          </p>
-        )}
       </div>
     </div>
   )
