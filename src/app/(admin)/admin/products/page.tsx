@@ -15,6 +15,7 @@ import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
 import RestockModal from '@/components/admin/RestockModal'
+import { useInventoryStream } from '@/hooks/useInventoryStream'
 
 interface Product {
   id: string
@@ -30,6 +31,7 @@ interface Product {
   hatStyle: string
   quantity: number
   heldQuantity: number
+  pickedQuantity: number
   remaining: number
   sizes: string
   brand: string
@@ -59,6 +61,18 @@ function getDisplayStatus(p: Product): string {
   if (p.status !== 'AVAILABLE' && p.status !== 'SOLD') return p.status
   if (p.status === 'SOLD' && p.heldQuantity > 0) return 'ON_HOLD'
   return p.status
+}
+
+/**
+ * Builds the label shown inside the STATUS badge. When units are currently
+ * held or already sold (picked up / POS-sold), surface the live quantity
+ * (e.g. "1 Held", "3 Sold") instead of a static word, so admins can see the
+ * real-time inventory breakdown at a glance without opening the product.
+ */
+function getStatusLabel(p: Product, displayStatus: string): string | undefined {
+  if (displayStatus === 'ON_HOLD' && p.heldQuantity > 0) return `${p.heldQuantity} Held`
+  if (displayStatus === 'SOLD' && p.pickedQuantity > 0) return `${p.pickedQuantity} Sold`
+  return undefined
 }
 
 export default function AdminProductsPage() {
@@ -114,6 +128,12 @@ export default function AdminProductsPage() {
   }, [showArchived])
 
   useEffect(() => { load() }, [load])
+
+  // Keep the product list (and its Held/Sold badges + remaining counts) in
+  // sync with the single source of truth in real time — reload whenever any
+  // inventory or hold mutation happens anywhere in the app (POS sale, hold
+  // create/resolve/release, restock, etc.) instead of only on manual refresh.
+  useInventoryStream({}, { onInventoryChanged: () => load(), onHoldChanged: () => load() })
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -539,7 +559,7 @@ export default function AdminProductsPage() {
                   {/* Inventory: remaining / held */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <span className={`font-semibold ${remaining <= 0 ? 'text-red-600' : 'text-green-600'}`}>{remaining} rem</span>
-                    <span className="text-jays-steel text-xs ml-1">/ {p._count?.holds ?? 0} held</span>
+                    <span className="text-jays-steel text-xs ml-1">/ {p.heldQuantity} held</span>
                   </td>
                   {/* Likes */}
                   <td className="px-3 py-2 whitespace-nowrap">
@@ -550,7 +570,10 @@ export default function AdminProductsPage() {
                   </td>
                   {/* Status */}
                   <td className="px-3 py-2">
-                    <StatusBadge status={getDisplayStatus(p)} />
+                    {(() => {
+                      const displayStatus = getDisplayStatus(p)
+                      return <StatusBadge status={displayStatus} label={getStatusLabel(p, displayStatus)} />
+                    })()}
                   </td>
                   {/* Actions */}
                   <td className="px-3 py-2">

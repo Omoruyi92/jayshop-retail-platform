@@ -20,16 +20,25 @@ const BADGE_LABELS: Record<string, string> = {
   SOLD: 'Sold',
 }
 
-export function StatusBadge({ status, className }: { status: string; className?: string }) {
+export function StatusBadge({
+  status,
+  className,
+  label,
+}: {
+  status: string
+  className?: string
+  /** Optional override for the rendered text (e.g. "1 Held", "3 Sold"). */
+  label?: string
+}) {
   return (
     <span
       className={cn(
-        'px-2.5 py-0.5 rounded-full text-xs font-semibold',
+        'px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
         BADGE_STYLES[status] ?? 'bg-gray-100 text-gray-500',
         className
       )}
     >
-      {BADGE_LABELS[status] ?? status.replace(/_/g, ' ')}
+      {label ?? BADGE_LABELS[status] ?? status.replace(/_/g, ' ')}
     </span>
   )
 }

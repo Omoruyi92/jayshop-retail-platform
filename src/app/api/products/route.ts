@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     },
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
-      sizeInventories: { select: { size: true, quantity: true, heldQuantity: true } },
+      sizeInventories: { select: { size: true, quantity: true, heldQuantity: true, pickedQuantity: true } },
       _count: { select: { likes: true, ...(includeArchived && { holds: true }) } },
     },
   })
@@ -37,15 +37,18 @@ export async function GET(request: Request) {
     const hasSizes = p.sizeInventories.length > 0
 
     // When size inventory rows exist, sum their available quantities for a
-    // meaningful "remaining" count; otherwise fall back to the product-level field.
+    // meaningful "remaining" count; otherwise fall back to the product-level
+    // fields. Subtracting pickedQuantity (not just heldQuantity) keeps this
+    // in lockstep with computeProductStatus's definition of "available" —
+    // units completed via pickup fulfillment must not reappear as in-stock.
     const remaining = hasSizes
-      ? p.sizeInventories.reduce((sum, s) => sum + Math.max(0, s.quantity - s.heldQuantity), 0)
-      : Math.max(0, p.quantity - p.heldQuantity)
+      ? p.sizeInventories.reduce((sum, s) => sum + Math.max(0, s.quantity - s.heldQuantity - s.pickedQuantity), 0)
+      : Math.max(0, p.quantity - p.heldQuantity - p.pickedQuantity)
 
     // allSizesOos: only true when there ARE size rows and every one is OOS
     const allSizesOos =
       hasSizes &&
-      p.sizeInventories.every((s) => s.quantity - s.heldQuantity <= 0)
+      p.sizeInventories.every((s) => s.quantity - s.heldQuantity - s.pickedQuantity <= 0)
 
     return {
       ...p,

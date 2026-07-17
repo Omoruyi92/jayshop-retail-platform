@@ -22,6 +22,7 @@ interface Product {
   hatStyle: string
   quantity: number
   heldQuantity: number
+  pickedQuantity: number
   remaining: number
   sizes: string
   brand: string
