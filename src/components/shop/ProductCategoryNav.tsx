@@ -29,21 +29,20 @@ export default function ProductCategoryNav({ currentSlug }: { currentSlug: strin
   if (!prev && !next) return null
 
   return (
-    <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white/70 px-3 py-2 shadow-sm">
+    <div className="mb-5 flex w-fit items-center gap-2 rounded-full border border-gray-100 bg-white/70 px-2 py-1.5 shadow-sm">
       {prev ? (
         <Link
           href={`/shop/${prev.slug}`}
           aria-label="Previous product"
-          className="group flex shrink-0 items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
+          className="group flex shrink-0 items-center justify-center rounded-full p-1.5 text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
         >
           <ChevronLeft
             size={18}
             className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5"
           />
-          Previous
         </Link>
       ) : (
-        <div className="flex-1" />
+        <div className="w-[30px]" />
       )}
 
       <p className="shrink-0 text-xs font-medium text-jays-steel">
@@ -54,16 +53,15 @@ export default function ProductCategoryNav({ currentSlug }: { currentSlug: strin
         <Link
           href={`/shop/${next.slug}`}
           aria-label="Next product"
-          className="group flex shrink-0 items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
+          className="group flex shrink-0 items-center justify-center rounded-full p-1.5 text-jays-steel transition-colors hover:bg-jays-ice hover:text-jays-navy"
         >
-          Next
           <ChevronRight
             size={18}
             className="shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
           />
         </Link>
       ) : (
-        <div className="flex-1" />
+        <div className="w-[30px]" />
       )}
     </div>
   )
