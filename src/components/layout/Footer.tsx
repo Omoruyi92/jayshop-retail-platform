@@ -5,13 +5,6 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import MLBLogo from '@/components/ui/MLBLogo'
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
-function AboutIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
 function PolicyIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -23,13 +16,6 @@ function ReturnsIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  )
-}
-function SizeChartIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
     </svg>
   )
 }
@@ -55,13 +41,6 @@ function StoreLocationIcon({ className = 'w-4 h-4' }: { className?: string }) {
     </svg>
   )
 }
-function BrandIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-    </svg>
-  )
-}
 function SupportIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -69,28 +48,16 @@ function SupportIcon({ className = 'w-4 h-4' }: { className?: string }) {
     </svg>
   )
 }
-function PlayersIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-4.13a4 4 0 10-4-4 4 4 0 004 4zm0 0a4 4 0 014 4v1H8v-1a4 4 0 014-4z" />
-    </svg>
-  )
-}
-
 /* ─── Footer ────────────────────────────────────────────────────── */
 export default function Footer() {
   const { t } = useLanguage()
 
   const navItemsLeft = [
-    { href: '/about', label: 'Explore', icon: AboutIcon },
     { href: '/policy', label: 'Store Policy', icon: PolicyIcon },
     { href: '/returns', label: 'Return Policy', icon: ReturnsIcon },
   ]
 
   const navItemsRight = [
-    { href: '/brands', label: 'Brands', icon: BrandIcon },
-    { href: '/players', label: t.footer.popularPlayers, icon: PlayersIcon },
-    { href: '/size-chart', label: 'Size Chart', icon: SizeChartIcon },
     { href: '/discounts', label: 'Discounts', icon: DiscountsIcon },
     { href: '/product-concerns', label: 'Product Concerns', icon: ConcernsIcon },
   ]
@@ -114,6 +81,12 @@ export default function Footer() {
               </svg>
               <a href="tel:+14163412904" className="hover:text-white transition-colors">Gate 5: 416.341.2904</a>
             </p>
+            <a href="https://www.google.com/maps/search/?api=1&query=1+Blue+Jays+Way%2C+Toronto%2C+ON+M5V+1J4"
+              target="_blank" rel="noopener noreferrer"
+              className="text-blue-300 text-xs flex items-center gap-1 leading-snug hover:text-white transition-colors">
+              <StoreLocationIcon className="w-3 h-3 shrink-0" />
+              1 Blue Jays Way, Toronto, ON M5V 1J4
+            </a>
             <div className="flex items-center gap-1.5 pt-0.5">
               <MLBLogo size={28} className="opacity-90" />
               <span className="text-blue-300 text-[10px]">Official MLB Licensed Retailer</span>
@@ -136,12 +109,6 @@ export default function Footer() {
                 <SupportIcon className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" />
                 <span className="truncate">Support</span>
               </Link>
-              <a href="https://www.google.com/maps/search/?api=1&query=1+Blue+Jays+Way%2C+Toronto%2C+ON+M5V+1J4"
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-2 py-[5px] rounded-md text-sm text-blue-200 hover:bg-white/10 hover:text-white transition-all duration-150 group min-w-0">
-                <StoreLocationIcon className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" />
-                <span className="truncate">Store Location</span>
-              </a>
               <Link href="/admin"
                 className="hidden sm:flex items-center gap-2 px-2 py-[5px] rounded-md text-sm text-blue-200 hover:bg-white/10 hover:text-white transition-all duration-150 group min-w-0">
                 <svg className="w-4 h-4 text-blue-300/80 group-hover:text-white transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
