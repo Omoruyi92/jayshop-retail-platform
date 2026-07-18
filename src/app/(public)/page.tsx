@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -11,6 +12,28 @@ import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 export default function HomePage() {
   const { t } = useLanguage()
   const h = t.home
+  const [isGameDayToday, setIsGameDayToday] = useState(false)
+
+  // The Game Day Hold Policy banner only applies to the Section 123 Stadium
+  // Queue on active game days — it should disappear entirely on non-game
+  // days rather than show a static/irrelevant notice.
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/game-days/next')
+      .then((res) => (res.ok ? res.json() : { gameDay: null }))
+      .then((data) => {
+        if (cancelled || !data?.gameDay?.date) return
+        const now = new Date()
+        const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+        const gameDate = new Date(data.gameDay.date)
+        const gameDateUTC = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate())
+        if (gameDateUTC === today) setIsGameDayToday(true)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const steps = [
     {
@@ -193,22 +216,24 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* ── Stadium Policy Notice ─────────────────────────────── */}
-        <div className="mt-8 rounded-2xl border border-blue-200/60 bg-blue-50 px-6 py-5">
-          <div className="flex items-start gap-4">
-            <svg className="w-6 h-6 text-jays-royal shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <h3 className="font-display font-bold text-sm sm:text-base uppercase tracking-wide text-jays-navy mb-1.5">
-                {h.stadiumPolicyTitle}
-              </h3>
-              <p className="text-blue-900/80 text-sm sm:text-base leading-relaxed">
-                {h.stadiumPolicyBody}
-              </p>
+        {/* ── Stadium Policy Notice — game days only ─────────────── */}
+        {isGameDayToday && (
+          <div className="mt-8 rounded-2xl border border-blue-200/60 bg-blue-50 px-6 py-5">
+            <div className="flex items-start gap-4">
+              <svg className="w-6 h-6 text-jays-royal shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="font-display font-bold text-sm sm:text-base uppercase tracking-wide text-jays-navy mb-1.5">
+                  {h.stadiumPolicyTitle}
+                </h3>
+                <p className="text-blue-900/80 text-sm sm:text-base leading-relaxed">
+                  {h.stadiumPolicyBody}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── Partner Marquee ─────────────────────────────────────── */}
         <div className="mt-12">
