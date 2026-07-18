@@ -7,6 +7,7 @@ import { getEffectiveHoldHours } from '@/lib/holds/getEffectiveHoldHours'
 import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
+import { broadcaster } from '@/lib/realtime/broadcaster'
 
 export async function createHold(
   productId: string,
@@ -179,6 +180,21 @@ export async function createHold(
       toLocationId: locationId,
       note: `Hold ${reservationCode}${isStadiumHold ? ' (stadium queue)' : ''}`,
     })
+
+    // Emit a hold_changed event for real-time dashboards. PG trigger also
+    // fires, but broadcaster dedupes by hold+status within the window.
+    try {
+      broadcaster.publish('hold_changed', {
+        holdId: hold.id,
+        productId,
+        size: customerData.size ?? null,
+        status: 'ACTIVE',
+        op: 'INSERT',
+        ts: Date.now(),
+      })
+    } catch {
+      // Non-blocking: realtime SSE path is best-effort.
+    }
 
     await tx.auditLog.create({
       data: {

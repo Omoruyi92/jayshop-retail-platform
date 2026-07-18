@@ -338,6 +338,7 @@ export type SellInput = {
 /**
  * Centralized direct-sale: decrement SizeInventory.quantity at a location.
  * For sizeless products, decrement product.quantity directly.
+ * Also records a SalesHistory row for the completed sale.
  */
 export async function sellInventory(input: SellInput, tx?: Prisma.TransactionClient) {
   const run = async (db: Prisma.TransactionClient) => {
@@ -367,6 +368,23 @@ export async function sellInventory(input: SellInput, tx?: Prisma.TransactionCli
       actorEmail: input.actorEmail ?? null,
       note: input.note ?? `POS sale -${qty}`,
     })
+
+    // Record completed sale in SalesHistory so analytics and product labels
+    // draw from the same source of truth.
+    await db.salesHistory.create({
+      data: {
+        holdId: '',
+        reservationCode: input.note ?? `pos-${Date.now()}`,
+        productId,
+        productNameSnapshot: '',
+        salePriceCentsSnapshot: 0,
+        holdQuantity: qty,
+        fulfilledQuantity: qty,
+        customerPhoneSnapshot: '',
+        soldAt: new Date(),
+      },
+    })
+
     await syncProductTotalsFromSizeInventory(db, productId)
     const product = await db.product.findUnique({ where: { id: productId }, select: { status: true } })
     const newStatus = await computeStatus(db, productId, product?.status)

@@ -3,6 +3,7 @@ import { generateReservationCode } from '@/lib/utils'
 import { getHoldReservationLocationId } from '@/lib/store-locations'
 import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
 import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
+import { broadcaster } from '@/lib/realtime/broadcaster'
 
 export type FinalStatus = 'PICKED_UP' | 'RELEASED' | 'EXPIRED'
 
@@ -142,7 +143,8 @@ export async function resolveHold(
           size: hold.size,
           type: 'hold-release',
           quantity: holdQty,
-          fromLocationId: locationId,
+          toLocationId: locationId,
+          actorId: resolvedAdminId,
           note: `Hold ${hold.reservationCode} ${effectiveStatus.toLowerCase()}`,
         })
       }
@@ -226,6 +228,35 @@ export async function resolveHold(
           soldByAdminId: resolvedAdminId,
         },
       })
+    }
+
+    // Append-only ledger entry describing the resolution.
+    // For pickups the hold moves to picked (sold) status — log that the units
+    // left the hold pool. For releases/expirations the units return to stock.
+    const resolutionLocationId = hold.size ? await getHoldReservationLocationId(hold.isStadiumHold) : null
+    await logInventoryTransaction(tx, {
+      productId: hold.productId,
+      size: hold.size,
+      type: effectiveStatus === 'PICKED_UP' ? 'sale' : 'hold-release',
+      quantity: effectiveStatus === 'PICKED_UP' ? resolvedFulfilledQty : holdQty,
+      fromLocationId: resolutionLocationId,
+      actorId: resolvedAdminId,
+      note: `Hold ${hold.reservationCode} ${effectiveStatus}${isPartial ? ' (partial)' : ''}`,
+    })
+
+    // Emit a real-time event for dashboards. PG trigger also fires, but
+    // broadcaster dedupes by hold+status within the window.
+    try {
+      broadcaster.publish('hold_changed', {
+        holdId,
+        productId: hold.productId,
+        size: hold.size,
+        status: effectiveStatus,
+        op: 'UPDATE',
+        ts: Date.now(),
+      })
+    } catch {
+      // Non-blocking: realtime SSE path is best-effort.
     }
 
     await tx.auditLog.create({

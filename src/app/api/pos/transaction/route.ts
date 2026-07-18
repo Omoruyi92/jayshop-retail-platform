@@ -169,6 +169,21 @@ export async function POST(req: Request) {
             actorEmail: `pos:${auth.apiKey.name}`,
             note: `externalId=${externalId}`,
           })
+          // Record a completed sale in SalesHistory so the admin dashboard,
+          // analytics, and product status labels all draw from the same source.
+          await tx.salesHistory.create({
+            data: {
+              holdId: '',
+              reservationCode: externalId,
+              productId: it.productId,
+              productNameSnapshot: it.productName,
+              salePriceCentsSnapshot: 0,
+              holdQuantity: it.quantity,
+              fulfilledQuantity: it.quantity,
+              customerPhoneSnapshot: '',
+              soldAt: new Date(),
+            },
+          })
           deltas.push({
             productId: it.productId,
             productName: it.productName,

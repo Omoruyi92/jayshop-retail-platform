@@ -71,6 +71,19 @@ export async function logInventoryTransaction(
           op: 'UPDATE',
           ts: Date.now(),
         })
+      } else {
+        // The size row didn't exist before (e.g. a return created it), or it
+        // doesn't exist now. Emit a synthetic 0→new event so subscribers still
+        // refresh even when the exact row snapshot is unavailable.
+        broadcaster.publish('inventory_changed', {
+          productId: input.productId,
+          size: input.size ?? null,
+          locationId,
+          oldQty: 0,
+          newQty: input.quantity,
+          op: 'INSERT',
+          ts: Date.now(),
+        })
       }
     } catch {
       // Fallback path only — safe to ignore, PG trigger is the primary signal.
