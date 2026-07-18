@@ -144,6 +144,19 @@ export async function POST(req: Request) {
             quantity: (sizeQuantitiesMap?.[size] ?? baseQty) + (index < remainder ? 1 : 0),
           })),
         })
+      } else {
+        // Sizeless product: track total quantity via a single ONE_SIZE
+        // SizeInventory row at Main Store, keeping it on the same
+        // centralized inventory engine (holds/sales/transfers/replenishment)
+        // as size-tracked products.
+        await tx.sizeInventory.create({
+          data: {
+            productId: created.id,
+            size: 'ONE_SIZE',
+            locationId,
+            quantity,
+          },
+        })
       }
 
       if (isNewArrival) {

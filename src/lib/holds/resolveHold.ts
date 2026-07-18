@@ -101,17 +101,28 @@ export async function resolveHold(
       })
     }
 
-    // Size-level inventory counters — only when a size is tracked
-    if (hold.size) {
+    // Product-level held/picked/quantity are denormalized aggregates over
+    // SizeInventory. Compute this up front so sizeless products that have
+    // been migrated onto the centralized SizeInventory engine (a single
+    // ONE_SIZE row) still get their location-level counters updated.
+    const hasSizeRows = (await tx.sizeInventory.count({ where: { productId: hold.productId } })) > 0
+    // `hold.size` stays null for sizeless products (display-only field);
+    // `inventorySize` is the actual SizeInventory key to mutate.
+    const inventorySize = hold.size || (hasSizeRows ? 'ONE_SIZE' : null)
+
+    // Size-level inventory counters — runs whenever the product has real
+    // SizeInventory rows (sized products, or sizeless products tracked via
+    // the synthetic ONE_SIZE row).
+    if (inventorySize) {
       const locationId = await getHoldReservationLocationId(hold.isStadiumHold)
       const sizeRow = await tx.sizeInventory.findUnique({
-        where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
+        where: { productId_size_locationId: { productId: hold.productId, size: inventorySize, locationId } },
       })
       if (sizeRow !== null) {
         if (effectiveStatus === 'PICKED_UP') {
           if (isPartial) {
             await tx.sizeInventory.update({
-              where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
+              where: { productId_size_locationId: { productId: hold.productId, size: inventorySize, locationId } },
               data: {
                 heldQuantity: { decrement: resolvedFulfilledQty },
                 pickedQuantity: { increment: resolvedFulfilledQty },
@@ -119,7 +130,7 @@ export async function resolveHold(
             })
           } else {
             await tx.sizeInventory.update({
-              where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
+              where: { productId_size_locationId: { productId: hold.productId, size: inventorySize, locationId } },
               data: {
                 heldQuantity: { decrement: holdQty },
                 pickedQuantity: { increment: holdQty },
@@ -129,7 +140,7 @@ export async function resolveHold(
         } else {
           // RELEASED or EXPIRED
           await tx.sizeInventory.update({
-            where: { productId_size_locationId: { productId: hold.productId, size: hold.size, locationId } },
+            where: { productId_size_locationId: { productId: hold.productId, size: inventorySize, locationId } },
             data: { heldQuantity: { decrement: holdQty } },
           })
         }
@@ -140,7 +151,7 @@ export async function resolveHold(
       if (effectiveStatus !== 'PICKED_UP') {
         await logInventoryTransaction(tx, {
           productId: hold.productId,
-          size: hold.size,
+          size: inventorySize,
           type: 'hold-release',
           quantity: holdQty,
           toLocationId: locationId,
@@ -153,7 +164,6 @@ export async function resolveHold(
     // Product-level held/picked/quantity are denormalized aggregates over
     // SizeInventory. Resync from the (now-updated) SizeInventory rows so the
     // aggregate never drifts from the true per-size/location source of truth.
-    const hasSizeRows = (await tx.sizeInventory.count({ where: { productId: hold.productId } })) > 0
     if (hasSizeRows) {
       await syncProductTotalsFromSizeInventory(tx, hold.productId)
     }
@@ -233,10 +243,10 @@ export async function resolveHold(
     // Append-only ledger entry describing the resolution.
     // For pickups the hold moves to picked (sold) status — log that the units
     // left the hold pool. For releases/expirations the units return to stock.
-    const resolutionLocationId = hold.size ? await getHoldReservationLocationId(hold.isStadiumHold) : null
+    const resolutionLocationId = inventorySize ? await getHoldReservationLocationId(hold.isStadiumHold) : null
     await logInventoryTransaction(tx, {
       productId: hold.productId,
-      size: hold.size,
+      size: inventorySize,
       type: effectiveStatus === 'PICKED_UP' ? 'sale' : 'hold-release',
       quantity: effectiveStatus === 'PICKED_UP' ? resolvedFulfilledQty : holdQty,
       fromLocationId: resolutionLocationId,

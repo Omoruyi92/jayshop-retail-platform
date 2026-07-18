@@ -82,6 +82,13 @@ export async function createHold(
     }
 
     const hasSizes = hasSizeRowsAnywhere
+    // Effective SizeInventory size key: the customer's chosen size, or the
+    // synthetic ONE_SIZE row for sizeless products that have been migrated
+    // onto the centralized SizeInventory engine. `hold.size` itself stays
+    // null for sizeless products (display-only field), but all inventory
+    // math uses `inventorySize` so sizeless products flow through the exact
+    // same location-scoped mutation path as sized products.
+    const inventorySize = customerData.size || (hasSizes ? 'ONE_SIZE' : null)
 
     // For size-tracked products use the sum of per-size available stock at
     // the fulfilling location; otherwise fall back to the product-level
@@ -95,9 +102,11 @@ export async function createHold(
       throw Object.assign(new Error('ITEM_NOT_AVAILABLE'), { code: 'ITEM_NOT_AVAILABLE' })
     }
 
-    // Size-level inventory check — only when a size is specified
-    if (customerData.size) {
-      const sizeRow = sizeRows.find((r) => r.size === customerData.size) ?? null
+    // Size-level inventory check — runs whenever the product has been
+    // migrated onto SizeInventory (explicit size chosen by the customer, or
+    // the synthetic ONE_SIZE row for sizeless products).
+    if (inventorySize) {
+      const sizeRow = sizeRows.find((r) => r.size === inventorySize) ?? null
       // hasSizes but no row at this location means the size isn't stocked at
       // the chosen fulfillment location — reject rather than silently
       // skipping (which previously let holds through with no enforcement).
@@ -112,7 +121,7 @@ export async function createHold(
         // Reserve at size level atomically — stadium holds draw from the
         // pickup queue (Section 123); standard holds draw from the main store.
         await tx.sizeInventory.update({
-          where: { productId_size_locationId: { productId, size: customerData.size, locationId } },
+          where: { productId_size_locationId: { productId, size: inventorySize, locationId } },
           data: { heldQuantity: { increment: qty } },
         })
       }
@@ -174,7 +183,7 @@ export async function createHold(
     // Append-only ledger entry for this reservation at the fulfilling location.
     await logInventoryTransaction(tx, {
       productId,
-      size: customerData.size ?? null,
+      size: inventorySize,
       type: 'hold-reserve',
       quantity: qty,
       toLocationId: locationId,

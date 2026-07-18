@@ -14,7 +14,7 @@ async function main() {
       status: { not: 'ARCHIVED' },
       sizeInventories: { none: {} },
     },
-    select: { id: true, name: true, quantity: true, sizes: true },
+    select: { id: true, name: true, quantity: true, sizes: true, heldQuantity: true, pickedQuantity: true },
   })
 
   if (productsWithoutInventory.length === 0) {
@@ -37,21 +37,23 @@ async function main() {
       continue
     }
 
+    // Seed the ONE_SIZE row with the product's CURRENT held/picked counters
+    // (not zero) so in-flight holds/sales aren't lost when the product moves
+    // onto the centralized SizeInventory engine.
     await prisma.sizeInventory.create({
       data: {
         productId: product.id,
         size: ONE_SIZE,
         quantity: product.quantity,
+        heldQuantity: product.heldQuantity,
+        pickedQuantity: product.pickedQuantity,
         locationId: mainStoreLocationId,
       },
     })
 
-    await prisma.product.update({
-      where: { id: product.id },
-      data: { heldQuantity: 0, pickedQuantity: 0 },
-    })
-
-    console.log(`Created ONE_SIZE inventory for "${product.name}" (qty: ${product.quantity})`)
+    console.log(
+      `Created ONE_SIZE inventory for "${product.name}" (qty: ${product.quantity}, held: ${product.heldQuantity}, picked: ${product.pickedQuantity})`
+    )
     created++
   }
 

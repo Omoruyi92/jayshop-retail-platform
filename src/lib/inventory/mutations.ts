@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { logInventoryTransaction, resolveActorFromSession } from '@/lib/inventory/logTransaction'
-import { syncProductTotalsFromSizeInventory, isSizelessInventory } from '@/lib/inventory/availability'
+import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import type { Prisma } from '@prisma/client'
 
 export type RestockInput = {
@@ -316,7 +316,7 @@ async function computeStatus(
     where: { productId },
     select: { size: true, quantity: true, heldQuantity: true, pickedQuantity: true },
   })
-  if (rows.length > 0 && !isSizelessInventory(rows)) {
+  if (rows.length > 0) {
     const available = rows.reduce((sum, r) => sum + Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity), 0)
     return available > 0 ? 'AVAILABLE' : 'SOLD'
   }

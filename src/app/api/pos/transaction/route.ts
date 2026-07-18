@@ -5,7 +5,7 @@ import { authenticatePosRequest } from '@/lib/pos/auth'
 import { checkRateLimit } from '@/lib/pos/rateLimit'
 import { getMainStoreLocationId } from '@/lib/store-locations'
 import { logInventoryTransaction } from '@/lib/inventory/logTransaction'
-import { syncProductTotalsFromSizeInventory, computeProductStatus, isSizelessInventory } from '@/lib/inventory/availability'
+import { syncProductTotalsFromSizeInventory, computeProductStatus } from '@/lib/inventory/availability'
 
 export const dynamic = 'force-dynamic'
 

@@ -42,10 +42,6 @@ const LOW_STOCK_THRESHOLD = 10
 
 const ONE_SIZE = 'ONE_SIZE'
 
-function isSyntheticOneSizeRows(rows: Array<{ size: string }>): boolean {
-  return rows.length === 1 && rows[0]?.size === ONE_SIZE
-}
-
 export function statusForTotal(quantity: number): InventoryStatus {
   if (quantity === 0) return 'out-of-stock'
   if (quantity <= LOW_STOCK_THRESHOLD) return 'low-stock'
@@ -204,10 +200,11 @@ export async function getProductAvailability(
     }),
   ])
 
-  // No size-inventory rows means a simple product: treat Product.quantity as a single ONE_SIZE row.
-  // If a single ONE_SIZE row already exists from a legacy sync, still fall back to Product.quantity
-  // as the source of truth.
-  if ((rows.length === 0 || isSyntheticOneSizeRows(rows)) && product) {
+  // No size-inventory rows at all means a not-yet-migrated simple product:
+  // treat Product.quantity as a single synthetic ONE_SIZE row. Once real
+  // SizeInventory rows exist (including a genuine ONE_SIZE row per location
+  // for sizeless products), those rows are always the source of truth.
+  if (rows.length === 0 && product) {
     const mainStoreLocationId = await import('@/lib/store-locations').then((m) => m.getMainStoreLocationId())
     return buildAvailability([
       {
@@ -269,7 +266,7 @@ export async function getManyProductsAvailability(
   const result: Record<string, ProductAvailability> = {}
   for (const id of productIds) {
     const productRows = grouped.get(id)
-    const hasRealSizes = productRows && productRows.length > 0 && !isSyntheticOneSizeRows(productRows)
+    const hasRealSizes = productRows && productRows.length > 0
     if (!hasRealSizes) {
       const product = productMap.get(id)
       result[id] = buildAvailability(

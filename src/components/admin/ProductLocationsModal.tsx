@@ -34,6 +34,10 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
   const [transferState, setTransferState] = useState<{ size: string; fromLocationId?: string } | null>(null)
 
   const sizeList = sizes.split(',').map((s) => s.trim()).filter(Boolean)
+  // Sizeless products (no explicit sizes) are tracked via a single ONE_SIZE
+  // SizeInventory row so they flow through the same centralized inventory
+  // engine (holds/sales/transfers/replenishment) as size-tracked products.
+  const effectiveSizeList = sizeList.length > 0 ? sizeList : ['ONE_SIZE']
 
   const load = useCallback(() => {
     if (!productId) return
@@ -47,7 +51,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
         const nextDraft: Record<string, Record<string, string>> = {}
         for (const loc of locs) {
           nextDraft[loc.locationId] = {}
-          for (const size of sizeList) {
+          for (const size of effectiveSizeList) {
             const row = loc.sizes.find((s) => s.size === size)
             // Show live available (quantity - held - picked) so sold/held
             // units are reflected immediately instead of the original allocation.
@@ -87,7 +91,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
     setSaving(true)
     const inventoryByLocation = Array.from(assignedSet).map((locationId) => ({
       locationId,
-      sizes: sizeList.map((size) => {
+      sizes: effectiveSizeList.map((size) => {
         const row = locations.find((l) => l.locationId === locationId)?.sizes.find((s) => s.size === size)
         const held = row?.heldQuantity ?? 0
         const picked = row?.pickedQuantity ?? 0
@@ -171,15 +175,15 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                       </p>
                     )}
 
-                    {isAssigned && sizeList.length > 0 && (
+                    {isAssigned && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {sizeList.map((size) => {
+                        {effectiveSizeList.map((size) => {
                           const row = loc.sizes.find((s) => s.size === size)
                           const currentAvailable = Math.max(0, (row?.quantity ?? 0) - (row?.heldQuantity ?? 0) - (row?.pickedQuantity ?? 0))
                           const hasStock = currentAvailable > 0
                           return (
                             <div key={size} className="flex flex-col items-center gap-1">
-                              <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
+                              <span className="text-xs font-semibold text-jays-navy uppercase">{size === 'ONE_SIZE' ? 'Qty' : size}</span>
                               <input
                                 type="number"
                                 min="0"

@@ -65,9 +65,11 @@ export function isSizelessInventory(rows: Array<{ size?: string }>): boolean {
  * Sync Product.quantity/heldQuantity/pickedQuantity from SizeInventory.
  * Run inside a transaction that already performed inventory mutations.
  *
- * For sizeless products (no SizeInventory rows, or a single ONE_SIZE synthetic
- * row), Product.quantity is preserved as the source of truth and only the
- * held/picked counters are kept in sync.
+ * Products with at least one SizeInventory row (sized, or sizeless products
+ * tracked via a single ONE_SIZE row) always derive their totals from those
+ * rows — SizeInventory is the single source of truth. Only products with
+ * zero SizeInventory rows anywhere (not yet migrated) keep Product-level
+ * counters untouched.
  */
 export async function syncProductTotalsFromSizeInventory(
   tx: Prisma.TransactionClient,
@@ -78,22 +80,9 @@ export async function syncProductTotalsFromSizeInventory(
     select: { size: true, quantity: true, heldQuantity: true, pickedQuantity: true },
   })
 
-  if (rows.length === 0 || isSyntheticOneSizeRow(rows)) {
-    // Sizeless product: keep Product.quantity as-is and only zero out the
-    // aggregate counters so product.heldQuantity / pickedQuantity stay clean.
-    const product = await tx.product.findUnique({
-      where: { id: productId },
-      select: { quantity: true, heldQuantity: true, pickedQuantity: true },
-    })
-    if (product) {
-      await tx.product.update({
-        where: { id: productId },
-        data: {
-          heldQuantity: 0,
-          pickedQuantity: 0,
-        },
-      })
-    }
+  if (rows.length === 0) {
+    // No SizeInventory rows exist yet for this product — leave Product-level
+    // counters as the source of truth (legacy path, pre-migration).
     return
   }
 
@@ -114,7 +103,7 @@ export function computeProductStatus(
   productCounters?: { quantity: number; heldQuantity: number; pickedQuantity: number } | null
 ): 'AVAILABLE' | 'SOLD' | undefined {
   if (currentStatus === 'ARCHIVED') return undefined
-  if (rows.length === 0 || isSyntheticOneSizeRow(rows)) {
+  if (rows.length === 0) {
     const available = productCounters
       ? Math.max(0, productCounters.quantity - productCounters.heldQuantity - productCounters.pickedQuantity)
       : 0
