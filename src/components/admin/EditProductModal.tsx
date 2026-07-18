@@ -188,7 +188,6 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('isFeatured', String(form.isFeatured))
     formData.append('isSport', String(form.isSport))
     formData.append('isBlankJersey', String(form.isBlankJersey))
-    formData.append('quantity', (parseInt(form.quantity, 10) || 1).toString())
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
 
@@ -264,7 +263,8 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Total Quantity</label>
-            <input type="number" min="0" value={form.quantity} onChange={(e) => setForm((f) => f ? ({ ...f, quantity: e.target.value }) : f)} className={INPUT_CLS} />
+            <input type="number" value={form.quantity} readOnly disabled className={`${INPUT_CLS} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+            <p className="mt-1 text-[10px] text-jays-steel">Auto-calculated from all location inventories. Edit via Location Inventory.</p>
           </div>
 
           <div>

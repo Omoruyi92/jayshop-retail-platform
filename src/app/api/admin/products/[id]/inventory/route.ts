@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize'
-import { getMainStoreLocationId } from '@/lib/store-locations'
 import { logInventoryTransaction, resolveActorFromSession } from '@/lib/inventory/logTransaction'
 import { aggregateAvailable, syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
@@ -192,7 +191,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 
   try {
-    const mainStoreLocationId = await getMainStoreLocationId()
     const existingByKey = new Map(
       existingRows.map((r) => [`${r.locationId}::${r.size}`, r])
     )
@@ -200,10 +198,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     await prisma.$transaction(async (tx) => {
       const { actorId, actorEmail } = await resolveActorFromSession(tx, session)
 
-      // Main Store is never modified through this modal; if a caller somehow
-      // includes it, silently drop it so the source-of-truth allocation from
-      // product creation remains intact.
-      const filteredPayload = payload.filter((entry) => entry.locationId !== mainStoreLocationId)
+      // Main Store (Gate 5) is editable through this modal like any other
+      // location — it is the single source of truth for replenishment, and
+      // the Product Edit modal reads its allocation read-only.
+      const filteredPayload = payload
 
       if (toRemoveLocationIds.length > 0) {
         const removedRows = existingRows.filter((r) => toRemoveLocationIds.includes(r.locationId))

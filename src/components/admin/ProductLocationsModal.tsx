@@ -48,7 +48,8 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
         for (const loc of locs) {
           nextDraft[loc.locationId] = {}
           for (const size of sizeList) {
-            nextDraft[loc.locationId][size] = ''
+            const row = loc.sizes.find((s) => s.size === size)
+            nextDraft[loc.locationId][size] = String(row?.quantity ?? 0)
           }
         }
         setDraft(nextDraft)
@@ -81,21 +82,16 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
   async function handleSave() {
     if (!productId) return
     setSaving(true)
-    const inventoryByLocation = Array.from(assignedSet)
-      .filter((locationId) => {
-        const loc = locations.find((l) => l.locationId === locationId)
-        return loc && !loc.isMainStore
-      })
-      .map((locationId) => ({
-        locationId,
-        sizes: sizeList.map((size) => {
-          const row = locations.find((l) => l.locationId === locationId)?.sizes.find((s) => s.size === size)
-          const addQty = parseInt(draft[locationId]?.[size] ?? '', 10)
-          const currentQty = row?.quantity ?? 0
-          const quantity = Number.isFinite(addQty) && addQty > 0 ? currentQty + addQty : currentQty
-          return { size, quantity }
-        }),
-      }))
+    const inventoryByLocation = Array.from(assignedSet).map((locationId) => ({
+      locationId,
+      sizes: sizeList.map((size) => {
+        const row = locations.find((l) => l.locationId === locationId)?.sizes.find((s) => s.size === size)
+        const currentQty = row?.quantity ?? 0
+        const draftVal = parseInt(draft[locationId]?.[size] ?? '', 10)
+        const quantity = Number.isFinite(draftVal) && draftVal >= 0 ? draftVal : currentQty
+        return { size, quantity }
+      }),
+    }))
     try {
       const res = await fetch(`/api/admin/products/${productId}/inventory`, {
         method: 'PUT',
@@ -111,14 +107,6 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
       toast.success('Inventory saved')
       onSaved?.()
       load()
-      setDraft((prev) => {
-        const cleared: Record<string, Record<string, string>> = {}
-        for (const locId of Object.keys(prev)) {
-          cleared[locId] = {}
-          for (const size of Object.keys(prev[locId])) cleared[locId][size] = ''
-        }
-        return cleared
-      })
     } catch {
       toast.error('Network error')
     }
@@ -171,39 +159,27 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
 
                     {loc.isMainStore && isAssigned && (
                       <p className="mt-1 text-[10px] text-jays-steel">
-                        Main Store quantities are managed automatically via product creation.
+                        Main Store (Gate 5) is the single source of truth — edits here update the product&apos;s total quantity automatically.
                       </p>
                     )}
 
                     {isAssigned && sizeList.length > 0 && (
-                      <div className={`mt-2 flex flex-wrap gap-2 ${loc.isMainStore ? 'opacity-60' : ''}`}>
+                      <div className="mt-2 flex flex-wrap gap-2">
                         {sizeList.map((size) => {
                           const row = loc.sizes.find((s) => s.size === size)
                           const hasStock = !!row && row.quantity > 0
                           const currentQty = row?.quantity ?? 0
-                          const addQty = parseInt(draft[loc.locationId]?.[size] ?? '', 10)
-                          const newQty = Number.isFinite(addQty) && addQty > 0 ? currentQty + addQty : currentQty
                           return (
                             <div key={size} className="flex flex-col items-center gap-1">
                               <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs text-jays-steel w-6 text-center">{currentQty}</span>
-                                {!loc.isMainStore && (
-                                  <>
-                                    <span className="text-xs text-jays-steel">+</span>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={draft[loc.locationId]?.[size] ?? ''}
-                                      onChange={(e) => setQty(loc.locationId, size, e.target.value)}
-                                      placeholder="0"
-                                      className="w-14 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-                                    />
-                                    <span className="text-xs font-semibold text-jays-navy w-6 text-center">={newQty}</span>
-                                  </>
-                                )}
-                              </div>
-                              {hasStock && !loc.isMainStore && (
+                              <input
+                                type="number"
+                                min="0"
+                                value={draft[loc.locationId]?.[size] ?? String(currentQty)}
+                                onChange={(e) => setQty(loc.locationId, size, e.target.value)}
+                                className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+                              />
+                              {hasStock && (
                                 <button
                                   type="button"
                                   onClick={() => setTransferState({ size, fromLocationId: loc.locationId })}
