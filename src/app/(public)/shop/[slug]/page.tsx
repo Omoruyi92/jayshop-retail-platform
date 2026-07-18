@@ -27,10 +27,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
   // Fetch per-size availability if SizeInventory rows exist
   const sizeRows = await prisma.sizeInventory.findMany({
     where: { productId: product.id },
-    select: { 
-      size: true, 
-      quantity: true, 
+    select: {
+      size: true,
+      quantity: true,
       heldQuantity: true,
+      pickedQuantity: true,
       location: { select: { id: true, name: true, code: true, isMainStore: true } }
     },
   })
@@ -40,18 +41,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
   // When size rows exist: use sum of per-size available stock as the meaningful remaining count.
   // When no size rows: fall back to product-level quantity.
   const remaining = hasSizes
-    ? sizeRows.reduce((sum, r) => sum + Math.max(0, r.quantity - r.heldQuantity), 0)
-    : Math.max(0, product.quantity - product.heldQuantity)
+    ? sizeRows.reduce((sum, r) => sum + Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity), 0)
+    : Math.max(0, product.quantity - product.heldQuantity - product.pickedQuantity)
 
   // Sold-out: for size-tracked products, only when every size is exhausted.
   // For non-size products, when remaining == 0. SOLD status always overrides.
-  const allSizesOos = hasSizes && sizeRows.every((r) => r.quantity - r.heldQuantity <= 0)
+  const allSizesOos = hasSizes && sizeRows.every((r) => r.quantity - r.heldQuantity - r.pickedQuantity <= 0)
   const isSoldOut = product.status === 'SOLD' || (hasSizes ? allSizesOos : remaining <= 0)
 
   const sizes = product.sizes ? product.sizes.split(',').filter(Boolean) : []
-  const displayStatus = isSoldOut ? 'SOLD_OUT' : 'AVAILABLE'
+  const displayStatus = product.status === 'SOLD' && product.heldQuantity > 0 ? 'ON_HOLD' : (isSoldOut ? 'SOLD_OUT' : 'AVAILABLE')
 
-  
+
   let sizeAvailability: { size: string; available: number }[] | null = null
   let locationInventory: any[] = []
 
@@ -59,7 +60,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
     // Group sizes properly for the dropdown
     const sizeMap = new Map<string, number>()
     sizeRows.forEach(r => {
-      const avail = Math.max(0, r.quantity - r.heldQuantity)
+      const avail = Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity)
       sizeMap.set(r.size, (sizeMap.get(r.size) || 0) + avail)
     })
     sizeAvailability = Array.from(sizeMap.entries()).map(([size, available]) => ({ size, available }))
@@ -78,7 +79,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           totalAvailable: 0
         })
       }
-      const avail = Math.max(0, r.quantity - r.heldQuantity)
+      const avail = Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity)
       const locData = locMap.get(locId)
       locData.sizes.push({ size: r.size, available: avail })
       locData.totalAvailable += avail

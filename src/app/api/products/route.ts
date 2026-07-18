@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
+  const slug = searchParams.get('slug')
   const q = searchParams.get('q')
   const brand = searchParams.get('brand')
   const includeArchived = searchParams.get('includeArchived') === 'true'
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
       ...(!includeArchived && { status: { not: 'ARCHIVED' } }),
       ...(category && category !== 'all' && { category }),
       ...(brand && { brand }),
+      ...(slug && { slug }),
       ...(q && {
         OR: [
           { name: { contains: q } },

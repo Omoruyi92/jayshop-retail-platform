@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import HoldButton from '@/components/shop/HoldButton'
 import StadiumAvailability, { LocationInventory } from '@/components/shop/StadiumAvailability'
 import AddToCartButton from '@/components/shop/AddToCartButton'
@@ -12,6 +12,7 @@ import type { Product } from '@prisma/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
 import { Heart } from 'lucide-react'
+import { useInventoryStream } from '@/hooks/useInventoryStream'
 
 interface SizeAvailability {
   size: string
@@ -28,13 +29,53 @@ interface Props {
   locationInventory?: LocationInventory[]
 }
 
-export default function ProductDetails({ product, remaining, isSoldOut, sizes, displayStatus, sizeAvailability, locationInventory }: Props) {
+export default function ProductDetails({ product: initialProduct, remaining: initialRemaining, isSoldOut, sizes, displayStatus, sizeAvailability: initialSizeAvailability, locationInventory: initialLocationInventory }: Props) {
   const { t } = useLanguage()
   const pd = t.product
   const { isLiked, toggle } = useFavorites()
   const [selectedSize, setSelectedSize] = useState('')
+
+  const [product, setProduct] = useState<Product>(initialProduct)
+  const [remaining, setRemaining] = useState(initialRemaining)
+  const [sizeAvailability, setSizeAvailability] = useState<SizeAvailability[] | null>(initialSizeAvailability)
+  const [locationInventory, setLocationInventory] = useState<LocationInventory[] | undefined>(initialLocationInventory)
+  const [displayStatusState, setDisplayStatusState] = useState(displayStatus)
+
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/products?slug=${encodeURIComponent(product.slug)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (!data.products?.length) return
+      const p = data.products[0]
+      setProduct((prev) => ({ ...prev, ...p, colors: p.colors ?? prev.colors }))
+      setRemaining(p.remaining)
+      setDisplayStatusState(p.status === 'SOLD' && p.heldQuantity > 0 ? 'ON_HOLD' : p.status)
+      if (p.sizeInventories?.length) {
+        setSizeAvailability(p.sizeInventories.map((r: any) => ({ size: r.size, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
+        setLocationInventory(p.sizeInventories.map((r: any) => ({ size: r.size, locationId: '', locationName: '', quantity: r.quantity, held: r.heldQuantity, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
+      }
+    } catch {
+      // ignore network errors
+    }
+  }, [product.slug])
+
+  useEffect(() => {
+    setProduct(initialProduct)
+    setRemaining(initialRemaining)
+    setSizeAvailability(initialSizeAvailability)
+    setLocationInventory(initialLocationInventory)
+    setDisplayStatusState(displayStatus)
+  }, [initialProduct, initialRemaining, initialSizeAvailability, initialLocationInventory, displayStatus])
+
+  // Real-time sync on PDP so stock/held/sold badges update without refresh.
+  useInventoryStream(
+    { productId: product.id },
+    { onInventoryChanged: refresh, onHoldChanged: refresh }
+  )
 
   const colorOptions: { name: string; hex: string }[] = Array.isArray(product.colors)
     ? (product.colors as any[]).map((c) =>
@@ -58,7 +99,7 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
           {product.name}
         </h1>
         <div className="flex items-center gap-2 shrink-0">
-          <StatusChip status={displayStatus} />
+          <StatusChip status={displayStatusState} />
           <button
             type="button"
             onClick={() =>
@@ -217,6 +258,16 @@ export default function ProductDetails({ product, remaining, isSoldOut, sizes, d
       {locationInventory && locationInventory.length > 0 && (
         <StadiumAvailability locations={locationInventory} selectedSize={selectedSize || null} />
       )}
+
+      {/* Live inventory summary — single source of truth from SizeInventory */}
+      <div className="mt-4 rounded-xl bg-jays-ice/40 border border-jays-ice px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-jays-steel mb-1">Inventory</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <span className="text-jays-navy font-medium">{remaining} available</span>
+          {product.heldQuantity > 0 && <span className="text-amber-600 font-medium">{product.heldQuantity} held</span>}
+          {product.pickedQuantity > 0 && <span className="text-gray-500 font-medium">{product.pickedQuantity} sold</span>}
+        </div>
+      </div>
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

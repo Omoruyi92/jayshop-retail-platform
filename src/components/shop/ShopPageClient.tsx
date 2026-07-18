@@ -9,6 +9,7 @@ import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
+import { useInventoryStream } from '@/hooks/useInventoryStream'
 
 interface Product {
   id: string
@@ -244,9 +245,19 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
 
   useEffect(() => {
     fetchProducts()
-    const interval = setInterval(fetchProducts, 10000)
+    const interval = setInterval(fetchProducts, 30000)
     return () => clearInterval(interval)
   }, [fetchProducts])
+
+  // Real-time sync: refetch the catalog immediately when any inventory or hold
+  // mutation happens server-side, so stock badges/sold-out states never lag.
+  useInventoryStream(
+    {},
+    {
+      onInventoryChanged: fetchProducts,
+      onHoldChanged: fetchProducts,
+    }
+  )
 
   const isSpecialCategory = SPECIAL_CATEGORIES.has(activeCategory)
 
