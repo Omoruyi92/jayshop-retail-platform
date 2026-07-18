@@ -99,7 +99,11 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
             const mainEntry = (d.inventoryByLocation ?? []).find((l: any) => l.locationId === mainLoc.id)
             const map: Record<string, number> = {}
             if (mainEntry) {
-              for (const row of mainEntry.sizes) map[row.size] = row.quantity
+              // Show live available (quantity - held - picked), not the raw
+              // original allocation, so sold/held units reflect immediately.
+              for (const row of mainEntry.sizes) {
+                map[row.size] = Math.max(0, row.quantity - (row.heldQuantity ?? 0) - (row.pickedQuantity ?? 0))
+              }
             }
             setMainStoreQtys(map)
           })

@@ -49,7 +49,10 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
           nextDraft[loc.locationId] = {}
           for (const size of sizeList) {
             const row = loc.sizes.find((s) => s.size === size)
-            nextDraft[loc.locationId][size] = String(row?.quantity ?? 0)
+            // Show live available (quantity - held - picked) so sold/held
+            // units are reflected immediately instead of the original allocation.
+            const available = Math.max(0, (row?.quantity ?? 0) - (row?.heldQuantity ?? 0) - (row?.pickedQuantity ?? 0))
+            nextDraft[loc.locationId][size] = String(available)
           }
         }
         setDraft(nextDraft)
@@ -86,9 +89,14 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
       locationId,
       sizes: sizeList.map((size) => {
         const row = locations.find((l) => l.locationId === locationId)?.sizes.find((s) => s.size === size)
-        const currentQty = row?.quantity ?? 0
+        const held = row?.heldQuantity ?? 0
+        const picked = row?.pickedQuantity ?? 0
+        const currentAvailable = Math.max(0, (row?.quantity ?? 0) - held - picked)
         const draftVal = parseInt(draft[locationId]?.[size] ?? '', 10)
-        const quantity = Number.isFinite(draftVal) && draftVal >= 0 ? draftVal : currentQty
+        const enteredAvailable = Number.isFinite(draftVal) && draftVal >= 0 ? draftVal : currentAvailable
+        // The input reflects live AVAILABLE stock, not raw quantity, so add
+        // back already-consumed held/picked units to get the true raw total.
+        const quantity = enteredAvailable + held + picked
         return { size, quantity }
       }),
     }))
@@ -167,15 +175,15 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                       <div className="mt-2 flex flex-wrap gap-2">
                         {sizeList.map((size) => {
                           const row = loc.sizes.find((s) => s.size === size)
-                          const hasStock = !!row && row.quantity > 0
-                          const currentQty = row?.quantity ?? 0
+                          const currentAvailable = Math.max(0, (row?.quantity ?? 0) - (row?.heldQuantity ?? 0) - (row?.pickedQuantity ?? 0))
+                          const hasStock = currentAvailable > 0
                           return (
                             <div key={size} className="flex flex-col items-center gap-1">
                               <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
                               <input
                                 type="number"
                                 min="0"
-                                value={draft[loc.locationId]?.[size] ?? String(currentQty)}
+                                value={draft[loc.locationId]?.[size] ?? String(currentAvailable)}
                                 onChange={(e) => setQty(loc.locationId, size, e.target.value)}
                                 className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
                               />
