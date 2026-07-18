@@ -629,65 +629,64 @@ export default function AdminProductsPage() {
                   {/* Status */}
                   <td className="px-3 py-2 align-top">
                     {(() => {
-                      const displayStatus = getDisplayStatus(p)
                       const stock = getStockBadgeStatus(p)
-                      const showLocations =
+                      const showDetail =
                         stock.status === 'LOW_STOCK' || stock.status === 'OUT_OF_STOCK'
                       return (
                         <div className="space-y-1.5">
-                          <StatusBadge
-                            status={stock.status}
-                            label={stock.label}
-                          />
-                          {displayStatus !== 'AVAILABLE' && (
-                            <StatusBadge
-                              status={displayStatus}
-                              label={getStatusLabel(p, displayStatus)}
-                              held={p.heldQuantity}
-                              sold={p.pickedQuantity}
-                            />
+                          {stock.status !== 'IN_STOCK' && (
+                            <StatusBadge status={stock.status} label={stock.label} />
                           )}
-                          {showLocations && p.availability && p.availability.locationBreakdown.length > 0 && (
-                            <div className="pt-1">
-                              <p className="text-[10px] font-semibold uppercase tracking-wider text-jays-steel mb-0.5">
-                                Locations
-                              </p>
-                              <ul className="space-y-0.5">
-                                {p.availability.locationBreakdown.map((loc) => {
-                                  const locStatus =
-                                    loc.available <= 0
-                                      ? 'Out'
-                                      : loc.available <= LOW_STOCK_THRESHOLD
-                                      ? 'Low'
-                                      : 'OK'
-                                  if (locStatus === 'OK') return null
-                                  return (
-                                    <li
-                                      key={loc.locationId}
-                                      className="text-[10px] flex items-center gap-1.5"
-                                    >
-                                      <span
-                                        className={cn(
-                                          'w-1.5 h-1.5 rounded-full',
-                                          locStatus === 'Out' ? 'bg-red-500' : 'bg-yellow-500'
-                                        )}
-                                      />
-                                      <span className="text-jays-steel truncate max-w-[120px]" title={loc.locationName}>
-                                        {loc.locationName}:
+                          {showDetail && p.availability && p.availability.locationBreakdown.length > 0 && (
+                            <ul className="space-y-0.5">
+                              {p.availability.locationBreakdown.map((loc) => {
+                                // Collect affected sizes at this location
+                                const affected = Object.entries(loc.sizeDetail)
+                                  .filter(([, d]) => d.available <= LOW_STOCK_THRESHOLD)
+                                  .sort(([, a], [, b]) => a.available - b.available)
+                                if (affected.length === 0 && loc.available > LOW_STOCK_THRESHOLD) return null
+                                return (
+                                  <li
+                                    key={loc.locationId}
+                                    className="text-[10px] leading-snug"
+                                  >
+                                    <span className="text-jays-steel" title={loc.locationName}>
+                                      {loc.locationName}
+                                    </span>
+                                    {' — '}
+                                    {affected.length === 0 ? (
+                                      <span className={loc.available <= 0 ? 'text-red-600 font-medium' : 'text-yellow-700 font-medium'}>
+                                        {loc.available <= 0 ? 'Out of Stock' : 'Low Stock'} ({loc.available} left)
                                       </span>
-                                      <span
-                                        className={cn(
-                                          'font-medium',
-                                          locStatus === 'Out' ? 'text-red-600' : 'text-yellow-700'
-                                        )}
-                                      >
-                                        {loc.available} left ({locStatus})
+                                    ) : (
+                                      <span>
+                                        {affected.map(([size, d], idx) => {
+                                          const isOut = d.available <= 0
+                                          return (
+                                            <span key={size}>
+                                              {idx === 0 && (
+                                                <span className={isOut ? 'text-red-600 font-medium' : 'text-yellow-700 font-medium'}>
+                                                  {isOut ? 'Out of Stock' : 'Low Stock'}
+                                                </span>
+                                              )}
+                                              {' ('}
+                                              <span className="uppercase font-medium">{size}</span>
+                                              {': '}
+                                              <span className={isOut ? 'text-red-600' : 'text-yellow-700'}>
+                                                {d.available}
+                                                {isOut ? '' : ' left'}
+                                              </span>
+                                              {')'}
+                                              {idx < affected.length - 1 && ', '}
+                                            </span>
+                                          )
+                                        })}
                                       </span>
-                                    </li>
-                                  )
-                                })}
-                              </ul>
-                            </div>
+                                    )}
+                                  </li>
+                                )
+                              })}
+                            </ul>
                           )}
                         </div>
                       )
