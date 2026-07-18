@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import type { Product } from '@prisma/client'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { useCart } from '@/lib/store/CartContext'
 
 interface SizeAvailability {
   size: string
@@ -25,6 +26,7 @@ export default function HoldButton({
 }) {
   const router = useRouter()
   const { t } = useLanguage()
+  const { removeItem } = useCart()
   const hb = t.holdButton
 
   const [open, setOpen] = useState(false)
@@ -173,6 +175,9 @@ export default function HoldButton({
         return
       }
       toast.success(hb.toastSuccess)
+      // Remove the reserved item from the cart so the fan cannot accidentally
+      // purchase or reserve the same unit again through checkout.
+      removeItem(product.id, hasSizes ? selectedSize : undefined)
       setOpen(false)
       router.push(`/holds/${data.reservationCode}`)
     } catch {
