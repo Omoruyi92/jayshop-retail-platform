@@ -25,15 +25,23 @@ export async function GET(req: Request) {
     getHoldReservationLocationId(holdType === 'stadium'),
   ])
 
+  // Per-size breakdown scoped to the fulfilling location (Gate 5 / Section
+  // 123 only) so the hold modal never shows or allows availability that
+  // physically lives at a different location.
+  const allSizeRows = await prisma.sizeInventory.findMany({
+    where: { productId, locationId },
+    select: { size: true, quantity: true, heldQuantity: true, pickedQuantity: true },
+  })
+  const sizeAvailability = allSizeRows.map((r) => ({
+    size: r.size,
+    available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity),
+  }))
+
   let available: number
   if (size) {
     available = await effectivePickupQty(productId, size, locationId)
   } else {
-    const rows = await prisma.sizeInventory.findMany({
-      where: { productId, locationId },
-      select: { quantity: true, heldQuantity: true, pickedQuantity: true },
-    })
-    available = rows.reduce((sum, r) => sum + Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity), 0)
+    available = allSizeRows.reduce((sum, r) => sum + Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity), 0)
   }
 
   // Effective hours for both pickup paths. Extended (Gate 5 / 48h) pickup is
@@ -44,6 +52,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     available,
+    sizeAvailability,
     gameDay,
     enable48HourHold: settings.enable48HourHold,
     extendedAvailable,

@@ -34,6 +34,7 @@ export default function HoldButton({
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
   const [isStadiumHold, setIsStadiumHold] = useState(false)
+  const [locationSizeAvailability, setLocationSizeAvailability] = useState<SizeAvailability[] | null>(null)
   const [precheck, setPrecheck] = useState<{
     gameDay: boolean
     extendedAvailable: boolean
@@ -50,13 +51,15 @@ export default function HoldButton({
 
   const hasSizes = sizes.length > 0
 
-  // Fetch game-day / hold-window info when the modal opens so the stadium
-  // queue option can be gated to active game days (server-enforced too) and
-  // the displayed hold windows reflect the admin-configured settings.
+  // Fetch game-day / hold-window info AND location-scoped size availability
+  // whenever the modal opens or the hold type (Gate 5 vs Section 123)
+  // changes, so displayed availability/max qty/OOS sizes always reflect the
+  // fulfilling location only — never the combined total across all locations.
   useEffect(() => {
     if (!open) return
     let cancelled = false
-    fetch(`/api/holds/precheck?productId=${product.id}`)
+    const holdType = isStadiumHold ? 'stadium' : 'standard'
+    fetch(`/api/holds/precheck?productId=${product.id}&holdType=${holdType}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (cancelled || !data) return
@@ -67,6 +70,7 @@ export default function HoldButton({
           gate5Hours: data.gate5Hours,
           standardHoldHours: data.standardHoldHours,
         })
+        setLocationSizeAvailability(Array.isArray(data.sizeAvailability) ? data.sizeAvailability : null)
         // Stadium queue is only available on active game days — force back
         // to standard hold if it was selected before this loaded.
         if (!data.gameDay) setIsStadiumHold(false)
@@ -75,7 +79,7 @@ export default function HoldButton({
     return () => {
       cancelled = true
     }
-  }, [open, product.id])
+  }, [open, product.id, isStadiumHold])
 
   const standardHoldHours = precheck
     ? (precheck.extendedAvailable ? precheck.gate5Hours ?? precheck.standardHoldHours : precheck.standardHoldHours)
@@ -83,11 +87,18 @@ export default function HoldButton({
   const stadiumHoldHours = precheck?.stadiumHours ?? null
   const stadiumAvailable = precheck?.gameDay ?? false
 
+  // Availability must always reflect ONLY the fulfilling location (Gate 5 for
+  // standard holds, Section 123 for stadium holds) — never the combined total
+  // across every location. Use the location-scoped precheck result once it
+  // has loaded; fall back to the global sizeAvailability prop only for the
+  // brief instant before the modal's precheck fetch resolves.
+  const effectiveSizeAvailability = locationSizeAvailability ?? sizeAvailability
+
   // When a size is selected and per-size availability is known, cap maxQty to
   // that size's available stock. Otherwise fall back to the total remaining.
   const selectedSizeAvailable =
-    selectedSize && sizeAvailability
-      ? (sizeAvailability.find((s) => s.size === selectedSize)?.available ?? remaining)
+    selectedSize && effectiveSizeAvailability
+      ? (effectiveSizeAvailability.find((s) => s.size === selectedSize)?.available ?? remaining)
       : remaining
   const maxQty = selectedSizeAvailable
 
@@ -99,15 +110,15 @@ export default function HoldButton({
   }, [maxQty, quantity])
 
   const hasAnyOos =
-    sizeAvailability !== null &&
+    effectiveSizeAvailability !== null &&
     sizes.some((size) => {
-      const sizeStock = sizeAvailability?.find((s) => s.size === size)
+      const sizeStock = effectiveSizeAvailability?.find((s) => s.size === size)
       return sizeStock !== undefined && sizeStock.available <= 0
     })
 
   function isSizeOos(size: string): boolean {
-    if (sizeAvailability === null) return false
-    const sizeStock = sizeAvailability?.find((s) => s.size === size)
+    if (effectiveSizeAvailability === null) return false
+    const sizeStock = effectiveSizeAvailability?.find((s) => s.size === size)
     return sizeStock !== undefined && sizeStock.available <= 0
   }
 
