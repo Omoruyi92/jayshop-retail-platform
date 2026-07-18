@@ -49,6 +49,7 @@ interface InventoryHistoryTableProps {
 export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: InventoryHistoryTableProps) {
   const [rows, setRows] = useState<InventoryHistoryRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([null])
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
@@ -87,12 +88,22 @@ export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: Inv
   const load = useCallback(
     (cursor: string | null) => {
       setLoading(true)
+      setError(null)
       fetch(`/api/admin/inventory/history?${buildParams(cursor)}`)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error(`Request failed (${r.status})`)
+          return r.json()
+        })
         .then((d) => {
           setRows(d.rows ?? [])
           setHasMore(d.hasMore ?? false)
           setNextCursor(d.nextCursor ?? null)
+        })
+        .catch(() => {
+          setRows([])
+          setHasMore(false)
+          setNextCursor(null)
+          setError('Unable to load inventory history. Please try again.')
         })
         .finally(() => setLoading(false))
     },
@@ -221,6 +232,8 @@ export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: Inv
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr><td colSpan={8} className="px-4 py-8 text-center text-jays-steel">Loading…</td></tr>
+            ) : error ? (
+              <tr><td colSpan={8}><EmptyState title={error} /></td></tr>
             ) : rows.length === 0 ? (
               <tr><td colSpan={8}><EmptyState title="No inventory transactions found" /></td></tr>
             ) : rows.map((r) => (
