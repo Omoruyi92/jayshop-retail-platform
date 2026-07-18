@@ -10,9 +10,16 @@ async function main() {
   await prisma.salesHistory.deleteMany()
   await prisma.holdHistory.deleteMany()
   await prisma.hold.deleteMany()
+  await prisma.inventoryTransaction.deleteMany()
+  await prisma.posEvent.deleteMany()
+  await prisma.customerNotificationReceipt.deleteMany()
+  await prisma.customerNotification.deleteMany()
   await prisma.customer.deleteMany()
 
-  console.log('Cleared: AuditLog, SalesHistory, HoldHistory, Hold, Customer')
+  console.log(
+    'Cleared: AuditLog, SalesHistory, HoldHistory, Hold, InventoryTransaction, PosEvent, ' +
+      'CustomerNotificationReceipt, CustomerNotification, Customer'
+  )
 
   // Reset product counters
   const updated = await prisma.product.updateMany({
