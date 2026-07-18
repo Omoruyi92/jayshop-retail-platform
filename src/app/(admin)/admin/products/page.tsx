@@ -14,7 +14,6 @@ import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
-import RestockModal from '@/components/admin/RestockModal'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 
 interface Product {
@@ -94,7 +93,6 @@ export default function AdminProductsPage() {
   const [showArchived, setShowArchived] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [locationsProduct, setLocationsProduct] = useState<Product | null>(null)
-  const [restockProduct, setRestockProduct] = useState<Product | null>(null)
 
   const [search, setSearch]           = useState('')
   const [catFilter, setCatFilter]     = useState('all')
@@ -203,9 +201,11 @@ export default function AdminProductsPage() {
 
     if (needsSizes && currentSizeList.length > 0) {
       const sqMap: Record<string, number> = {}
-      for (const size of currentSizeList) {
-        const val = parseInt(sizeQuantities[size] ?? '', 10)
-        sqMap[size] = Number.isFinite(val) && val >= 0 ? val : parseInt(form.quantity || '1', 10)
+      const totalQty = parseInt(form.quantity || '1', 10)
+      const baseQty = Math.floor(totalQty / currentSizeList.length)
+      const remainder = totalQty - baseQty * currentSizeList.length
+      for (let i = 0; i < currentSizeList.length; i++) {
+        sqMap[currentSizeList[i]] = baseQty + (i < remainder ? 1 : 0)
       }
       body.append('sizeQuantities', JSON.stringify(sqMap))
     }
@@ -319,23 +319,34 @@ export default function AdminProductsPage() {
               </div>
             )}
             {needsSizes && currentSizeList.length > 0 && (
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Qty per size <span className="text-gray-400 font-normal">(leave blank to use total qty for each)</span></label>
+              <div className="sm:col-span-2 bg-jays-ice/30 rounded-xl p-3 border border-jays-ice">
+                <p className="text-xs font-medium text-jays-steel mb-2">
+                  Main Store auto-allocation preview <span className="text-[10px] font-normal">(edit quantities in Locations after creation)</span>
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {currentSizeList.map((size) => (
-                    <div key={size} className="flex flex-col items-center gap-1">
-                      <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={sizeQuantities[size] ?? ''}
-                        onChange={(e) => setSizeQuantities((prev) => ({ ...prev, [size]: e.target.value }))}
-                        placeholder={form.quantity || '1'}
-                        className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-                      />
-                    </div>
-                  ))}
+                  {currentSizeList.map((size) => {
+                    const totalQty = parseInt(form.quantity || '1', 10)
+                    const baseQty = Math.floor(totalQty / currentSizeList.length)
+                    const remainder = totalQty - baseQty * currentSizeList.length
+                    const index = currentSizeList.indexOf(size)
+                    return (
+                      <div key={size} className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={baseQty + (index < remainder ? 1 : 0)}
+                          disabled
+                          placeholder={String(baseQty + (index < remainder ? 1 : 0))}
+                          className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center bg-gray-100 text-gray-600 cursor-not-allowed"
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
+                <p className="text-[10px] text-jays-steel mt-2">
+                  Auto-allocated total: {form.quantity || '1'} units
+                </p>
               </div>
             )}
             <div className="sm:col-span-2">
@@ -586,15 +597,9 @@ export default function AdminProductsPage() {
                       </button>
                       <button
                         onClick={() => setLocationsProduct(p)}
-                        className="px-2 py-1 bg-jays-royal/10 text-jays-royal text-xs rounded-lg hover:bg-jays-royal/20 transition-colors whitespace-nowrap"
-                      >
-                        Locations
-                      </button>
-                      <button
-                        onClick={() => setRestockProduct(p)}
                         className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap"
                       >
-                        Restock
+                        Inventory
                       </button>
                       {isArchived ? (
                         remaining > 0 ? (
@@ -633,15 +638,7 @@ export default function AdminProductsPage() {
         productName={locationsProduct?.name ?? ''}
         sizes={locationsProduct?.sizes ?? ''}
         onClose={() => setLocationsProduct(null)}
-      />
-
-      <RestockModal
-        key={restockProduct ? `restock-${restockProduct.id}` : 'restock-none'}
-        productId={restockProduct?.id ?? null}
-        productName={restockProduct?.name ?? ''}
-        sizes={restockProduct?.sizes ?? ''}
-        onClose={() => setRestockProduct(null)}
-        onRestocked={() => { setRestockProduct(null); load() }}
+        onSaved={() => load()}
       />
     </div>
   )

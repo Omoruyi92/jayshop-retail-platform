@@ -22,9 +22,10 @@ interface ProductLocationsModalProps {
   productName: string
   sizes: string
   onClose: () => void
+  onSaved?: () => void
 }
 
-export default function ProductLocationsModal({ productId, productName, sizes, onClose }: ProductLocationsModalProps) {
+export default function ProductLocationsModal({ productId, productName, sizes, onClose, onSaved }: ProductLocationsModalProps) {
   const [locations, setLocations] = useState<LocationRow[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -47,8 +48,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
         for (const loc of locs) {
           nextDraft[loc.locationId] = {}
           for (const size of sizeList) {
-            const row = loc.sizes.find((s) => s.size === size)
-            nextDraft[loc.locationId][size] = row ? String(row.quantity) : ''
+            nextDraft[loc.locationId][size] = ''
           }
         }
         setDraft(nextDraft)
@@ -84,9 +84,11 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
     const inventoryByLocation = Array.from(assignedSet).map((locationId) => ({
       locationId,
       sizes: sizeList.map((size) => {
-        const raw = draft[locationId]?.[size] ?? ''
-        const qty = parseInt(raw, 10)
-        return { size, quantity: Number.isFinite(qty) && qty >= 0 ? qty : 0 }
+        const row = locations.find((l) => l.locationId === locationId)?.sizes.find((s) => s.size === size)
+        const addQty = parseInt(draft[locationId]?.[size] ?? '', 10)
+        const currentQty = row?.quantity ?? 0
+        const quantity = Number.isFinite(addQty) && addQty > 0 ? currentQty + addQty : currentQty
+        return { size, quantity }
       }),
     }))
     try {
@@ -101,8 +103,17 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
         setSaving(false)
         return
       }
-      toast.success('Location assignments saved')
+      toast.success('Inventory saved')
+      onSaved?.()
       load()
+      setDraft((prev) => {
+        const cleared: Record<string, Record<string, string>> = {}
+        for (const locId of Object.keys(prev)) {
+          cleared[locId] = {}
+          for (const size of Object.keys(prev[locId])) cleared[locId][size] = ''
+        }
+        return cleared
+      })
     } catch {
       toast.error('Network error')
     }
@@ -123,7 +134,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
       <Dialog open={!!productId} onOpenChange={(open) => { if (!open) onClose() }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Assign Locations — {productName}</DialogTitle>
+            <DialogTitle>Inventory — {productName}</DialogTitle>
             <DialogClose className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors text-lg leading-none">
               ✕
             </DialogClose>
@@ -158,17 +169,25 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                         {sizeList.map((size) => {
                           const row = loc.sizes.find((s) => s.size === size)
                           const hasStock = !!row && row.quantity > 0
+                          const currentQty = row?.quantity ?? 0
+                          const addQty = parseInt(draft[loc.locationId]?.[size] ?? '', 10)
+                          const newQty = Number.isFinite(addQty) && addQty > 0 ? currentQty + addQty : currentQty
                           return (
                             <div key={size} className="flex flex-col items-center gap-1">
                               <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
-                              <input
-                                type="number"
-                                min="0"
-                                value={draft[loc.locationId]?.[size] ?? ''}
-                                onChange={(e) => setQty(loc.locationId, size, e.target.value)}
-                                placeholder="0"
-                                className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-                              />
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-jays-steel w-6 text-center">{currentQty}</span>
+                                <span className="text-xs text-jays-steel">+</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={draft[loc.locationId]?.[size] ?? ''}
+                                  onChange={(e) => setQty(loc.locationId, size, e.target.value)}
+                                  placeholder="0"
+                                  className="w-14 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+                                />
+                                <span className="text-xs font-semibold text-jays-navy w-6 text-center">={newQty}</span>
+                              </div>
                               {hasStock && (
                                 <button
                                   type="button"
@@ -195,7 +214,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
               disabled={saving || loading}
               className="bg-jays-navy text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-jays-royal transition-colors disabled:opacity-50"
             >
-              {saving ? 'Saving…' : 'Save Assignments'}
+              {saving ? 'Saving…' : 'Save Inventory'}
             </button>
             <button
               type="button"

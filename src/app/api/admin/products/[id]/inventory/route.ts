@@ -219,54 +219,58 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
       }
 
-      for (const entry of payload) {
-        const submittedSizes = new Set(entry.sizes.map((s) => s.size))
+    for (const entry of payload) {
+      const submittedSizes = new Set(entry.sizes.map((s) => s.size))
 
-        for (const s of entry.sizes) {
-          const existing = existingByKey.get(`${entry.locationId}::${s.size}`)
-          await tx.sizeInventory.upsert({
-            where: {
-              productId_size_locationId: {
-                productId: params.id,
-                size: s.size,
-                locationId: entry.locationId,
-              },
-            },
-            update: { quantity: s.quantity },
-            create: {
+      for (const s of entry.sizes) {
+        const existing = existingByKey.get(`${entry.locationId}::${s.size}`)
+        await tx.sizeInventory.upsert({
+          where: {
+            productId_size_locationId: {
               productId: params.id,
               size: s.size,
-              quantity: s.quantity,
               locationId: entry.locationId,
             },
-          })
+          },
+          update: { quantity: s.quantity },
+          create: {
+            productId: params.id,
+            size: s.size,
+            quantity: s.quantity,
+            locationId: entry.locationId,
+          },
+        })
 
-          if (!existing) {
-            if (s.quantity !== 0) {
-              await logInventoryTransaction(tx, {
-                productId: params.id,
-                size: s.size,
-                type: 'assign',
-                quantity: s.quantity,
-                toLocationId: entry.locationId,
-                actorId,
-                actorEmail,
-                note: 'Size assigned to location',
-              })
-            }
-          } else if (existing.quantity !== s.quantity) {
+        if (!existing) {
+          if (s.quantity !== 0) {
             await logInventoryTransaction(tx, {
               productId: params.id,
               size: s.size,
-              type: 'adjustment',
-              quantity: s.quantity - existing.quantity,
+              type: 'assign',
+              quantity: s.quantity,
               toLocationId: entry.locationId,
               actorId,
               actorEmail,
-              note: null,
+              note: 'Size assigned to location',
             })
           }
+        } else if (existing.quantity !== s.quantity) {
+          // Distinguish a net-positive change as a replenishment and a
+          // net-negative change as a removal so the audit trail is accurate.
+          const delta = s.quantity - existing.quantity
+          await logInventoryTransaction(tx, {
+            productId: params.id,
+            size: s.size,
+            type: delta > 0 ? 'adjustment' : 'remove',
+            quantity: delta,
+            toLocationId: delta > 0 ? entry.locationId : null,
+            fromLocationId: delta < 0 ? entry.locationId : null,
+            actorId,
+            actorEmail,
+            note: delta > 0 ? `Replenished +${delta}` : `Removed ${Math.abs(delta)}`,
+          })
         }
+      }
 
         // Prune size rows that were dropped from this (still-assigned) location's
         // template, but only when safe (no held/picked units tied to them).

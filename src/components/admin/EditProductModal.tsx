@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 interface Product {
   id: string
@@ -73,25 +74,35 @@ function buildInitialForm(product: Product) {
   }
 }
 
-function buildInitialSizeQtys(product: Product): Record<string, string> {
-  const sizes = product.sizes.split(',').map((s) => s.trim()).filter(Boolean)
-  const result: Record<string, string> = {}
-  for (const s of sizes) result[s] = ''
-  return result
-}
-
 export default function EditProductModal({ product, onClose, onSaved }: EditProductModalProps) {
   const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [form, setForm] = useState(() => product ? buildInitialForm(product) : null)
-  const [sizeQtys, setSizeQtys] = useState<Record<string, string>>(() => product ? buildInitialSizeQtys(product) : {})
   const [images, setImages] = useState<{ url: string; file: File | null }[]>(() => {
     if (!product) return []
     return [product.imageUrl, product.imageUrl2, product.imageUrl3]
       .filter(Boolean)
       .map(url => ({ url, file: null }))
   })
+  const [mainStoreQtys, setMainStoreQtys] = useState<Record<string, number>>({})
   const [colorInput, setColorInput] = useState('')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!product) return
+    getMainStoreLocationId().then((mainLocationId) => {
+      fetch(`/api/admin/products/${product.id}/inventory`)
+        .then((r) => r.json())
+        .then((d) => {
+          const mainLoc = (d.inventoryByLocation ?? []).find((l: any) => l.locationId === mainLocationId)
+          const map: Record<string, number> = {}
+          if (mainLoc) {
+            for (const row of mainLoc.sizes) map[row.size] = row.quantity
+          }
+          setMainStoreQtys(map)
+        })
+        .catch(() => {})
+    })
+  }, [product])
 
   if (!product || !form) return null
 
@@ -109,12 +120,6 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
   function handleSizesChange(val: string) {
     setForm((f) => f ? ({ ...f, sizes: val }) : f)
-    const newList = val.split(',').map((s) => s.trim()).filter(Boolean)
-    setSizeQtys((prev) => {
-      const next: Record<string, string> = {}
-      for (const s of newList) next[s] = prev[s] ?? ''
-      return next
-    })
   }
 
   function handleAddColor() {
@@ -162,13 +167,6 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     setSaving(true)
 
     const priceCents = Math.round(priceNum * 100)
-    const sizeInventories = needsSizes
-      ? currentSizeList.map((size) => {
-          const raw = sizeQtys[size]
-          const qty = parseInt(raw, 10)
-          return { size, quantity: Number.isFinite(qty) && qty >= 0 ? qty : parseInt(form.quantity, 10) || 1 }
-        })
-      : []
 
     const formData = new FormData()
     formData.append('name', form.name.trim())
@@ -190,10 +188,6 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('quantity', (parseInt(form.quantity, 10) || 1).toString())
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
-    
-    if (needsSizes && sizeInventories.length > 0) {
-      formData.append('sizeInventories', JSON.stringify(sizeInventories))
-    }
 
     images.forEach((img, idx) => {
       if (idx === 0) {
@@ -350,13 +344,21 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
           )}
 
           {needsSizes && currentSizeList.length > 0 && (
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Qty per size</label>
+            <div className="sm:col-span-2 bg-jays-ice/30 rounded-xl p-3 border border-jays-ice">
+              <p className="text-xs font-medium text-jays-steel mb-2">
+                Main Store quantities <span className="text-[10px] font-normal">(read-only — use Locations to replenish)</span>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {currentSizeList.map((size) => (
                   <div key={size} className="flex flex-col items-center gap-1">
                     <span className="text-xs font-semibold text-jays-navy uppercase">{size}</span>
-                    <input type="number" min="0" value={sizeQtys[size] ?? ''} onChange={(e) => setSizeQtys((prev) => ({ ...prev, [size]: e.target.value }))} placeholder={form.quantity || '1'} className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40" />
+                    <input
+                      type="number"
+                      min="0"
+                      value={mainStoreQtys[size] ?? 0}
+                      disabled
+                      className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center bg-gray-100 text-gray-600 cursor-not-allowed"
+                    />
                   </div>
                 ))}
               </div>

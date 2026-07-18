@@ -151,7 +151,8 @@ export async function resolveHold(
     // Product-level held/picked/quantity are denormalized aggregates over
     // SizeInventory. Resync from the (now-updated) SizeInventory rows so the
     // aggregate never drifts from the true per-size/location source of truth.
-    if (hold.size) {
+    const hasSizeRows = (await tx.sizeInventory.count({ where: { productId: hold.productId } })) > 0
+    if (hasSizeRows) {
       await syncProductTotalsFromSizeInventory(tx, hold.productId)
     }
 
@@ -179,7 +180,7 @@ export async function resolveHold(
     }
 
     // Recalculate product status AFTER all heldQuantity updates are complete
-    const updatedProduct = await tx.product.findUniqueOrThrow({ where: { id: hold.productId } })
+    const updatedProduct = await tx.product.findUniqueOrThrow({ where: { id: hold.productId }, select: { quantity: true, heldQuantity: true, pickedQuantity: true } })
     const available = updatedProduct.quantity - updatedProduct.heldQuantity - updatedProduct.pickedQuantity
     const newProductStatus = available <= 0 ? 'SOLD' : 'AVAILABLE'
     await tx.product.update({ where: { id: hold.productId }, data: { status: newProductStatus } })

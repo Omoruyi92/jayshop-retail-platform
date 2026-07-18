@@ -9,7 +9,6 @@ import {
   getImageReferences,
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
-import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +76,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('isBlankJersey')) body.isBlankJersey = formData.get('isBlankJersey') === 'true'
       
       if (formData.has('colors')) body.colors = JSON.parse(formData.get('colors') as string)
-      if (formData.has('sizeInventories')) body.sizeInventories = JSON.parse(formData.get('sizeInventories') as string)
+      // sizeInventories is intentionally ignored — Main Store size allocation is
+      // read-only in the Edit modal and can only be changed via the Location
+      // Inventory modal (which uses /api/admin/products/[id]/inventory).
     } else {
       body = await req.json()
     }
@@ -137,39 +138,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (refs === 0) await safeUnlinkUpload(oldImageUrl)
     }
 
-    if (Array.isArray(body.sizeInventories)) {
-      const entries = body.sizeInventories as { size: string; quantity: number }[]
-      const locationId = await getMainStoreLocationId()
-      await Promise.all(
-        entries.map((entry) =>
-          prisma.sizeInventory.upsert({
-            where: { productId_size_locationId: { productId: params.id, size: entry.size, locationId } },
-            update: { quantity: Number(entry.quantity) },
-            create: {
-              productId: params.id,
-              size: entry.size,
-              locationId,
-              quantity: Number(entry.quantity),
-            },
-          })
-        )
-      )
-
-      if (body.sizes !== undefined) {
-        const activeSizes = String(body.sizes).split(',').map((s: string) => s.trim()).filter(Boolean)
-        const submittedSizes = entries.map((e) => e.size)
-        const sizesToRemove = submittedSizes.filter((s) => !activeSizes.includes(s))
-        if (sizesToRemove.length > 0) {
-          await prisma.sizeInventory.deleteMany({
-            where: { productId: params.id, size: { in: sizesToRemove } },
-          })
-        }
-      }
-    }
-
     return NextResponse.json({
       ...product,
-      remaining: product.quantity - product.heldQuantity,
+      remaining: product.quantity - product.heldQuantity - product.pickedQuantity,
     })
   } catch (err) {
     console.error(err)

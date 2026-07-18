@@ -131,13 +131,17 @@ export async function POST(req: Request) {
       })
 
       if (sizeList.length > 0) {
-        const defaultQty = Math.floor(quantity / sizeList.length)
+        // Allocate total quantity evenly across the selected sizes at Main Store.
+        // Remainder is deterministically added to the smallest sizes first so
+        // the sum of SizeInventory rows exactly equals the product's total quantity.
+        const baseQty = Math.floor(quantity / sizeList.length)
+        const remainder = quantity - baseQty * sizeList.length
         await tx.sizeInventory.createMany({
-          data: sizeList.map((size) => ({
+          data: sizeList.map((size, index) => ({
             productId: created.id,
             size,
             locationId,
-            quantity: sizeQuantitiesMap?.[size] ?? defaultQty,
+            quantity: (sizeQuantitiesMap?.[size] ?? baseQty) + (index < remainder ? 1 : 0),
           })),
         })
       }

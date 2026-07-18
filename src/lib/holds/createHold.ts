@@ -137,7 +137,7 @@ export async function createHold(
     })
 
     // Atomically increment product.heldQuantity
-    const updatedProduct = await tx.product.update({
+    await tx.product.update({
       where: { id: productId },
       data: { heldQuantity: { increment: qty } },
     })
@@ -160,7 +160,11 @@ export async function createHold(
       })
       allHeld = updatedSizeRows.every((r) => r.quantity - r.heldQuantity - r.pickedQuantity <= 0)
     } else {
-      allHeld = updatedProduct.heldQuantity + updatedProduct.pickedQuantity >= updatedProduct.quantity
+      const updatedProduct = await tx.product.findUnique({
+        where: { id: productId },
+        select: { quantity: true, heldQuantity: true, pickedQuantity: true },
+      })
+      allHeld = (updatedProduct?.heldQuantity ?? 0) + (updatedProduct?.pickedQuantity ?? 0) >= (updatedProduct?.quantity ?? 0)
     }
     if (allHeld) {
       await tx.product.update({ where: { id: productId }, data: { status: 'SOLD' } })
