@@ -194,19 +194,7 @@ export default function HoldTagPrint({
   appUrl,
 }: Props) {
   useEffect(() => {
-    console.log('[HoldTagPrint] useEffect fired — scheduling window.print()')
-
     const doPrint = () => {
-      const root = document.querySelector('.print-root')
-      console.log('[HoldTagPrint] .print-root element:', root)
-      console.log('[HoldTagPrint] .print-root innerHTML length:', root ? root.innerHTML.length : 'NOT FOUND')
-      if (root) {
-        const rect = (root as HTMLElement).getBoundingClientRect()
-        console.log('[HoldTagPrint] .print-root bounding rect:', JSON.stringify(rect))
-        const style = window.getComputedStyle(root as HTMLElement)
-        console.log('[HoldTagPrint] .print-root computed display:', style.display, '| visibility:', style.visibility, '| opacity:', style.opacity)
-      }
-      console.log('[HoldTagPrint] calling window.print() now')
       window.print()
     }
 

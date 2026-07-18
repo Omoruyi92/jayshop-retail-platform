@@ -23,15 +23,12 @@ export default function PrintPageClient(props: Props) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    console.log('[PrintPageClient] component mounted, setting mounted=true')
     setMounted(true)
   }, [])
 
   if (!mounted) {
-    console.log('[PrintPageClient] not yet mounted, rendering null')
     return null
   }
 
-  console.log('[PrintPageClient] mounted=true, rendering HoldTagPrint')
   return <HoldTagPrint {...props} />
 }

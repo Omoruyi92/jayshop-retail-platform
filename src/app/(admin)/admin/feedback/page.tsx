@@ -60,7 +60,7 @@ export default function AdminFeedbackPage() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchData() }, [statusFilter])
+  useEffect(() => { fetchData() }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function updateStatus(id: string, status: FeedbackStatus) {
     setActionLoading((prev) => ({ ...prev, [id]: true }))

@@ -149,7 +149,7 @@ export default function ReviewsAnalyticsPage() {
     if (!silent) setLoading(false)
   }
 
-  useEffect(() => { fetchData() }, [statusFilter])
+  useEffect(() => { fetchData() }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep engagement/likes data close to real-time without requiring a
   // manual refresh: poll silently in the background while the tab is visible.

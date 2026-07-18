@@ -75,6 +75,7 @@ export default function AuditLogPage() {
     if (initialRef.current) return
     initialRef.current = true
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -87,11 +88,13 @@ export default function AuditLogPage() {
     })
     observerRef.current.observe(loadMoreRef.current)
     return () => observerRef.current?.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextCursor, loading])
 
   const applyFilters = useCallback(() => {
     setRows([])
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
   return (
