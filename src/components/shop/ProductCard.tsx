@@ -1,7 +1,6 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatCAD } from '@/lib/utils'
 import StatusChip from '@/components/ui/StatusChip'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
@@ -49,7 +48,6 @@ export default function ProductCard({
   const displayStatus = isSoldOut ? 'SOLD_OUT' : 'AVAILABLE'
   const isOnSale = !!product.salePriceCents && product.salePriceCents > 0 && product.salePriceCents < product.priceCents
   const showSaleBadge = isOnSale || product.isClearance
-  const isLowStock = !isSoldOut && remaining > 0 && remaining <= 3
 
   function handleClick() {
     if (currentFilters) {
@@ -112,19 +110,6 @@ export default function ProductCard({
           <p className="font-display font-semibold text-jays-navy uppercase text-sm leading-tight line-clamp-2 tracking-wide" title={product.name}>
             {product.name}
           </p>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <p className="font-bold text-jays-red text-base">
-              {formatCAD(isOnSale ? product.salePriceCents! : product.priceCents)}
-            </p>
-            {isOnSale && (
-              <p className="text-xs text-jays-steel line-through">{formatCAD(product.priceCents)}</p>
-            )}
-          </div>
-          {!isSoldOut && (
-            <p className={`text-xs mt-1 ${isLowStock ? 'font-semibold text-amber-600' : 'text-jays-steel'}`}>
-              {isLowStock ? `Only ${remaining} left!` : `${remaining} left`}
-            </p>
-          )}
         </div>
       </div>
     </Link>
