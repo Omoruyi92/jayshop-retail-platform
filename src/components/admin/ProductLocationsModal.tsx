@@ -2,7 +2,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import TransferModal from '@/components/admin/TransferModal'
+
+const LOW_STOCK_THRESHOLD = 10
 
 interface SizeRow { size: string; quantity: number; heldQuantity: number; pickedQuantity: number }
 interface LocationRow {
@@ -23,6 +26,20 @@ interface ProductLocationsModalProps {
   sizes: string
   onClose: () => void
   onSaved?: () => void
+}
+
+function statusForAvailable(available: number): 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' {
+  if (available <= 0) return 'OUT_OF_STOCK'
+  if (available <= LOW_STOCK_THRESHOLD) return 'LOW_STOCK'
+  return 'IN_STOCK'
+}
+
+function labelForStock(status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'): string {
+  switch (status) {
+    case 'IN_STOCK': return 'In Stock'
+    case 'LOW_STOCK': return 'Low Stock'
+    case 'OUT_OF_STOCK': return 'Out of Stock'
+  }
 }
 
 export default function ProductLocationsModal({ productId, productName, sizes, onClose, onSaved }: ProductLocationsModalProps) {
@@ -180,6 +197,7 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                         {effectiveSizeList.map((size) => {
                           const row = loc.sizes.find((s) => s.size === size)
                           const currentAvailable = Math.max(0, (row?.quantity ?? 0) - (row?.heldQuantity ?? 0) - (row?.pickedQuantity ?? 0))
+                          const sizeStatus = statusForAvailable(currentAvailable)
                           const hasStock = currentAvailable > 0
                           return (
                             <div key={size} className="flex flex-col items-center gap-1">
@@ -190,6 +208,11 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                                 value={draft[loc.locationId]?.[size] ?? String(currentAvailable)}
                                 onChange={(e) => setQty(loc.locationId, size, e.target.value)}
                                 className="w-16 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+                              />
+                              <StatusBadge
+                                status={sizeStatus}
+                                label={labelForStock(sizeStatus)}
+                                className="scale-90 origin-center"
                               />
                               {hasStock && (
                                 <button

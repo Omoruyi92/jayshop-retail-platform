@@ -7,6 +7,8 @@ export type SizeDetail = {
   held: number
   picked: number
   available: number
+  status: InventoryStatus
+  statusLabel: string
 }
 
 export type LocationAvailability = {
@@ -21,6 +23,8 @@ export type LocationAvailability = {
   held: number
   picked: number
   available: number
+  status: InventoryStatus
+  statusLabel: string
   sizeQuantities: Record<string, number>
   sizeDetail: Record<string, SizeDetail>
 }
@@ -105,15 +109,21 @@ export function buildAvailability(sizeInventories: InventoryRow[]): ProductAvail
         sd.held += row.heldQuantity
         sd.picked += row.pickedQuantity
         sd.available += rowAvailable
+        sd.status = statusForTotal(sd.available)
+        sd.statusLabel = labelForStatus(sd.status)
       } else {
+        const sizeStatus = statusForTotal(rowAvailable)
         existing.sizeDetail[row.size] = {
           quantity: row.quantity,
           held: row.heldQuantity,
           picked: row.pickedQuantity,
           available: rowAvailable,
+          status: sizeStatus,
+          statusLabel: labelForStatus(sizeStatus),
         }
       }
     } else {
+      const sizeStatus = statusForTotal(rowAvailable)
       locationMap.set(row.location.id, {
         locationId: row.location.id,
         locationName: row.location.name,
@@ -126,6 +136,8 @@ export function buildAvailability(sizeInventories: InventoryRow[]): ProductAvail
         held: row.heldQuantity,
         picked: row.pickedQuantity,
         available: rowAvailable,
+        status: sizeStatus,
+        statusLabel: labelForStatus(sizeStatus),
         sizeQuantities: { [row.size]: row.quantity },
         sizeDetail: {
           [row.size]: {
@@ -133,11 +145,19 @@ export function buildAvailability(sizeInventories: InventoryRow[]): ProductAvail
             held: row.heldQuantity,
             picked: row.pickedQuantity,
             available: rowAvailable,
+            status: sizeStatus,
+            statusLabel: labelForStatus(sizeStatus),
           },
         },
       })
     }
   }
+
+  // Recompute each location's aggregate status now that all sizes are rolled up.
+  Array.from(locationMap.values()).forEach((loc) => {
+    loc.status = statusForTotal(loc.available)
+    loc.statusLabel = labelForStatus(loc.status)
+  })
 
   const locationBreakdown = Array.from(locationMap.values()).sort(
     (a, b) => a.sortOrder - b.sortOrder

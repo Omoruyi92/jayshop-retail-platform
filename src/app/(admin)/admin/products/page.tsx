@@ -638,55 +638,31 @@ export default function AdminProductsPage() {
                             <StatusBadge status={stock.status} label={stock.label} />
                           )}
                           {showDetail && p.availability && p.availability.locationBreakdown.length > 0 && (
-                            <ul className="space-y-0.5">
+                            <div className="space-y-1">
                               {p.availability.locationBreakdown.map((loc) => {
-                                // Collect affected sizes at this location
-                                const affected = Object.entries(loc.sizeDetail)
-                                  .filter(([, d]) => d.available <= LOW_STOCK_THRESHOLD)
+                                const affectedSizes = Object.entries(loc.sizeDetail)
+                                  .filter(([, d]) => d.status !== 'in-stock')
                                   .sort(([, a], [, b]) => a.available - b.available)
-                                if (affected.length === 0 && loc.available > LOW_STOCK_THRESHOLD) return null
+                                if (affectedSizes.length === 0) return null
                                 return (
-                                  <li
-                                    key={loc.locationId}
-                                    className="text-[10px] leading-snug"
-                                  >
-                                    <span className="text-jays-steel" title={loc.locationName}>
+                                  <div key={loc.locationId}>
+                                    <p className="text-[10px] text-jays-steel mb-0.5" title={loc.locationName}>
                                       {loc.locationName}
-                                    </span>
-                                    {' — '}
-                                    {affected.length === 0 ? (
-                                      <span className={loc.available <= 0 ? 'text-red-600 font-medium' : 'text-yellow-700 font-medium'}>
-                                        {loc.available <= 0 ? 'Out of Stock' : 'Low Stock'} ({loc.available} left)
-                                      </span>
-                                    ) : (
-                                      <span>
-                                        {affected.map(([size, d], idx) => {
-                                          const isOut = d.available <= 0
-                                          return (
-                                            <span key={size}>
-                                              {idx === 0 && (
-                                                <span className={isOut ? 'text-red-600 font-medium' : 'text-yellow-700 font-medium'}>
-                                                  {isOut ? 'Out of Stock' : 'Low Stock'}
-                                                </span>
-                                              )}
-                                              {' ('}
-                                              <span className="uppercase font-medium">{size}</span>
-                                              {': '}
-                                              <span className={isOut ? 'text-red-600' : 'text-yellow-700'}>
-                                                {d.available}
-                                                {isOut ? '' : ' left'}
-                                              </span>
-                                              {')'}
-                                              {idx < affected.length - 1 && ', '}
-                                            </span>
-                                          )
-                                        })}
-                                      </span>
-                                    )}
-                                  </li>
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {affectedSizes.map(([size, d]) => (
+                                        <StatusBadge
+                                          key={size}
+                                          status={d.status === 'low-stock' ? 'LOW_STOCK' : 'OUT_OF_STOCK'}
+                                          label={d.status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
+                                          className="text-[10px]"
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
                                 )
                               })}
-                            </ul>
+                            </div>
                           )}
                         </div>
                       )
