@@ -24,21 +24,38 @@ export function StatusBadge({
   status,
   className,
   label,
+  sold,
+  held,
 }: {
   status: string
   className?: string
   /** Optional override for the rendered text (e.g. "1 Held", "3 Sold"). */
   label?: string
+  /** Live sold count to show as a secondary pill. */
+  sold?: number
+  /** Live held count to show as a secondary pill. */
+  held?: number
 }) {
   return (
-    <span
-      className={cn(
-        'px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
-        BADGE_STYLES[status] ?? 'bg-gray-100 text-gray-500',
-        className
+    <span className={cn('inline-flex items-center gap-1.5', className)}>
+      <span
+        className={cn(
+          'px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
+          BADGE_STYLES[status] ?? 'bg-gray-100 text-gray-500'
+        )}
+      >
+        {label ?? BADGE_LABELS[status] ?? status.replace(/_/g, ' ')}
+      </span>
+      {typeof held === 'number' && held > 0 && (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap bg-amber-100 text-amber-700">
+          {held} Held
+        </span>
       )}
-    >
-      {label ?? BADGE_LABELS[status] ?? status.replace(/_/g, ' ')}
+      {typeof sold === 'number' && sold > 0 && (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap bg-gray-100 text-gray-500">
+          {sold} Sold
+        </span>
+      )}
     </span>
   )
 }

@@ -583,7 +583,14 @@ export default function AdminProductsPage() {
                   <td className="px-3 py-2">
                     {(() => {
                       const displayStatus = getDisplayStatus(p)
-                      return <StatusBadge status={displayStatus} label={getStatusLabel(p, displayStatus)} />
+                      return (
+                        <StatusBadge
+                          status={displayStatus}
+                          label={getStatusLabel(p, displayStatus)}
+                          held={p.heldQuantity}
+                          sold={p.pickedQuantity}
+                        />
+                      )
                     })()}
                   </td>
                   {/* Actions */}

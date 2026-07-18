@@ -99,7 +99,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
           {product.name}
         </h1>
         <div className="flex items-center gap-2 shrink-0">
-          <StatusChip status={displayStatusState} />
+          <StatusChip status={displayStatusState} held={product.heldQuantity} sold={product.pickedQuantity} />
           <button
             type="button"
             onClick={() =>

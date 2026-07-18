@@ -7,7 +7,6 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
-import { getMainStoreLocationId } from '@/lib/store-locations'
 
 interface Product {
   id: string
@@ -89,19 +88,23 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
   useEffect(() => {
     if (!product) return
-    getMainStoreLocationId().then((mainLocationId) => {
-      fetch(`/api/admin/products/${product.id}/inventory`)
-        .then((r) => r.json())
-        .then((d) => {
-          const mainLoc = (d.inventoryByLocation ?? []).find((l: any) => l.locationId === mainLocationId)
-          const map: Record<string, number> = {}
-          if (mainLoc) {
-            for (const row of mainLoc.sizes) map[row.size] = row.quantity
-          }
-          setMainStoreQtys(map)
-        })
-        .catch(() => {})
-    })
+    fetch('/api/store-locations')
+      .then((r) => r.json())
+      .then((d) => {
+        const mainLoc = (d.locations ?? []).find((l: any) => l.isMainStore)
+        if (!mainLoc) return
+        return fetch(`/api/admin/products/${product.id}/inventory`)
+          .then((r) => r.json())
+          .then((d) => {
+            const mainEntry = (d.inventoryByLocation ?? []).find((l: any) => l.locationId === mainLoc.id)
+            const map: Record<string, number> = {}
+            if (mainEntry) {
+              for (const row of mainEntry.sizes) map[row.size] = row.quantity
+            }
+            setMainStoreQtys(map)
+          })
+      })
+      .catch(() => {})
   }, [product])
 
   if (!product || !form) return null

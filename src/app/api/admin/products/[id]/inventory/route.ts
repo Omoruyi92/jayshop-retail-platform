@@ -200,6 +200,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     await prisma.$transaction(async (tx) => {
       const { actorId, actorEmail } = await resolveActorFromSession(tx, session)
 
+      // Main Store is never modified through this modal; if a caller somehow
+      // includes it, silently drop it so the source-of-truth allocation from
+      // product creation remains intact.
+      const filteredPayload = payload.filter((entry) => entry.locationId !== mainStoreLocationId)
+
       if (toRemoveLocationIds.length > 0) {
         const removedRows = existingRows.filter((r) => toRemoveLocationIds.includes(r.locationId))
         await tx.sizeInventory.deleteMany({
@@ -219,7 +224,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
       }
 
-    for (const entry of payload) {
+    for (const entry of filteredPayload) {
       const submittedSizes = new Set(entry.sizes.map((s) => s.size))
 
       for (const s of entry.sizes) {
