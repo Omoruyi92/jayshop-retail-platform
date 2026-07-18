@@ -8,6 +8,7 @@ import ProductReviews from '@/components/shop/ProductReviews'
 import RecentlyViewed from '@/components/shop/RecentlyViewed'
 import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
 import YouMayAlsoLike from '@/components/shop/YouMayAlsoLike'
+import { getProductAvailability } from '@/lib/inventory/aggregate'
 
 export const revalidate = 30
 
@@ -88,6 +89,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
   }
 
 
+  const availability = await getProductAvailability(product.id)
+
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
@@ -123,6 +126,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             displayStatus={displayStatus}
             sizeAvailability={sizeAvailability}
             locationInventory={locationInventory}
+            availability={availability}
           />
         </div>
       </div>

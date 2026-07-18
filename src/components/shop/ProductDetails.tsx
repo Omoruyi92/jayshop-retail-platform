@@ -4,6 +4,7 @@ import HoldButton from '@/components/shop/HoldButton'
 import StadiumAvailability, { LocationInventory } from '@/components/shop/StadiumAvailability'
 import AddToCartButton from '@/components/shop/AddToCartButton'
 import StatusChip from '@/components/ui/StatusChip'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
 import BackToShopButton from '@/components/shop/BackToShopButton'
@@ -13,6 +14,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
 import { Heart } from 'lucide-react'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+import type { ProductAvailability } from '@/lib/inventory/aggregate'
 
 interface SizeAvailability {
   size: string
@@ -27,9 +29,10 @@ interface Props {
   displayStatus: string
   sizeAvailability: SizeAvailability[] | null
   locationInventory?: LocationInventory[]
+  availability?: ProductAvailability
 }
 
-export default function ProductDetails({ product: initialProduct, remaining: initialRemaining, isSoldOut, sizes, displayStatus, sizeAvailability: initialSizeAvailability, locationInventory: initialLocationInventory }: Props) {
+export default function ProductDetails({ product: initialProduct, remaining: initialRemaining, isSoldOut, sizes, displayStatus, sizeAvailability: initialSizeAvailability, locationInventory: initialLocationInventory, availability: initialAvailability }: Props) {
   const { t } = useLanguage()
   const pd = t.product
   const { isLiked, toggle } = useFavorites()
@@ -40,6 +43,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
   const [sizeAvailability, setSizeAvailability] = useState<SizeAvailability[] | null>(initialSizeAvailability)
   const [locationInventory, setLocationInventory] = useState<LocationInventory[] | undefined>(initialLocationInventory)
   const [displayStatusState, setDisplayStatusState] = useState(displayStatus)
+  const [availability, setAvailability] = useState<ProductAvailability | undefined>(initialAvailability)
 
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
@@ -58,6 +62,9 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
         setSizeAvailability(p.sizeInventories.map((r: any) => ({ size: r.size, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
         setLocationInventory(p.sizeInventories.map((r: any) => ({ size: r.size, locationId: '', locationName: '', quantity: r.quantity, held: r.heldQuantity, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
       }
+      if (p.availability) {
+        setAvailability(p.availability)
+      }
     } catch {
       // ignore network errors
     }
@@ -69,7 +76,8 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
     setSizeAvailability(initialSizeAvailability)
     setLocationInventory(initialLocationInventory)
     setDisplayStatusState(displayStatus)
-  }, [initialProduct, initialRemaining, initialSizeAvailability, initialLocationInventory, displayStatus])
+    setAvailability(initialAvailability)
+  }, [initialProduct, initialRemaining, initialSizeAvailability, initialLocationInventory, displayStatus, initialAvailability])
 
   // Real-time sync on PDP so stock/held/sold badges update without refresh.
   useInventoryStream(
@@ -98,31 +106,52 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
         <h1 className="font-display text-2xl font-bold text-jays-navy uppercase leading-tight">
           {product.name}
         </h1>
-        <div className="flex items-center gap-2 shrink-0">
-          <StatusChip status={displayStatusState} />
-          <button
-            type="button"
-            onClick={() =>
-              toggle({
-                productId: product.id,
-                slug: product.slug,
-                name: product.name,
-                imageUrl: product.imageUrl,
-                priceCents: product.priceCents,
-              })
-            }
-            aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
-            title={liked ? 'Remove from favorites' : 'Add to favorites'}
-            className={`flex items-center justify-center w-9 h-9 rounded-full border transition-colors ${
-              liked
-                ? 'bg-jays-red/10 border-jays-red text-jays-red'
-                : 'border-gray-200 text-gray-400 hover:border-jays-red hover:text-jays-red'
-            }`}
-          >
-            <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() =>
+            toggle({
+              productId: product.id,
+              slug: product.slug,
+              name: product.name,
+              imageUrl: product.imageUrl,
+              priceCents: product.priceCents,
+            })
+          }
+          aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+          title={liked ? 'Remove from favorites' : 'Add to favorites'}
+          className={`flex items-center justify-center w-9 h-9 rounded-full border transition-colors ${
+            liked
+              ? 'bg-jays-red/10 border-jays-red text-jays-red'
+              : 'border-gray-200 text-gray-400 hover:border-jays-red hover:text-jays-red'
+          }`}
+        >
+          <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
+        </button>
       </div>
+
+      {/* Dynamic stock status badge driven by centralized availability */}
+      {availability && availability.status !== 'in-stock' && !isSoldOut && (
+        <div className="mb-3">
+          <StatusBadge
+            status={availability.status === 'low-stock' ? 'LOW_STOCK' : 'OUT_OF_STOCK'}
+            label={availability.statusLabel}
+          />
+          {availability.locationBreakdown.filter((loc) => loc.status !== 'in-stock').length > 0 && (
+            <p className="mt-1 text-xs text-jays-steel">
+              {availability.locationBreakdown
+                .filter((loc) => loc.status !== 'in-stock')
+                .map((loc) => loc.locationName)
+                .join(', ')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {(!availability || availability.status === 'in-stock' || isSoldOut) && (
+        <div className="flex items-center gap-2 mb-3">
+          <StatusChip status={displayStatusState} />
+        </div>
+      )}
 
       {(product.isFeatured || product.isNewArrival || product.category.toLowerCase() === 'authentication' || product.isLicensed || product.isChampion) && (
         <div className="flex flex-wrap gap-2 mb-3">
