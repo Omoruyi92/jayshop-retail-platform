@@ -99,7 +99,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
           {product.name}
         </h1>
         <div className="flex items-center gap-2 shrink-0">
-          <StatusChip status={displayStatusState} held={product.heldQuantity} sold={product.pickedQuantity} />
+          <StatusChip status={displayStatusState} />
           <button
             type="button"
             onClick={() =>
@@ -258,16 +258,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
       {locationInventory && locationInventory.length > 0 && (
         <StadiumAvailability locations={locationInventory} selectedSize={selectedSize || null} />
       )}
-
-      {/* Live inventory summary — single source of truth from SizeInventory */}
-      <div className="mt-4 rounded-xl bg-jays-ice/40 border border-jays-ice px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-jays-steel mb-1">Inventory</p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <span className="text-jays-navy font-medium">{remaining} available</span>
-          {product.heldQuantity > 0 && <span className="text-amber-600 font-medium">{product.heldQuantity} held</span>}
-          {product.pickedQuantity > 0 && <span className="text-gray-500 font-medium">{product.pickedQuantity} sold</span>}
-        </div>
-      </div>
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">
