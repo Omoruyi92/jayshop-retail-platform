@@ -630,39 +630,17 @@ export default function AdminProductsPage() {
                   <td className="px-3 py-2 align-top">
                     {(() => {
                       const stock = getStockBadgeStatus(p)
-                      const showDetail =
-                        stock.status === 'LOW_STOCK' || stock.status === 'OUT_OF_STOCK'
+                      const isInStock = stock.status === 'IN_STOCK'
+                      const affectedLocations = p.availability?.locationBreakdown.filter(
+                        (loc) => loc.status !== 'in-stock'
+                      ) ?? []
                       return (
-                        <div className="space-y-1.5">
-                          {stock.status !== 'IN_STOCK' && (
-                            <StatusBadge status={stock.status} label={stock.label} />
-                          )}
-                          {showDetail && p.availability && p.availability.locationBreakdown.length > 0 && (
-                            <div className="space-y-1">
-                              {p.availability.locationBreakdown.map((loc) => {
-                                const affectedSizes = Object.entries(loc.sizeDetail)
-                                  .filter(([, d]) => d.status !== 'in-stock')
-                                  .sort(([, a], [, b]) => a.available - b.available)
-                                if (affectedSizes.length === 0) return null
-                                return (
-                                  <div key={loc.locationId}>
-                                    <p className="text-[10px] text-jays-steel mb-0.5" title={loc.locationName}>
-                                      {loc.locationName}
-                                    </p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {affectedSizes.map(([size, d]) => (
-                                        <StatusBadge
-                                          key={size}
-                                          status={d.status === 'low-stock' ? 'LOW_STOCK' : 'OUT_OF_STOCK'}
-                                          label={d.status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
-                                          className="text-[10px]"
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
+                        <div className="space-y-1">
+                          <StatusBadge status={stock.status} label={stock.label} />
+                          {!isInStock && affectedLocations.length > 0 && (
+                            <p className="text-[10px] text-jays-steel leading-tight">
+                              {affectedLocations.map((loc) => loc.locationName).join(', ')}
+                            </p>
                           )}
                         </div>
                       )
