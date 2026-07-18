@@ -130,7 +130,7 @@ export default function StadiumAvailability({ locations, selectedSize }: Props) 
                     {/* Show available sizes preview if no size selected */}
                     {!selectedSize && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Sizes: {loc.sizes.filter(s => s.available > 0).map(s => s.size).join(', ') || 'None'}
+                        Sizes: {(loc.sizes ?? []).filter(s => s.available > 0).map(s => s.size).join(', ') || 'None'}
                       </p>
                     )}
                   </div>

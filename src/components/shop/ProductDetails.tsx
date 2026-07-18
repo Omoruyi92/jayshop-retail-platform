@@ -60,7 +60,21 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
       setDisplayStatusState(p.status === 'SOLD' && p.heldQuantity > 0 ? 'ON_HOLD' : p.status)
       if (p.sizeInventories?.length) {
         setSizeAvailability(p.sizeInventories.map((r: any) => ({ size: r.size, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
-        setLocationInventory(p.sizeInventories.map((r: any) => ({ size: r.size, locationId: '', locationName: '', quantity: r.quantity, held: r.heldQuantity, available: Math.max(0, r.quantity - r.heldQuantity - r.pickedQuantity) })))
+      }
+      if (p.availability?.locationBreakdown?.length) {
+        setLocationInventory(
+          p.availability.locationBreakdown.map((loc: any) => ({
+            id: loc.locationId,
+            name: loc.locationName,
+            code: loc.locationSection || loc.locationGate || loc.locationId,
+            isMainStore: loc.isMainStore,
+            sizes: Object.entries(loc.sizeDetail).map(([size, d]: [string, any]) => ({
+              size,
+              available: d.available,
+            })),
+            totalAvailable: loc.available,
+          }))
+        )
       }
       if (p.availability) {
         setAvailability(p.availability)
