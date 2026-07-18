@@ -220,46 +220,44 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ── Official Sponsor Spotlight ─────────────────────── */}
+        {/* ── Official Sponsors ───────────────────────────────── */}
         <div className="border-t border-blue-700/60 mt-4 pt-4 pb-3">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#008A00]/15 via-[#00A800]/10 to-[#008A00]/15 border border-[#00A800]/20">
-            {/* Subtle diagonal accent */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#00A800]/5 rounded-full blur-3xl" />
-            <div className="relative flex items-center gap-4 px-4 py-3 sm:px-5">
-              {/* TD Logo */}
-              <a href="https://www.td.com/ca" target="_blank" rel="noopener noreferrer"
-                className="shrink-0 group">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-lg shadow-[#00A800]/20 group-hover:shadow-[#00A800]/40 group-hover:scale-105 transition-all duration-300 ring-2 ring-[#00A800]/30" style={{ position: 'relative' }}>
-                  <Image
-                    src="/brand/td-bank.png"
-                    alt="TD Bank — Official Sponsor"
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                    style={{ position: 'absolute' }}
-                  />
-                </div>
-              </a>
-              {/* Sponsor text */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] font-bold text-[#00C800] leading-none">Official Sponsor</span>
-                  <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-[#00A800]/40" />
-                  <span className="hidden sm:inline text-[9px] uppercase tracking-wider text-blue-300/50 font-medium">Toronto Blue Jays</span>
-                </div>
-                <p className="text-xs sm:text-[13px] text-blue-200/90 leading-relaxed">
-                  <span className="font-semibold text-white">TD Bank Group</span> — Proud partner of the Toronto Blue Jays since 2004. From TD Comfort Zone for families at Rogers Centre to community baseball programs across Canada, TD has been championing fans and the future of the game for over two decades.
-                </p>
+          <div className="flex items-center justify-center gap-2 mb-2.5">
+            <span className="h-px w-6 bg-blue-700/50" />
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold text-blue-300/60">Official Sponsors</span>
+            <span className="h-px w-6 bg-blue-700/50" />
+          </div>
+          <div className="flex items-center justify-center gap-3 sm:gap-5">
+            {/* TD Logo */}
+            <a href="https://www.td.com/ca" target="_blank" rel="noopener noreferrer"
+              title="TD Bank Group — Official Sponsor"
+              className="group flex items-center gap-2.5 rounded-full bg-white/5 border border-white/10 hover:border-[#00A800]/40 hover:bg-white/10 pl-1.5 pr-4 py-1.5 transition-all duration-300">
+              <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#00A800]/30 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <Image
+                  src="/brand/td-bank.png"
+                  alt="TD Bank"
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+                />
               </div>
-              {/* Visit arrow */}
-              <a href="https://www.td.com/ca" target="_blank" rel="noopener noreferrer"
-                className="hidden sm:flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#00C800] hover:text-[#00E800] transition-colors group/link">
-                Visit
-                <svg className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
+              <span className="text-xs font-semibold text-blue-100 group-hover:text-white transition-colors">TD Bank Group</span>
+            </a>
+            {/* Rogers Logo */}
+            <a href="https://www.rogers.com" target="_blank" rel="noopener noreferrer"
+              title="Rogers Communications — Official Sponsor"
+              className="group flex items-center gap-2.5 rounded-full bg-white/5 border border-white/10 hover:border-[#E4022C]/40 hover:bg-white/10 pl-1.5 pr-4 py-1.5 transition-all duration-300">
+              <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white ring-2 ring-[#E4022C]/30 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <Image
+                  src="/brand/rogers-communications.png"
+                  alt="Rogers"
+                  fill
+                  className="object-contain p-1.5"
+                  sizes="40px"
+                />
+              </div>
+              <span className="text-xs font-semibold text-blue-100 group-hover:text-white transition-colors">Rogers</span>
+            </a>
           </div>
         </div>
 
