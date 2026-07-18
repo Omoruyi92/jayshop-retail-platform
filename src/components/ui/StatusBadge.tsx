@@ -12,12 +12,18 @@ const BADGE_STYLES: Record<string, string> = {
   SOLD:                 'bg-gray-100 text-gray-500',
   SOLD_OUT:             'bg-red-100 text-red-600',
   ARCHIVED:             'bg-gray-100 text-gray-400',
+  IN_STOCK:             'bg-green-100 text-green-700',
+  LOW_STOCK:            'bg-yellow-100 text-yellow-700',
+  OUT_OF_STOCK:         'bg-red-100 text-red-600',
 }
 
 const BADGE_LABELS: Record<string, string> = {
   AVAILABLE: 'In Stock',
   ON_HOLD: 'Held',
   SOLD: 'Sold',
+  IN_STOCK: 'In Stock',
+  LOW_STOCK: 'Low Stock',
+  OUT_OF_STOCK: 'Out of Stock',
 }
 
 export function StatusBadge({

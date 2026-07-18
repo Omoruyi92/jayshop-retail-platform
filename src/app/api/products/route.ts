@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getManyProductsAvailability } from '@/lib/inventory/aggregate'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,5 +61,14 @@ export async function GET(request: Request) {
     }
   })
 
-  return NextResponse.json({ products: productsWithRemaining })
+  // Pull centralized availability status + per-location breakdown from the
+  // single source of truth so admin/customer stock badges stay synchronized.
+  const availabilityMap = await getManyProductsAvailability(products.map((p) => p.id))
+
+  const productsWithAvailability = productsWithRemaining.map((p) => ({
+    ...p,
+    availability: availabilityMap[p.id],
+  }))
+
+  return NextResponse.json({ products: productsWithAvailability })
 }

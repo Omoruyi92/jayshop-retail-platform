@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { formatCAD } from '@/lib/utils'
+import { formatCAD, cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { Heart } from 'lucide-react'
@@ -15,6 +15,7 @@ import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+import type { ProductAvailability } from '@/lib/inventory/aggregate'
 
 interface Product {
   id: string
@@ -44,6 +45,31 @@ interface Product {
   isBlankJersey: boolean
   colors: any
   _count?: { holds: number; likes?: number }
+  availability?: ProductAvailability
+}
+
+const LOW_STOCK_THRESHOLD = 10
+
+/**
+ * Returns the centralized availability-driven stock badge status:
+ * in-stock (green), low-stock (yellow), out-of-stock (red).
+ */
+function getStockBadgeStatus(p: Product): { status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'; label: string } {
+  if (p.availability) {
+    switch (p.availability.status) {
+      case 'low-stock':
+        return { status: 'LOW_STOCK', label: 'Low Stock' }
+      case 'out-of-stock':
+        return { status: 'OUT_OF_STOCK', label: 'Out of Stock' }
+      case 'in-stock':
+      default:
+        return { status: 'IN_STOCK', label: 'In Stock' }
+    }
+  }
+  // Fallback if availability is missing (shouldn't happen with updated API)
+  if (p.remaining <= 0) return { status: 'OUT_OF_STOCK', label: 'Out of Stock' }
+  if (p.remaining <= LOW_STOCK_THRESHOLD) return { status: 'LOW_STOCK', label: 'Low Stock' }
+  return { status: 'IN_STOCK', label: 'In Stock' }
 }
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
@@ -601,16 +627,69 @@ export default function AdminProductsPage() {
                     </span>
                   </td>
                   {/* Status */}
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 align-top">
                     {(() => {
                       const displayStatus = getDisplayStatus(p)
+                      const stock = getStockBadgeStatus(p)
+                      const showLocations =
+                        stock.status === 'LOW_STOCK' || stock.status === 'OUT_OF_STOCK'
                       return (
-                        <StatusBadge
-                          status={displayStatus}
-                          label={getStatusLabel(p, displayStatus)}
-                          held={p.heldQuantity}
-                          sold={p.pickedQuantity}
-                        />
+                        <div className="space-y-1.5">
+                          <StatusBadge
+                            status={stock.status}
+                            label={stock.label}
+                          />
+                          {displayStatus !== 'AVAILABLE' && (
+                            <StatusBadge
+                              status={displayStatus}
+                              label={getStatusLabel(p, displayStatus)}
+                              held={p.heldQuantity}
+                              sold={p.pickedQuantity}
+                            />
+                          )}
+                          {showLocations && p.availability && p.availability.locationBreakdown.length > 0 && (
+                            <div className="pt-1">
+                              <p className="text-[10px] font-semibold uppercase tracking-wider text-jays-steel mb-0.5">
+                                Locations
+                              </p>
+                              <ul className="space-y-0.5">
+                                {p.availability.locationBreakdown.map((loc) => {
+                                  const locStatus =
+                                    loc.available <= 0
+                                      ? 'Out'
+                                      : loc.available <= LOW_STOCK_THRESHOLD
+                                      ? 'Low'
+                                      : 'OK'
+                                  if (locStatus === 'OK') return null
+                                  return (
+                                    <li
+                                      key={loc.locationId}
+                                      className="text-[10px] flex items-center gap-1.5"
+                                    >
+                                      <span
+                                        className={cn(
+                                          'w-1.5 h-1.5 rounded-full',
+                                          locStatus === 'Out' ? 'bg-red-500' : 'bg-yellow-500'
+                                        )}
+                                      />
+                                      <span className="text-jays-steel truncate max-w-[120px]" title={loc.locationName}>
+                                        {loc.locationName}:
+                                      </span>
+                                      <span
+                                        className={cn(
+                                          'font-medium',
+                                          locStatus === 'Out' ? 'text-red-600' : 'text-yellow-700'
+                                        )}
+                                      >
+                                        {loc.available} left ({locStatus})
+                                      </span>
+                                    </li>
+                                  )
+                                })}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
                       )
                     })()}
                   </td>
