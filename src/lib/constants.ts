@@ -1,3 +1,8 @@
+// Product image upload validation (used by Add Product and Edit Product forms)
+export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+export const MAX_IMAGE_SIZE_MB = 5
+export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
+
 export const MAIN_CATEGORIES = ['men', 'women', 'kids', 'accessories', 'sport', 'blanks', 'authentication'] as const
 
 export function brandToSlug(name: string): string {

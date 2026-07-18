@@ -34,15 +34,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     let body: any = {}
     let isFormData = false
 
+    const existing = await prisma.product.findUnique({
+      where: { id: params.id },
+      select: { imageUrl: true, imageUrl2: true, imageUrl3: true, isNewArrival: true },
+    })
+
     const contentType = req.headers.get('content-type') || ''
     if (contentType.includes('multipart/form-data')) {
       isFormData = true
       const formData = await req.formData()
-      
-      const existing = await prisma.product.findUnique({
-        where: { id: params.id },
-        select: { imageUrl: true, imageUrl2: true, imageUrl3: true },
-      })
       
       const imageUrl = formData.get('imageUrl') as string | null
       const imageFile = formData.get('imageFile') as File | null
@@ -51,9 +51,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       const imageUrl3 = formData.get('imageUrl3') as string | null
       const imageFile3 = formData.get('imageFile3') as File | null
 
-      body.imageUrl = await processImage(imageFile, imageUrl) || existing?.imageUrl
-      body.imageUrl2 = await processImage(imageFile2, imageUrl2) || existing?.imageUrl2 || ''
-      body.imageUrl3 = await processImage(imageFile3, imageUrl3) || existing?.imageUrl3 || ''
+      // IMPORTANT: an explicitly empty string means "this image slot was
+      // deleted by the admin" and must be persisted as empty — it must NOT
+      // silently fall back to the previous stored image. Only fall back to
+      // the existing value when the client didn't send the field at all
+      // (e.g. a JSON PATCH that only updates unrelated fields).
+      const resolveImageSlot = async (file: File | null, urlField: string | null, existingUrl: string | undefined, hasField: boolean) => {
+        if (file && file.size > 0) return processImage(file, urlField)
+        if (hasField) return urlField ?? ''
+        return existingUrl ?? ''
+      }
+
+      body.imageUrl = await resolveImageSlot(imageFile, imageUrl, existing?.imageUrl, formData.has('imageUrl'))
+      body.imageUrl2 = await resolveImageSlot(imageFile2, imageUrl2, existing?.imageUrl2, formData.has('imageUrl2'))
+      body.imageUrl3 = await resolveImageSlot(imageFile3, imageUrl3, existing?.imageUrl3, formData.has('imageUrl3'))
+
+      if (!body.imageUrl) {
+        return NextResponse.json({ error: 'At least one image is required' }, { status: 400 })
+      }
       
       if (formData.has('name')) body.name = formData.get('name')
       if (formData.has('description')) body.description = formData.get('description')
@@ -83,11 +98,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       body = await req.json()
     }
 
-    const existing = await prisma.product.findUnique({
-      where: { id: params.id },
-      select: { imageUrl: true, imageUrl2: true, imageUrl3: true, isNewArrival: true },
-    })
     const oldImageUrl = existing?.imageUrl ?? null
+    const oldImageUrl2 = existing?.imageUrl2 ?? null
+    const oldImageUrl3 = existing?.imageUrl3 ?? null
     const wasNewArrival = existing?.isNewArrival ?? false
 
     const product = await prisma.product.update({
@@ -132,11 +145,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       })
     }
 
-    // Clean up replaced local upload file (only if imageUrl actually changed)
-    if (oldImageUrl && body.imageUrl !== undefined && body.imageUrl !== oldImageUrl && isLocalUpload(oldImageUrl)) {
-      const refs = await getImageReferences(prisma, oldImageUrl.replace(/^\/uploads\//, ''))
-      if (refs === 0) await safeUnlinkUpload(oldImageUrl)
+    // Clean up replaced/removed local upload files for all 3 image slots
+    // (only if the value actually changed) — deleting or replacing one
+    // image slot must not leave orphaned files on disk, and must not touch
+    // files still referenced by the other two slots.
+    const cleanupIfChanged = async (oldUrl: string | null, newUrl: string | undefined) => {
+      if (oldUrl && newUrl !== undefined && newUrl !== oldUrl && isLocalUpload(oldUrl)) {
+        const refs = await getImageReferences(prisma, oldUrl.replace(/^\/uploads\//, ''))
+        if (refs === 0) await safeUnlinkUpload(oldUrl)
+      }
     }
+    await cleanupIfChanged(oldImageUrl, body.imageUrl)
+    await cleanupIfChanged(oldImageUrl2, body.imageUrl2)
+    await cleanupIfChanged(oldImageUrl3, body.imageUrl3)
 
     return NextResponse.json({
       ...product,

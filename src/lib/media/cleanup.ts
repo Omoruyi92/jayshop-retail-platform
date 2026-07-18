@@ -26,10 +26,12 @@ export function resolveUploadPath(filename: string): string {
 
 /**
  * Counts all DB references to a given upload filename across:
- *   - Product.imageUrl
+ *   - Product.imageUrl / imageUrl2 / imageUrl3
  *   - HoldHistory.productImageUrlSnapshot
  *
- * A file is only safe to delete when this returns 0.
+ * A file is only safe to delete when this returns 0. Checking all three
+ * image slots (not just imageUrl) prevents deleting a file that is still
+ * displayed as Image 2 or Image 3 on this product or any other product.
  */
 export async function getImageReferences(
   prisma: PrismaClient,
@@ -38,7 +40,9 @@ export async function getImageReferences(
   const url = `/uploads/${filename}`
 
   const [productCount, historyCount] = await Promise.all([
-    prisma.product.count({ where: { imageUrl: url } }),
+    prisma.product.count({
+      where: { OR: [{ imageUrl: url }, { imageUrl2: url }, { imageUrl3: url }] },
+    }),
     prisma.holdHistory.count({ where: { productImageUrlSnapshot: url } }),
   ])
 

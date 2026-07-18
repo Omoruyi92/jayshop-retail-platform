@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
@@ -136,12 +136,27 @@ export default function AdminProductsPage() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       if (images.length >= 3) { toast.error('Max 3 images allowed'); return }
-      const newFiles = Array.from(e.target.files).slice(0, 3 - images.length)
-      const newImages = newFiles.map(file => ({
+      const candidates = Array.from(e.target.files)
+      const accepted: File[] = []
+      for (const file of candidates) {
+        if (accepted.length + images.length >= 3) break
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+          toast.error(`${file.name}: unsupported format. Use JPG, PNG, or WebP.`)
+          continue
+        }
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+          toast.error(`${file.name}: file too large. Max ${MAX_IMAGE_SIZE_MB}MB.`)
+          continue
+        }
+        accepted.push(file)
+      }
+      if (accepted.length === 0) { e.target.value = ''; return }
+      const newImages = accepted.map(file => ({
         url: URL.createObjectURL(file),
         file
       }))
       setImages(prev => [...prev, ...newImages])
+      e.target.value = ''
     }
   }
 
@@ -168,6 +183,7 @@ export default function AdminProductsPage() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
+    if (images.length === 0) { toast.error('At least one image is required'); return }
     const priceNum = parseFloat(form.priceCents)
     let salePriceCents = 0
     if (form.salePrice.trim()) {
@@ -189,6 +205,10 @@ export default function AdminProductsPage() {
     body.append('hatStyle',    form.subcategory === 'hats' ? form.hatStyle : '')
     body.append('brand',       form.brand)
     body.append('imageUrl',    form.imageUrl)
+    images.forEach((img, idx) => {
+      if (!img.file) return
+      body.append(idx === 0 ? 'imageFile' : `imageFile${idx + 1}`, img.file)
+    })
     body.append('isLicensed',  String(form.isLicensed))
     body.append('isChampion',  String(form.isChampion))
     body.append('isNewArrival', String(form.isNewArrival))
@@ -359,7 +379,8 @@ export default function AdminProductsPage() {
             </div>
             <div className="sm:col-span-2 border-t border-border pt-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">Product Images (up to 3)</label>
-              <input type="file" accept="image/*" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+              <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, or WebP. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
               <div className="flex gap-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-border group">

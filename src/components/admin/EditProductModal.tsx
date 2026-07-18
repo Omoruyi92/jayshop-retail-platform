@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 
 interface Product {
@@ -139,17 +139,42 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       if (images.length >= 3) { toast.error('Max 3 images allowed'); return }
-      const newFiles = Array.from(e.target.files).slice(0, 3 - images.length)
-      const newImages = newFiles.map(file => ({
+      const candidates = Array.from(e.target.files)
+      const accepted: File[] = []
+      for (const file of candidates) {
+        if (accepted.length + images.length >= 3) break
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+          toast.error(`${file.name}: unsupported format. Use JPG, PNG, or WebP.`)
+          continue
+        }
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+          toast.error(`${file.name}: file too large. Max ${MAX_IMAGE_SIZE_MB}MB.`)
+          continue
+        }
+        accepted.push(file)
+      }
+      if (accepted.length === 0) { e.target.value = ''; return }
+      const newImages = accepted.map(file => ({
         url: URL.createObjectURL(file),
         file
       }))
       setImages(prev => [...prev, ...newImages])
+      e.target.value = ''
     }
   }
 
   function removeImage(index: number) {
+    if (images.length <= 1) { toast.error('At least one image is required'); return }
     setImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function moveImage(from: number, to: number) {
+    setImages(prev => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
   }
 
   async function handleSave() {
@@ -310,12 +335,22 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
           <div className="sm:col-span-2 border-t border-border pt-4">
              <label className="block text-xs font-medium text-gray-600 mb-2">Product Images (up to 3)</label>
-             <input type="file" accept="image/*" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+             <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+             <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, or WebP. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
              <div className="flex gap-4">
                {images.map((img, idx) => (
                  <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-border group">
                    <Image src={img.url} alt="Preview" fill className="object-cover" unoptimized />
+                   <span className="absolute bottom-1 left-1 bg-jays-navy/80 text-white text-[10px] px-1.5 py-0.5 rounded">Image {idx + 1}</span>
                    <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                   <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                     {idx > 0 && (
+                       <button type="button" onClick={() => moveImage(idx, idx - 1)} className="bg-white/90 text-jays-navy rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" title="Move left">←</button>
+                     )}
+                     {idx < images.length - 1 && (
+                       <button type="button" onClick={() => moveImage(idx, idx + 1)} className="bg-white/90 text-jays-navy rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" title="Move right">→</button>
+                     )}
+                   </div>
                  </div>
                ))}
              </div>
