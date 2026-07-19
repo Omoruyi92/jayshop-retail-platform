@@ -35,12 +35,14 @@ function PasswordInput({
   onChange,
   placeholder,
   error,
+  showToggle = true,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   error?: string | null
+  showToggle?: boolean
 }) {
   const [show, setShow] = useState(false)
   return (
@@ -56,14 +58,17 @@ function PasswordInput({
             error ? 'border-red-400' : 'border-border'
           }`}
         />
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-          tabIndex={-1}
-        >
-          {show ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
+        {showToggle && (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            tabIndex={-1}
+            aria-label={show ? 'Hide password' : 'Show password'}
+          >
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
       </div>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>

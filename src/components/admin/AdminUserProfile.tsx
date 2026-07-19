@@ -2,7 +2,45 @@
 
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { LogOut, User, Lock, Loader2, X } from 'lucide-react'
+import { LogOut, User, Lock, Loader2, X, Eye, EyeOff } from 'lucide-react'
+
+function ProfilePasswordInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
+  const [show, setShow] = useState(false)
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <div className="relative">
+        <input
+          type={show ? 'text' : 'password'}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+        />
+        <button
+          type="button"
+          onClick={() => setShow((v) => !v)}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          tabIndex={-1}
+          aria-label={show ? 'Hide password' : 'Show password'}
+        >
+          {show ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function AdminUserProfile() {
   const { data: session, update } = useSession()
@@ -88,30 +126,23 @@ export default function AdminUserProfile() {
             </button>
           </div>
           <div className="space-y-2">
-            <input
-              type="password"
+            <ProfilePasswordInput
+              label="Current password"
               placeholder="Current password"
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+              onChange={setCurrentPassword}
             />
-            <input
-              type="password"
+            <ProfilePasswordInput
+              label="New password"
               placeholder="New password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+              onChange={setNewPassword}
             />
-            <input
-              type="password"
+            <ProfilePasswordInput
+              label="Confirm new password"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+              onChange={setConfirmPassword}
             />
             <button
               type="submit"

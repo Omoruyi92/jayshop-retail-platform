@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Plus, Trash2, Shield, Users, KeyRound } from 'lucide-react'
+import { Plus, Trash2, Shield, Users, KeyRound, Eye, EyeOff } from 'lucide-react'
 import AdminBackButton from '@/components/admin/AdminBackButton'
 import { can } from '@/lib/auth/authorize'
 
@@ -13,6 +13,43 @@ type Admin = {
 }
 
 const ROLES = ['OWNER', 'MANAGER', 'STAFF', 'VIEWER']
+
+function TogglePasswordInput({
+  value,
+  onChange,
+  placeholder,
+  required = false,
+  className = '',
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  required?: boolean
+  className?: string
+}) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className={`relative ${className}`}>
+      <input
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        required={required}
+        className="w-full border rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        tabIndex={-1}
+        aria-label={show ? 'Hide password' : 'Show password'}
+      >
+        {show ? <EyeOff size={14} /> : <Eye size={14} />}
+      </button>
+    </div>
+  )
+}
 
 export default function AdminsPage() {
   const [admins, setAdmins] = useState<Admin[]>([])
@@ -148,7 +185,12 @@ export default function AdminsPage() {
           <h2 className="font-semibold flex items-center gap-2"><Users size={18}/> New Admin</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="email" placeholder="Email" required value={newEmail} onChange={e => setNewEmail(e.target.value)} className="border rounded-lg px-3 py-2" />
-            <input type="password" placeholder="Password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="border rounded-lg px-3 py-2" />
+            <TogglePasswordInput
+              value={newPassword}
+              onChange={setNewPassword}
+              placeholder="Password"
+              required
+            />
           </div>
           <select value={newRole} onChange={e => setNewRole(e.target.value)} className="border rounded-lg px-3 py-2">
             {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
@@ -188,12 +230,11 @@ export default function AdminsPage() {
                 <td className="px-4 py-3 text-right">
                   {resetAdminId === admin.id ? (
                     <div className="flex items-center justify-end gap-2">
-                      <input
-                        type="password"
-                        placeholder="New password"
+                      <TogglePasswordInput
                         value={resetPassword}
-                        onChange={e => setResetPassword(e.target.value)}
-                        className="w-36 border rounded px-2 py-1 text-xs"
+                        onChange={setResetPassword}
+                        placeholder="New password"
+                        className="w-36"
                       />
                       <button
                         onClick={() => resetPasswordFor(admin.id)}
