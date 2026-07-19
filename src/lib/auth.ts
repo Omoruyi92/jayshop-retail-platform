@@ -1,3 +1,4 @@
+import { AdminRole } from '@prisma/client'
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
@@ -18,28 +19,29 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // Dev mode: accept any email/password, always return the real admin from DB
+        const email = credentials.email.toLowerCase().trim()
+
+        // Dev mode: still validate against the real admin record by email
         if (process.env.NODE_ENV !== 'production') {
           try {
-            const admin = await prisma.admin.findFirst()
-            if (admin) {
-              return { id: admin.id, email: admin.email, name: admin.role, role: admin.role }
-            }
+            const admin = await prisma.admin.findUnique({ where: { email } })
+            if (!admin) return null
+            // Dev bypass: accept any password so you can test with any account
+            return { id: admin.id, email: admin.email, name: admin.role, role: admin.role as AdminRole }
           } catch {
-            // DB unavailable in dev — fail login rather than create a fake session
+            return null
           }
-          return null
         }
 
         // Production: strict bcrypt check
         try {
           const admin = await prisma.admin.findUnique({
-            where: { email: credentials.email },
+            where: { email },
           })
           if (!admin) return null
           const passwordValid = await bcrypt.compare(credentials.password, admin.passwordHash)
           if (!passwordValid) return null
-          return { id: admin.id, email: admin.email, name: admin.role, role: admin.role }
+          return { id: admin.id, email: admin.email, name: admin.role, role: admin.role as AdminRole }
         } catch {
           return null
         }
@@ -47,15 +49,32 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.adminId = user.id
+        token.email = user.email
         token.role = (user as { role?: string }).role
+      }
+      // Refresh token from DB on update() so role/email changes take effect
+      if (trigger === 'update' && token?.adminId) {
+        try {
+          const admin = await prisma.admin.findUnique({
+            where: { id: token.adminId as string },
+            select: { email: true, role: true },
+          })
+          if (admin) {
+            token.email = admin.email
+            token.role = admin.role
+          }
+        } catch {
+          // leave existing token values
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (token.adminId) session.user.adminId = token.adminId as string
+      if (token.email) session.user.email = token.email as string
       if (token.role) (session.user as { role?: string }).role = token.role as string
       return session
     },
