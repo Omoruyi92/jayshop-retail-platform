@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminSessionProvider from '@/components/admin/AdminSessionProvider'
+import AdminUserProfile from '@/components/admin/AdminUserProfile'
 import AdminInactivityGuard from '@/components/admin/AdminInactivityGuard'
 import { DataProvider } from '@/components/sync/DataProvider'
 
@@ -33,6 +34,7 @@ export default async function AdminLayout({
             <AdminSidebar />
             <div className="flex-1 min-w-0 overflow-y-auto h-full">
               <main className="pt-14 lg:pt-0 p-4 sm:p-6 lg:p-8">
+                <AdminUserProfile />
                 <div className="max-w-6xl mx-auto">{children}</div>
               </main>
             </div>
