@@ -30,7 +30,7 @@ async function seedAdmin(tenantId: string) {
     return
   }
 
-  const passwordHash = await bcrypt.hash('Bluejays2026', 12)
+  const passwordHash = await bcrypt.hash('Musa9295$', 12)
   await prisma.admin.create({
     data: {
       email: 'admin@jays.shop',
