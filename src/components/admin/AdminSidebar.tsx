@@ -2,10 +2,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard, Package, ClipboardList, History,
-  BarChart2, Bell, LogOut, ExternalLink, Menu, X,
+  BarChart2, Bell, ExternalLink, Menu, X,
   Tag, Image as ImageIcon, Users, Megaphone, Calendar,
   Clock, Boxes, KeyRound, Radio, Terminal, LineChart,
   ScrollText, Star, MessageSquare, UserCog, Settings, FolderTree,
@@ -123,13 +122,6 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
           <ExternalLink size={16} />
           View Shop
         </Link>
-        <button
-          onClick={() => signOut({ callbackUrl: '/admin/login' })}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-blue-300 hover:bg-white/10 hover:text-white transition-colors"
-        >
-          <LogOut size={16} />
-          Sign Out
-        </button>
       </div>
     </>
   )
