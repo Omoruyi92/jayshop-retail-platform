@@ -81,6 +81,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('quantity')) body.quantity = Number(formData.get('quantity'))
       if (formData.has('brand')) body.brand = formData.get('brand')
       if (formData.has('sizes')) body.sizes = formData.get('sizes')
+      if (formData.has('sku')) body.sku = formData.get('sku')
+      if (formData.has('material')) body.material = formData.get('material')
+      if (formData.has('careInstructions')) body.careInstructions = formData.get('careInstructions')
       
       if (formData.has('isLicensed')) body.isLicensed = formData.get('isLicensed') === 'true'
       if (formData.has('isChampion')) body.isChampion = formData.get('isChampion') === 'true'
@@ -120,6 +123,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.quantity     !== undefined && { quantity: Number(body.quantity) }),
         ...(body.brand        !== undefined && { brand: body.brand }),
         ...(body.sizes        !== undefined && { sizes: body.sizes }),
+        ...(body.sku          !== undefined && { sku: body.sku }),
+        ...(body.material     !== undefined && { material: body.material }),
+        ...(body.careInstructions !== undefined && { careInstructions: body.careInstructions }),
         ...(body.colors       !== undefined && { colors: body.colors }),
         ...(body.isLicensed   !== undefined && { isLicensed: Boolean(body.isLicensed) }),
         ...(body.isChampion   !== undefined && { isChampion: Boolean(body.isChampion) }),

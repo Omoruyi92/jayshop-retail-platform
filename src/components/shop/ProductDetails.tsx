@@ -12,9 +12,10 @@ import { formatCAD } from '@/lib/utils'
 import type { Product } from '@prisma/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
-import { Heart } from 'lucide-react'
+import { Heart, X } from 'lucide-react'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { ProductAvailability } from '@/lib/inventory/aggregate'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
 
 interface SizeAvailability {
   size: string
@@ -44,6 +45,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
   const [locationInventory, setLocationInventory] = useState<LocationInventory[] | undefined>(initialLocationInventory)
   const [displayStatusState, setDisplayStatusState] = useState(displayStatus)
   const [availability, setAvailability] = useState<ProductAvailability | undefined>(initialAvailability)
+  const [moreInfoOpen, setMoreInfoOpen] = useState(false)
 
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
@@ -301,6 +303,48 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
       {locationInventory && locationInventory.length > 0 && (
         <StadiumAvailability locations={locationInventory} selectedSize={selectedSize || null} />
       )}
+
+      {/* More Info trigger */}
+      {(product.material || product.careInstructions || product.sku) && (
+        <button
+          type="button"
+          onClick={() => setMoreInfoOpen(true)}
+          className="mt-4 text-sm font-semibold text-jays-navy underline underline-offset-4 hover:text-jays-royal transition-colors"
+        >
+          More Info
+        </button>
+      )}
+
+      <Dialog open={moreInfoOpen} onOpenChange={setMoreInfoOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Product Details</DialogTitle>
+            <DialogClose className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors">
+              <X size={18} />
+            </DialogClose>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-jays-steel">
+            {product.sku && (
+              <div>
+                <p className="font-semibold text-jays-navy uppercase text-xs tracking-wider mb-1">SKU</p>
+                <p>{product.sku}</p>
+              </div>
+            )}
+            {product.material && (
+              <div>
+                <p className="font-semibold text-jays-navy uppercase text-xs tracking-wider mb-1">Material</p>
+                <p>{product.material}</p>
+              </div>
+            )}
+            {product.careInstructions && (
+              <div>
+                <p className="font-semibold text-jays-navy uppercase text-xs tracking-wider mb-1">Care Instructions</p>
+                <p>{product.careInstructions}</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

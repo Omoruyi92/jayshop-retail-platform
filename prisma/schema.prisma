@@ -70,6 +70,7 @@ model Product {
   tenantId           String
   material           String                 @default("")
   careInstructions   String                 @default("")
+  sku                String?
   highlights         String                 @default("")
   imageUrl2          String                 @default("")
   imageUrl3          String                 @default("")

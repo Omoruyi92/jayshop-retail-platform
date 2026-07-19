@@ -63,6 +63,10 @@ export async function POST(req: Request) {
     const isClearance = formData.get('isClearance') === 'true'
     const isBlankJersey = formData.get('isBlankJersey') === 'true'
 
+    const sku = (formData.get('sku') as string | null) ?? null
+    const material = (formData.get('material') as string | null) ?? ''
+    const careInstructions = (formData.get('careInstructions') as string | null) ?? ''
+
     if (!name || !priceCents) {
       return NextResponse.json({ error: 'name and priceCents required' }, { status: 400 })
     }
@@ -127,6 +131,9 @@ export async function POST(req: Request) {
           isNewArrival,
           isClearance,
           isBlankJersey,
+          sku,
+          material,
+          careInstructions,
         },
       })
 

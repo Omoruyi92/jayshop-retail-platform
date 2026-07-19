@@ -45,6 +45,9 @@ interface Product {
   isSport: boolean
   isBlankJersey: boolean
   colors: any
+  sku?: string | null
+  material?: string
+  careInstructions?: string
   _count?: { holds: number; likes?: number }
   availability?: ProductAvailability
 }
@@ -111,7 +114,8 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
-    isFeatured: false, isSport: false, isBlankJersey: false, colors: [] as string[], hatStyle: ''
+    isFeatured: false, isSport: false, isBlankJersey: false, colors: [] as string[], hatStyle: '',
+    sku: '', material: '', careInstructions: ''
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [images, setImages] = useState<{url: string; file: File | null}[]>([])
@@ -245,6 +249,9 @@ export default function AdminProductsPage() {
     body.append('isSport',      String(form.isSport))
     body.append('isBlankJersey', String(form.isBlankJersey))
     body.append('colors',       JSON.stringify(form.colors))
+    body.append('sku',          form.sku.trim())
+    body.append('material',     form.material.trim())
+    body.append('careInstructions', form.careInstructions.trim())
     
 
     if (needsSizes && currentSizeList.length > 0) {
@@ -262,7 +269,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '' })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -368,6 +375,18 @@ export default function AdminProductsPage() {
                 <input value={form.sizes} onChange={(e) => setForm(f => ({ ...f, sizes: e.target.value }))} placeholder="S,M,L,XL,2XL,3XL" className={INPUT_CLS} />
               </div>
             )}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">SKU <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input value={form.sku} onChange={(e) => setForm(f => ({ ...f, sku: e.target.value }))} placeholder="e.g. JS-JERSEY-001" className={INPUT_CLS} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Material</label>
+              <input value={form.material} onChange={(e) => setForm(f => ({ ...f, material: e.target.value }))} placeholder="e.g. 100% Polyester" className={INPUT_CLS} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Care Instructions</label>
+              <textarea value={form.careInstructions} onChange={(e) => setForm(f => ({ ...f, careInstructions: e.target.value }))} rows={2} placeholder="Machine wash cold, tumble dry low..." className={INPUT_CLS} />
+            </div>
             {needsSizes && currentSizeList.length > 0 && (
               <div className="sm:col-span-2 bg-jays-ice/30 rounded-xl p-3 border border-jays-ice">
                 <p className="text-xs font-medium text-jays-steel mb-2">
@@ -591,9 +610,10 @@ export default function AdminProductsPage() {
                       <Image src={p.imageUrl} alt={p.name} fill className="object-cover" unoptimized />
                     </div>
                   </td>
-                  {/* Product: name + branding badges */}
+                  {/* Product: name + sku + branding badges */}
                   <td className="px-3 py-2">
                     <div className="font-medium leading-tight">{p.name}</div>
+                    {p.sku && <div className="text-[10px] text-jays-steel mt-0.5">SKU: {p.sku}</div>}
                     {(p.isLicensed || p.isChampion) && (
                       <div className="flex gap-1 mt-0.5">
                         {p.isLicensed && <LicensedBadge variant="card" />}

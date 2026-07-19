@@ -35,6 +35,9 @@ interface Product {
   isSport: boolean
   isBlankJersey: boolean
   colors: any
+  sku?: string | null
+  material?: string
+  careInstructions?: string
   _count?: { holds: number; likes?: number }
 }
 
@@ -70,6 +73,9 @@ function buildInitialForm(product: Product) {
     imageUrl2:   product.imageUrl2,
     imageUrl3:   product.imageUrl3,
     colors:      Array.isArray(product.colors) ? product.colors.map(c => typeof c === 'string' ? c : c.name || c.hex || '') : [],
+    sku:         product.sku ?? '',
+    material:    product.material ?? '',
+    careInstructions: product.careInstructions ?? '',
   }
 }
 
@@ -219,6 +225,9 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('isBlankJersey', String(form.isBlankJersey))
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
+    formData.append('sku', form.sku.trim())
+    formData.append('material', form.material.trim())
+    formData.append('careInstructions', form.careInstructions.trim())
 
     images.forEach((img, idx) => {
       if (idx === 0) {
@@ -278,6 +287,21 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
           <div className="sm:col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
             <textarea value={form.description} onChange={(e) => setForm((f) => f ? ({ ...f, description: e.target.value }) : f)} rows={2} className={INPUT_CLS} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-1">SKU <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input value={form.sku} onChange={(e) => setForm((f) => f ? ({ ...f, sku: e.target.value }) : f)} placeholder="e.g. JS-JERSEY-001" className={INPUT_CLS} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Material</label>
+            <input value={form.material} onChange={(e) => setForm((f) => f ? ({ ...f, material: e.target.value }) : f)} placeholder="e.g. 100% Polyester" className={INPUT_CLS} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Care Instructions</label>
+            <textarea value={form.careInstructions} onChange={(e) => setForm((f) => f ? ({ ...f, careInstructions: e.target.value }) : f)} rows={2} placeholder="Machine wash cold, tumble dry low..." className={INPUT_CLS} />
           </div>
 
           <div>
