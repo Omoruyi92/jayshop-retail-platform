@@ -70,17 +70,17 @@ const linkGroups: LinkGroup[] = [
     label: 'Insights',
     links: [
       { href: '/admin/analytics', label: 'Analytics', icon: LineChart, minRole: 'VIEWER' },
-      { href: '/admin/reports', label: 'Reports', icon: BarChart2, minRole: 'MANAGER' },
-      { href: '/admin/history', label: 'History', icon: History, minRole: 'STAFF' },
+      { href: '/admin/reports', label: 'Reports', icon: BarChart2, minRole: 'VIEWER' },
+      { href: '/admin/history', label: 'History', icon: History, minRole: 'VIEWER' },
       { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText, minRole: 'OWNER' },
     ],
   },
   {
     label: 'Community',
     links: [
-      { href: '/admin/reviews', label: 'Reviews', icon: Star, minRole: 'STAFF' },
-      { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare, minRole: 'STAFF' },
-      { href: '/admin/notifications', label: 'Notifications', icon: Bell, minRole: 'STAFF' },
+      { href: '/admin/reviews', label: 'Reviews', icon: Star, minRole: 'VIEWER' },
+      { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare, minRole: 'VIEWER' },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell, minRole: 'VIEWER' },
     ],
   },
   {

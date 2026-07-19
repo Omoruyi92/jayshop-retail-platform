@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +14,7 @@ function getPeriodDates(period: string, dateFrom?: string | null, dateTo?: strin
 }
 
 export async function GET(req: Request) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'reports:read')
   if (error) return error
 
   const { searchParams } = new URL(req.url)

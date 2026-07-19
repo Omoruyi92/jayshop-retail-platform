@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'history:read')
   if (error) return error
 
   const { searchParams } = new URL(req.url)

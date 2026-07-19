@@ -32,7 +32,6 @@ const restrictedPaths: Restriction[] = [
   // Manager+ operations
   { prefix: '/admin/hold-settings', minRole: 'MANAGER' },
   { prefix: '/admin/game-days', minRole: 'MANAGER' },
-  { prefix: '/admin/reports', minRole: 'MANAGER' },
   { prefix: '/admin/categories', minRole: 'MANAGER' },
   { prefix: '/admin/brands', minRole: 'MANAGER' },
   { prefix: '/admin/gallery', minRole: 'MANAGER' },
@@ -40,31 +39,44 @@ const restrictedPaths: Restriction[] = [
   { prefix: '/admin/promotions', minRole: 'MANAGER' },
   { prefix: '/api/admin/hold-settings', minRole: 'MANAGER' },
   { prefix: '/api/admin/game-days', minRole: 'MANAGER' },
-  { prefix: '/api/admin/reports', minRole: 'MANAGER' },
   { prefix: '/api/admin/categories', minRole: 'MANAGER' },
   { prefix: '/api/admin/brands', minRole: 'MANAGER' },
   { prefix: '/api/admin/gallery', minRole: 'MANAGER' },
   { prefix: '/api/admin/players', minRole: 'MANAGER' },
   { prefix: '/api/admin/promotions', minRole: 'MANAGER' },
   { prefix: '/api/admin/inventory/transfer', minRole: 'MANAGER' },
+  // Export endpoints are Manager+
+  { prefix: '/api/admin/reports/export', minRole: 'MANAGER' },
+  { prefix: '/api/admin/history/export', minRole: 'MANAGER' },
   // Products: read for Viewer+, write for Manager+
   { prefix: '/api/admin/products', minRole: 'MANAGER', methods: ['POST', 'PUT', 'PATCH', 'DELETE'] },
 
-  // Staff+ daily operations
+  // Viewer+ read-only insights
+  { prefix: '/admin/analytics', minRole: 'VIEWER' },
+  { prefix: '/admin/reports', minRole: 'VIEWER' },
+  { prefix: '/admin/history', minRole: 'VIEWER' },
+  { prefix: '/admin/reviews', minRole: 'VIEWER' },
+  { prefix: '/admin/feedback', minRole: 'VIEWER' },
+  { prefix: '/admin/notifications', minRole: 'VIEWER' },
+  { prefix: '/api/admin/analytics', minRole: 'VIEWER' },
+  { prefix: '/api/admin/reports', minRole: 'VIEWER', methods: ['GET'] },
+  { prefix: '/api/admin/history', minRole: 'VIEWER', methods: ['GET'] },
+  { prefix: '/api/admin/reviews', minRole: 'VIEWER', methods: ['GET'] },
+  { prefix: '/api/admin/feedback', minRole: 'VIEWER', methods: ['GET'] },
+  { prefix: '/api/admin/slack-settings', minRole: 'VIEWER', methods: ['GET'] },
+
+  // Staff+ daily operations (write routes)
   { prefix: '/admin/holds', minRole: 'STAFF' },
   { prefix: '/admin/inventory/history', minRole: 'STAFF' },
   { prefix: '/admin/pos-events', minRole: 'STAFF' },
-  { prefix: '/admin/history', minRole: 'STAFF' },
-  { prefix: '/admin/reviews', minRole: 'STAFF' },
-  { prefix: '/admin/feedback', minRole: 'STAFF' },
-  { prefix: '/admin/notifications', minRole: 'STAFF' },
   { prefix: '/api/admin/holds', minRole: 'STAFF' },
   { prefix: '/api/admin/inventory/history', minRole: 'STAFF' },
   { prefix: '/api/admin/pos-events', minRole: 'STAFF' },
-  { prefix: '/api/admin/history', minRole: 'STAFF' },
-  { prefix: '/api/admin/reviews', minRole: 'STAFF' },
-  { prefix: '/api/admin/feedback', minRole: 'STAFF' },
-  { prefix: '/api/admin/notifications', minRole: 'STAFF' },
+  // Reviews/feedback/notifications write endpoints remain Staff+
+  { prefix: '/api/admin/reviews', minRole: 'STAFF', methods: ['POST', 'PATCH', 'DELETE'] },
+  { prefix: '/api/admin/feedback', minRole: 'STAFF', methods: ['POST', 'PATCH', 'DELETE'] },
+  { prefix: '/api/admin/slack-settings', minRole: 'STAFF', methods: ['POST', 'PATCH', 'DELETE'] },
+  { prefix: '/api/admin/slack-settings/test', minRole: 'STAFF', methods: ['POST'] },
 ]
 
 function minRoleForPath(pathname: string, method: string): { minRole: AdminRole; applies: boolean } | null {

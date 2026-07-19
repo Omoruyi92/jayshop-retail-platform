@@ -33,6 +33,12 @@ export function actionMinRole(action: string): AdminRole {
     case 'hold-settings:manage':
       return 'MANAGER'
     case 'analytics:read':
+      return 'VIEWER'
+    case 'reports:read':
+      return 'VIEWER'
+    case 'history:read':
+      return 'VIEWER'
+    case 'pos-events:read':
       return 'STAFF'
     case 'players:read':
       return 'STAFF'
@@ -43,11 +49,11 @@ export function actionMinRole(action: string): AdminRole {
     case 'brands:write':
       return 'MANAGER'
     case 'feedback:read':
-      return 'STAFF'
+      return 'VIEWER'
     case 'feedback:write':
       return 'MANAGER'
     case 'reviews:read':
-      return 'STAFF'
+      return 'VIEWER'
     case 'reviews:write':
       return 'MANAGER'
     case 'promotions:read':

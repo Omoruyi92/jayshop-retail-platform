@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
  * `externalId=<id>` note convention used in /api/pos/transaction).
  */
 export async function GET(req: Request) {
-  const { error } = await requireRole(req, 'analytics:read')
+  const { error } = await requireRole(req, 'pos-events:read')
   if (error) return error
 
   const url = new URL(req.url)
