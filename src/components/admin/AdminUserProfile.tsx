@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { LogOut, User, Lock, Loader2, X, Eye, EyeOff } from 'lucide-react'
 
@@ -45,13 +45,26 @@ function ProfilePasswordInput({
 export default function AdminUserProfile() {
   const { data: session, update } = useSession()
   const email = session?.user?.email
-  const role = session?.user?.role ?? 'Admin'
+  const role = (session?.user?.role as string) ?? 'Admin'
+  const isOwner = role === 'OWNER'
 
+  const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
@@ -82,50 +95,69 @@ export default function AdminUserProfile() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center justify-end gap-3">
-        <div className="hidden sm:flex flex-col items-end">
-          <span className="text-sm font-semibold text-jays-navy truncate max-w-[180px]" title={email ?? ''}>
+    <div ref={containerRef} className="relative flex flex-col items-end">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-3 rounded-full bg-white border border-jays-navy/10 pl-1 pr-3 py-1 hover:bg-gray-50 transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-jays-royal/10 text-jays-royal">
+          <User size={16} />
+        </span>
+        <div className="hidden sm:flex flex-col items-start">
+          <span className="text-sm font-semibold text-jays-navy truncate max-w-[160px]" title={email ?? ''}>
             {email ?? 'Admin'}
           </span>
-          <span className="text-[10px] uppercase tracking-wider font-bold text-jays-royal">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-jays-royal leading-tight">
             {role}
           </span>
         </div>
-        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-jays-royal/10 text-jays-royal">
-          <User size={16} />
-        </span>
-        <button
-          type="button"
-          onClick={() => setShowPassword((v) => !v)}
-          className="flex items-center gap-1.5 rounded-full bg-white hover:bg-gray-50 text-jays-navy border border-jays-navy/10 text-xs font-semibold uppercase tracking-wide px-3 py-2 transition-colors"
-        >
-          <Lock size={13} />
-          <span className="hidden sm:inline">Password</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: '/admin/login' })}
-          className="flex items-center gap-1.5 rounded-full bg-jays-royal hover:bg-jays-navy text-white text-xs font-semibold uppercase tracking-wide px-3.5 py-2 transition-colors"
-        >
-          <LogOut size={13} />
-          <span className="hidden sm:inline">Sign Out</span>
-          <span className="sm:hidden">Out</span>
-        </button>
-      </div>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-jays-navy/10 bg-white shadow-lg p-2 z-50">
+          <div className="px-3 py-2 border-b border-gray-100">
+            <p className="text-sm font-semibold text-jays-navy truncate" title={email ?? ''}>{email ?? 'Admin'}</p>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-jays-royal">{role}</p>
+          </div>
+
+          {!isOwner && (
+            <button
+              type="button"
+              onClick={() => { setShowPassword(true); setOpen(false) }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-jays-navy hover:bg-jays-ice rounded-lg transition-colors"
+            >
+              <Lock size={14} />
+              Change Password
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <LogOut size={14} />
+            Sign Out
+          </button>
+        </div>
+      )}
 
       {showPassword && (
-        <form
-          onSubmit={handleChangePassword}
-          className="w-full max-w-xs rounded-xl border border-jays-navy/10 bg-white p-4 shadow-sm mt-1"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-jays-navy">Change Password</p>
-            <button type="button" onClick={() => setShowPassword(false)} className="text-jays-steel hover:text-jays-navy">
-              <X size={14} />
-            </button>
-          </div>
-          <div className="space-y-2">
+        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-jays-navy/10 bg-white p-4 shadow-lg z-50">
+          <form onSubmit={handleChangePassword} className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-jays-navy">Change Password</p>
+              <button
+                type="button"
+                onClick={() => setShowPassword(false)}
+                className="text-jays-steel hover:text-jays-navy"
+              >
+                <X size={14} />
+              </button>
+            </div>
             <ProfilePasswordInput
               label="Current password"
               placeholder="Current password"
@@ -152,8 +184,8 @@ export default function AdminUserProfile() {
               {loading && <Loader2 size={14} className="animate-spin" />}
               Update Password
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   )

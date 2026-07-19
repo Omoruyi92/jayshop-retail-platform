@@ -21,12 +21,13 @@ export const authOptions: NextAuthOptions = {
 
         const email = credentials.email.toLowerCase().trim()
 
-        // Dev mode: still validate against the real admin record by email
+        // Dev mode: validate email and password exactly like production
         if (process.env.NODE_ENV !== 'production') {
           try {
             const admin = await prisma.admin.findUnique({ where: { email } })
             if (!admin) return null
-            // Dev bypass: accept any password so you can test with any account
+            const passwordValid = await bcrypt.compare(credentials.password, admin.passwordHash)
+            if (!passwordValid) return null
             return { id: admin.id, email: admin.email, name: admin.role, role: admin.role as AdminRole }
           } catch {
             return null
