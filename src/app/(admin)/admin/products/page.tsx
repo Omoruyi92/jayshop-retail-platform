@@ -15,6 +15,7 @@ import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import ProductLocationsModal from '@/components/admin/ProductLocationsModal'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 import type { ProductAvailability } from '@/lib/inventory/aggregate'
 
 interface Product {
@@ -101,6 +102,7 @@ function getStatusLabel(p: Product, displayStatus: string): string | undefined {
 }
 
 export default function AdminProductsPage() {
+  const { isOwner, isManager, isStaff } = useCurrentAdmin()
   const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading]   = useState(true)
@@ -296,12 +298,14 @@ export default function AdminProductsPage() {
     <div>
       <div className="page-header">
         <h1 className="font-display text-2xl font-bold uppercase text-jays-navy">Products</h1>
-        <button
-          onClick={() => setShowAdd(!showAdd)}
-          className="bg-jays-red text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors"
-        >
-          + Add Product
-        </button>
+        {(isOwner || isManager) && (
+          <button
+            onClick={() => setShowAdd(!showAdd)}
+            className="bg-jays-red text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors"
+          >
+            + Add Product
+          </button>
+        )}
       </div>
 
       {showAdd && (
@@ -649,28 +653,36 @@ export default function AdminProductsPage() {
                   {/* Actions */}
                   <td className="px-3 py-2">
                     <div className="flex gap-1 flex-wrap">
-                      <button
-                        onClick={() => setEditingProduct(p)}
-                        className="px-2 py-1 bg-jays-navy/10 text-jays-navy text-xs rounded-lg hover:bg-jays-navy/20 transition-colors whitespace-nowrap"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setLocationsProduct(p)}
-                        className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap"
-                      >
-                        Inventory
-                      </button>
-                      {isArchived ? (
-                        remaining > 0 ? (
-                          <button onClick={() => handleUnarchive(p.id)} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap">Unarchive</button>
-                        ) : (
-                          <span className="px-2 py-1 text-gray-400 text-xs whitespace-nowrap">No stock</span>
-                        )
-                      ) : (
+                      {(isOwner || isManager) && (
+                        <button
+                          onClick={() => setEditingProduct(p)}
+                          className="px-2 py-1 bg-jays-navy/10 text-jays-navy text-xs rounded-lg hover:bg-jays-navy/20 transition-colors whitespace-nowrap"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {(isStaff || isManager || isOwner) && (
+                        <button
+                          onClick={() => setLocationsProduct(p)}
+                          className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap"
+                        >
+                          Inventory
+                        </button>
+                      )}
+                      {(isOwner || isManager) && (
                         <>
-                          <button onClick={() => handleArchive(p.id)} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap">Archive</button>
-                          <button onClick={() => handleDelete(p.id)} className="px-2 py-1 bg-red-50 text-red-600 text-xs rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap">Delete</button>
+                          {isArchived ? (
+                            remaining > 0 ? (
+                              <button onClick={() => handleUnarchive(p.id)} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap">Unarchive</button>
+                            ) : (
+                              <span className="px-2 py-1 text-gray-400 text-xs whitespace-nowrap">No stock</span>
+                            )
+                          ) : (
+                            <>
+                              <button onClick={() => handleArchive(p.id)} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap">Archive</button>
+                              <button onClick={() => handleDelete(p.id)} className="px-2 py-1 bg-red-50 text-red-600 text-xs rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap">Delete</button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>

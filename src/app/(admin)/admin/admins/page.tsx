@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Plus, Trash2, Shield, Users } from 'lucide-react'
+import { Plus, Trash2, Shield, Users, KeyRound } from 'lucide-react'
 import AdminBackButton from '@/components/admin/AdminBackButton'
 import { can } from '@/lib/auth/authorize'
 
@@ -23,6 +23,8 @@ export default function AdminsPage() {
   const [newPassword, setNewPassword] = useState('')
   const [newRole, setNewRole] = useState('STAFF')
   const [saving, setSaving] = useState(false)
+  const [resetAdminId, setResetAdminId] = useState<string | null>(null)
+  const [resetPassword, setResetPassword] = useState('')
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -99,6 +101,26 @@ export default function AdminsPage() {
     }
   }
 
+  async function resetPasswordFor(id: string) {
+    if (!resetPassword || resetPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    const res = await fetch(`/api/admin/admins/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: resetPassword }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      toast.success('Password reset successfully')
+      setResetAdminId(null)
+      setResetPassword('')
+    } else {
+      toast.error(data.error || 'Failed to reset password')
+    }
+  }
+
   if (loading) return <div className="p-8 text-center">Loading...</div>
 
   return (
@@ -164,13 +186,48 @@ export default function AdminsPage() {
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(admin.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => remove(admin.id)}
-                    className="text-red-600 hover:text-red-700 p-1"
-                    disabled={!currentRole || !can(currentRole, 'admin:manage')}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {resetAdminId === admin.id ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <input
+                        type="password"
+                        placeholder="New password"
+                        value={resetPassword}
+                        onChange={e => setResetPassword(e.target.value)}
+                        className="w-36 border rounded px-2 py-1 text-xs"
+                      />
+                      <button
+                        onClick={() => resetPasswordFor(admin.id)}
+                        className="text-jays-royal hover:text-jays-navy p-1"
+                        disabled={!currentRole || !can(currentRole, 'admin:manage')}
+                      >
+                        <KeyRound size={16} />
+                      </button>
+                      <button
+                        onClick={() => { setResetAdminId(null); setResetPassword('') }}
+                        className="text-gray-500 hover:text-gray-700 p-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setResetAdminId(admin.id)}
+                        className="text-jays-royal hover:text-jays-navy p-1"
+                        disabled={!currentRole || !can(currentRole, 'admin:manage')}
+                        title="Reset password"
+                      >
+                        <KeyRound size={16} />
+                      </button>
+                      <button
+                        onClick={() => remove(admin.id)}
+                        className="text-red-600 hover:text-red-700 p-1"
+                        disabled={!currentRole || !can(currentRole, 'admin:manage')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import type { AdminRole } from '@prisma/client'
 import {
   LayoutDashboard, Package, ClipboardList, History,
   BarChart2, Bell, ExternalLink, Menu, X,
@@ -10,69 +12,92 @@ import {
   ScrollText, Star, MessageSquare, UserCog, Settings, FolderTree,
 } from 'lucide-react'
 
-const linkGroups = [
+const roleOrder: AdminRole[] = ['VIEWER', 'STAFF', 'MANAGER', 'OWNER']
+
+function rank(role?: AdminRole | string | null): number {
+  if (!role) return -1
+  return roleOrder.indexOf(role as AdminRole)
+}
+
+type LinkItem = {
+  href: string
+  label: string
+  icon: React.ElementType
+  minRole: AdminRole
+}
+
+type LinkGroup = {
+  label: string
+  links: LinkItem[]
+}
+
+const linkGroups: LinkGroup[] = [
   {
     label: 'Overview',
     links: [
-      { href: '/admin',               label: 'Dashboard',     icon: LayoutDashboard },
+      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, minRole: 'VIEWER' },
     ],
   },
   {
     label: 'Catalog',
     links: [
-      { href: '/admin/products',      label: 'Products',      icon: Package },
-      { href: '/admin/categories',    label: 'Categories',    icon: FolderTree },
-      { href: '/admin/brands',        label: 'Brands',        icon: Tag },
-      { href: '/admin/gallery',       label: 'Gallery',       icon: ImageIcon },
-      { href: '/admin/players',       label: 'Players',       icon: Users },
-      { href: '/admin/promotions',    label: 'Promotions',    icon: Megaphone },
+      { href: '/admin/products', label: 'Products', icon: Package, minRole: 'VIEWER' },
+      { href: '/admin/categories', label: 'Categories', icon: FolderTree, minRole: 'MANAGER' },
+      { href: '/admin/brands', label: 'Brands', icon: Tag, minRole: 'MANAGER' },
+      { href: '/admin/gallery', label: 'Gallery', icon: ImageIcon, minRole: 'MANAGER' },
+      { href: '/admin/players', label: 'Players', icon: Users, minRole: 'MANAGER' },
+      { href: '/admin/promotions', label: 'Promotions', icon: Megaphone, minRole: 'MANAGER' },
     ],
   },
   {
     label: 'Operations',
     links: [
-      { href: '/admin/holds',              label: 'Holds',            icon: ClipboardList },
-      { href: '/admin/hold-settings',       label: 'Hold Settings',    icon: Clock },
-      { href: '/admin/inventory/history',   label: 'Inventory History',icon: Boxes },
-      { href: '/admin/game-days',           label: 'Game Days',        icon: Calendar },
+      { href: '/admin/holds', label: 'Holds', icon: ClipboardList, minRole: 'STAFF' },
+      { href: '/admin/hold-settings', label: 'Hold Settings', icon: Clock, minRole: 'MANAGER' },
+      { href: '/admin/inventory/history', label: 'Inventory History', icon: Boxes, minRole: 'STAFF' },
+      { href: '/admin/game-days', label: 'Game Days', icon: Calendar, minRole: 'MANAGER' },
     ],
   },
   {
     label: 'POS',
     links: [
-      { href: '/admin/pos-keys',       label: 'POS Keys',      icon: KeyRound },
-      { href: '/admin/pos-events',     label: 'POS Events',    icon: Radio },
-      { href: '/admin/pos-simulator',  label: 'POS Simulator', icon: Terminal },
+      { href: '/admin/pos-keys', label: 'POS Keys', icon: KeyRound, minRole: 'OWNER' },
+      { href: '/admin/pos-events', label: 'POS Events', icon: Radio, minRole: 'STAFF' },
+      { href: '/admin/pos-simulator', label: 'POS Simulator', icon: Terminal, minRole: 'OWNER' },
     ],
   },
   {
     label: 'Insights',
     links: [
-      { href: '/admin/analytics',     label: 'Analytics',     icon: LineChart },
-      { href: '/admin/reports',       label: 'Reports',       icon: BarChart2 },
-      { href: '/admin/history',       label: 'History',       icon: History },
-      { href: '/admin/audit-log',     label: 'Audit Log',     icon: ScrollText },
+      { href: '/admin/analytics', label: 'Analytics', icon: LineChart, minRole: 'VIEWER' },
+      { href: '/admin/reports', label: 'Reports', icon: BarChart2, minRole: 'MANAGER' },
+      { href: '/admin/history', label: 'History', icon: History, minRole: 'STAFF' },
+      { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText, minRole: 'OWNER' },
     ],
   },
   {
     label: 'Community',
     links: [
-      { href: '/admin/reviews',       label: 'Reviews',       icon: Star },
-      { href: '/admin/feedback',      label: 'Feedback',      icon: MessageSquare },
-      { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+      { href: '/admin/reviews', label: 'Reviews', icon: Star, minRole: 'STAFF' },
+      { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare, minRole: 'STAFF' },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell, minRole: 'STAFF' },
     ],
   },
   {
     label: 'Admin',
     links: [
-      { href: '/admin/admins',        label: 'Admins',        icon: UserCog },
-      { href: '/admin/settings',      label: 'Settings',      icon: Settings },
+      { href: '/admin/admins', label: 'Admins', icon: UserCog, minRole: 'OWNER' },
+      { href: '/admin/settings', label: 'Settings', icon: Settings, minRole: 'OWNER' },
     ],
   },
 ]
 
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const userRole = session?.user?.role as AdminRole | undefined
+  const userRank = rank(userRole)
+
   return (
     <>
       {/* Brand */}
@@ -85,31 +110,35 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
-        {linkGroups.map((group) => (
-          <div key={group.label} className="space-y-1">
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-blue-300/60">
-              {group.label}
-            </p>
-            {group.links.map(({ href, label, icon: Icon }) => {
-              const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={onLinkClick}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    active
-                      ? 'bg-white/15 text-white'
-                      : 'text-blue-200 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <Icon size={16} />
-                  {label}
-                </Link>
-              )
-            })}
-          </div>
-        ))}
+        {linkGroups.map((group) => {
+          const visibleLinks = group.links.filter((link) => userRank >= rank(link.minRole))
+          if (visibleLinks.length === 0) return null
+          return (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-blue-300/60">
+                {group.label}
+              </p>
+              {visibleLinks.map(({ href, label, icon: Icon }) => {
+                const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onLinkClick}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      active
+                        ? 'bg-white/15 text-white'
+                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
+          )
+        })}
       </nav>
 
       {/* Sign out + public site */}

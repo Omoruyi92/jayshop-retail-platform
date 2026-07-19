@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireAdminSession } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
-export async function PATCH(req: Request) {
-  const { session, error } = await requireRole(req, 'admin:manage')
+export async function POST(req: Request) {
+  const { session, error } = await requireAdminSession()
   if (error) return error
 
   let body: { currentPassword?: string; newPassword?: string }
@@ -54,7 +54,11 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('[settings/password] PATCH error:', err)
+    console.error('[settings/password] POST error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+export async function PATCH(req: Request) {
+  return POST(req)
 }

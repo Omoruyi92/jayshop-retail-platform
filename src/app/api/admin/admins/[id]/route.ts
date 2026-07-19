@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize'
+import { AdminRole } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,10 +16,14 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const { id } = params
   const body = await req.json().catch(() => ({}))
-  const { role } = body
+  const { role, password } = body
 
-  if (!['OWNER', 'MANAGER', 'STAFF', 'VIEWER'].includes(role)) {
+  if (role !== undefined && !['OWNER', 'MANAGER', 'STAFF', 'VIEWER'].includes(role)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+  }
+
+  if (password !== undefined && (typeof password !== 'string' || password.length < 8)) {
+    return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
   }
 
   const admin = await prisma.admin.findUnique({ where: { id } })
@@ -25,14 +31,19 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: 'Admin not found' }, { status: 404 })
   }
 
-  if (admin.id === user.adminId && role !== admin.role) {
-    return NextResponse.json({ error: 'Cannot change own role' }, { status: 409 })
+  const data: { role?: AdminRole; passwordHash?: string; passwordUpdatedAt?: Date } = {}
+  if (role !== undefined) {
+    if (admin.id === user.adminId && role !== admin.role) {
+      return NextResponse.json({ error: 'Cannot change own role' }, { status: 409 })
+    }
+    data.role = role as AdminRole
+  }
+  if (password !== undefined) {
+    data.passwordHash = await bcrypt.hash(password, 10)
+    data.passwordUpdatedAt = new Date()
   }
 
-  const updated = await prisma.admin.update({
-    where: { id },
-    data: { role },
-  })
+  const updated = await prisma.admin.update({ where: { id }, data })
 
   await prisma.auditLog.create({
     data: {
@@ -45,7 +56,7 @@ export async function PATCH(req: Request, { params }: Params) {
       actorEmail: user.email,
       before: { role: admin.role },
       after: { role: updated.role },
-      payload: { changed: 'role' },
+      payload: { changed: Object.keys(data).join(', ') },
     },
   })
 

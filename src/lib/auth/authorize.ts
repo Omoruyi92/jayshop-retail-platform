@@ -71,6 +71,7 @@ export function actionMinRole(action: string): AdminRole {
  * Returns true if the given role is allowed to perform an action.
  */
 export function can(role: AdminRole | string | undefined | null, action: string): boolean {
+  if (!role) return false
   return rank(role) >= rank(actionMinRole(action))
 }
 
