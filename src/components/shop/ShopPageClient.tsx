@@ -43,9 +43,10 @@ interface Product {
 
 const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Blanks'])
 
-type SortOption = 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
+type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'default', label: 'Standard Catalog Arrangement' },
   { value: 'price-asc', label: 'Price: Low to High' },
   { value: 'price-desc', label: 'Price: High to Low' },
   { value: 'name-asc', label: 'Name: A to Z' },
@@ -125,7 +126,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   const [activeBrand, setActiveBrand] = useState<string>('All')
   const [activePriceRange, setActivePriceRange] = useState<string>('All')
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [sortBy, setSortBy] = useState<SortOption>('price-asc')
+  const [sortBy, setSortBy] = useState<SortOption>('default')
   const [loading, setLoading] = useState(true)
   const [livePulse, setLivePulse] = useState(false)
   const [searchInput, setSearchInput] = useState('')
@@ -152,7 +153,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
       setActivePriceRange('All')
       setSearchInput('')
       setSearchQuery('')
-      setSortBy('price-asc')
+      setSortBy('default')
       hasRestoredRef.current = true
       return
     }
@@ -183,6 +184,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
       setActivePriceRange('All')
       setSearchInput('')
       setSearchQuery('')
+      setSortBy('default')
       return
     }
     if (urlBrand) {
@@ -302,13 +304,8 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     return catMatch && subMatch && hatStyleMatch && brandMatch && priceMatch && stockMatch && searchMatch
   })
 
-  // Default merchandising order (Jerseys -> Hats -> Fleece -> Accessories,
-  // per Category.sortPriority) only applies to the unfiltered "All" catalog
-  // view while the sort dropdown is at its default (Price: Low to High).
-  // Any explicit category/subcategory/brand pill, or an explicit sort
-  // selection, drops straight into plain price/name sorting so filtered
-  // views "just work" without surprise reordering.
-  const useMerchandisingOrder = activeCategory === 'All' && sortBy === 'price-asc'
+  // Default catalog arrangement applies only when no explicit sort is chosen.
+  const useMerchandisingOrder = sortBy === 'default'
 
   const sorted = [...filtered].sort((a, b) => {
     if (useMerchandisingOrder) {
