@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB, productTypesForCategory, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS, PRODUCT_TYPES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
@@ -115,7 +115,7 @@ export default function AdminProductsPage() {
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
     isFeatured: false, isSport: false, isBlankJersey: false, colors: [] as string[], hatStyle: '',
-    sku: '', material: '', careInstructions: ''
+    sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys'
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
   const [images, setImages] = useState<{url: string; file: File | null}[]>([])
@@ -207,11 +207,26 @@ export default function AdminProductsPage() {
     setForm(f => ({ ...f, colors: f.colors.filter(c => c !== col) }))
   }
 
+  const currentProductTypes = useMemo(() => productTypesForCategory(form.category), [form.category])
+  const showAudience = categoryHasAudience(form.category)
+  const showAgeGroup = categoryHasAgeGroup(form.category)
+  const isHatProduct = form.productType === 'Hats' || form.productType === 'Caps'
+
   const needsSizes = !SIZELESS_SUBS.has(form.subcategory)
 
   const currentSizeList = needsSizes
     ? form.sizes.split(',').map((s) => s.trim()).filter(Boolean)
     : []
+
+  useEffect(() => {
+    setForm(f => ({
+      ...f,
+      productType: currentProductTypes[0] ?? 'Jerseys',
+      subcategory: currentProductTypes[0] ? currentProductTypes[0].toLowerCase() : f.subcategory,
+      audience: showAudience ? (f.audience || 'Men') : '',
+      ageGroup: showAgeGroup ? (f.ageGroup || 'Infant') : '',
+    }))
+  }, [form.category, currentProductTypes, showAudience, showAgeGroup])
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -234,7 +249,10 @@ export default function AdminProductsPage() {
     body.append('sizes',       needsSizes ? form.sizes : '')
     body.append('category',    form.category)
     body.append('subcategory', form.subcategory)
-    body.append('hatStyle',    form.subcategory === 'hats' ? form.hatStyle : '')
+    body.append('productType', form.productType)
+    body.append('audience',    form.audience)
+    body.append('ageGroup',    form.ageGroup)
+    body.append('hatStyle',    isHatProduct ? form.hatStyle : '')
     body.append('brand',       form.brand)
     body.append('imageUrl',    form.imageUrl)
     images.forEach((img, idx) => {
@@ -269,7 +287,7 @@ export default function AdminProductsPage() {
     setSaving(false)
     if (res.ok) {
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '' })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -337,17 +355,33 @@ export default function AdminProductsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Main Category</label>
-              <select value={form.category} onChange={(e) => { const cat = e.target.value; const firstSub = subsByCat[cat]?.[0] ?? ''; setForm(f => ({ ...f, category: cat, subcategory: firstSub, sizes: getDefaultSizes(firstSub) })) }} className={INPUT_CLS}>
+              <select value={form.category} onChange={(e) => { const cat = e.target.value; setForm(f => ({ ...f, category: cat })) }} className={INPUT_CLS}>
                 {mainCategories.map(c => <option key={c} value={c}>{labelsBySlug[c] ?? c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Subcategory</label>
-              <select value={form.subcategory} onChange={(e) => setForm(f => ({ ...f, subcategory: e.target.value, sizes: getDefaultSizes(e.target.value) }))} className={INPUT_CLS}>
-                {(subsByCat[form.category] ?? []).map(s => <option key={s} value={s}>{labelsBySlug[s] ?? s}</option>)}
+              <label className="block text-xs font-medium text-gray-600 mb-1">Product Type</label>
+              <select value={form.productType} onChange={(e) => { const pt = e.target.value; setForm(f => ({ ...f, productType: pt, subcategory: pt.toLowerCase(), sizes: getDefaultSizes(pt.toLowerCase()) })) }} className={INPUT_CLS}>
+                {currentProductTypes.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            {form.subcategory === 'hats' && (
+            {showAudience && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Audience</label>
+                <select value={form.audience} onChange={(e) => setForm(f => ({ ...f, audience: e.target.value }))} className={INPUT_CLS}>
+                  {AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+            )}
+            {showAgeGroup && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Age Group</label>
+                <select value={form.ageGroup} onChange={(e) => setForm(f => ({ ...f, ageGroup: e.target.value, sizes: getDefaultSizes(e.target.value) }))} className={INPUT_CLS}>
+                  {KIDS_AGE_GROUPS.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+            )}
+            {isHatProduct && (
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Hat Style</label>
                 <select value={form.hatStyle} onChange={(e) => setForm(f => ({ ...f, hatStyle: e.target.value }))} className={INPUT_CLS}>

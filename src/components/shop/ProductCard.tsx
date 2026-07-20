@@ -7,7 +7,10 @@ import { titleCase } from '@/lib/text'
 interface CurrentFilters {
   category: string
   sub: string
+  audience: string
+  ageGroup: string
   brand: string
+  hatStyle: string
   search: string
 }
 
@@ -46,8 +49,15 @@ export default function ProductCard({
 
   function handleClick() {
     if (currentFilters) {
+      const { category, sub, brand, search } = currentFilters
       saveShopState({
-        ...currentFilters,
+        category,
+        sub,
+        audience: currentFilters.audience,
+        ageGroup: currentFilters.ageGroup,
+        brand,
+        hatStyle: currentFilters.hatStyle,
+        search,
         scrollY: typeof window !== 'undefined' ? window.scrollY : 0,
       })
     }

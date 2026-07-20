@@ -56,6 +56,8 @@ model Product {
   category           String                 @default("accessories")
   subcategory        String                 @default("")
   ageGroup           String                 @default("")
+  audience           String                 @default("")
+  productType        String                 @default("")
   hatStyle           String                 @default("")
   quantity           Int                    @default(1)
   heldQuantity       Int                    @default(0)

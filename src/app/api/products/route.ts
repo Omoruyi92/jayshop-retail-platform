@@ -10,6 +10,11 @@ export async function GET(request: Request) {
   const slug = searchParams.get('slug')
   const q = searchParams.get('q')
   const brand = searchParams.get('brand')
+  const subcategory = searchParams.get('subcategory')
+  const productType = searchParams.get('productType')
+  const audience = searchParams.get('audience')
+  const ageGroup = searchParams.get('ageGroup')
+  const hatStyle = searchParams.get('hatStyle')
   const includeArchived = searchParams.get('includeArchived') === 'true'
 
   const products = await prisma.product.findMany({
@@ -17,6 +22,11 @@ export async function GET(request: Request) {
       ...(!includeArchived && { status: { not: 'ARCHIVED' } }),
       ...(category && category !== 'all' && { category }),
       ...(brand && { brand }),
+      ...(subcategory && { subcategory }),
+      ...(productType && { productType }),
+      ...(audience && { audience }),
+      ...(ageGroup && { ageGroup }),
+      ...(hatStyle && { hatStyle }),
       ...(slug && { slug }),
       ...(q && {
         OR: [

@@ -1,7 +1,10 @@
 export interface ShopFilterState {
   category: string
   sub: string
+  audience: string
+  ageGroup: string
   brand: string
+  hatStyle: string
   search: string
   scrollY: number
   timestamp: number

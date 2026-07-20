@@ -7,7 +7,7 @@ import ShopHero from '@/components/shop/ShopHero'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
+import { BRANDS_BY_CAT, HAT_STYLES, PRODUCT_TYPES_BY_CAT, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
@@ -22,6 +22,9 @@ interface Product {
   imageUrl: string
   category: string
   subcategory: string
+  productType?: string
+  audience?: string
+  ageGroup?: string
   hatStyle?: string
   quantity: number
   heldQuantity: number
@@ -79,7 +82,39 @@ function categoryMatches(product: Product, activeCategory: string): boolean {
     return product.isClearance || product.salePriceCents > 0
   }
   if (catLower === 'blanks' || catLower === 'blank') return product.isBlankJersey
+  // Standard categories match by product.category; special categories are handled above.
   return product.category.toLowerCase() === catLower
+}
+
+function normalizeProductType(product: Product): string {
+  return (product.productType || product.subcategory || '').toLowerCase()
+}
+
+function productTypeMatches(product: Product, activeSub: string): boolean {
+  if (activeSub === 'All') return true
+  const target = activeSub.toLowerCase()
+  // Backward compatibility: older products store product type in subcategory.
+  return normalizeProductType(product) === target
+}
+
+function audienceMatches(product: Product, activeAudience: string): boolean {
+  if (activeAudience === 'All') return true
+  return (product.audience || '').toLowerCase() === activeAudience.toLowerCase()
+}
+
+function ageGroupMatches(product: Product, activeAgeGroup: string): boolean {
+  if (activeAgeGroup === 'All') return true
+  return (product.ageGroup || '').toLowerCase() === activeAgeGroup.toLowerCase()
+}
+
+function hatStyleMatches(product: Product, activeHatStyle: string): boolean {
+  if (activeHatStyle === 'All') return true
+  return (product.hatStyle || '').toLowerCase() === activeHatStyle.toLowerCase()
+}
+
+function brandMatches(product: Product, activeBrand: string): boolean {
+  if (activeBrand === 'All') return true
+  return product.brand.toLowerCase() === activeBrand.toLowerCase()
 }
 
 function PillRow({
@@ -128,6 +163,8 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
   const [products, setProducts] = useState<Product[]>([])
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory || 'All')
   const [activeSub, setActiveSub] = useState<string>('All')
+  const [activeAudience, setActiveAudience] = useState<string>('All')
+  const [activeAgeGroup, setActiveAgeGroup] = useState<string>('All')
   const [activeHatStyle, setActiveHatStyle] = useState<string>('All')
   const [activeBrand, setActiveBrand] = useState<string>('All')
   const [activePriceRange, setActivePriceRange] = useState<string>('All')
@@ -147,13 +184,18 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
     const saved = loadShopState()
     const urlCategory = searchParams?.get('category')?.trim()
     const urlSub = searchParams?.get('sub')?.trim()
+    const urlAudience = searchParams?.get('audience')?.trim()
+    const urlAgeGroup = searchParams?.get('ageGroup')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
+    const urlHatStyle = searchParams?.get('hatStyle')?.trim()
     if (urlCategory === 'All') {
       // Explicit reset request from the "All" pill — always show the full
       // catalog and discard any previously saved filter state.
       clearShopState()
       setActiveCategory('All')
       setActiveSub('All')
+      setActiveAudience('All')
+      setActiveAgeGroup('All')
       setActiveBrand('All')
       setActiveHatStyle('All')
       setActivePriceRange('All')
@@ -166,14 +208,20 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
     if (saved) {
       setActiveCategory(urlCategory || saved.category)
       setActiveSub(urlSub || saved.sub)
+      setActiveAudience(urlAudience || saved.audience || 'All')
+      setActiveAgeGroup(urlAgeGroup || saved.ageGroup || 'All')
       setActiveBrand(urlBrand || saved.brand)
+      setActiveHatStyle(urlHatStyle || saved.hatStyle || 'All')
       setSearchInput(saved.search)
       setSearchQuery(saved.search)
       pendingScrollRef.current = saved.scrollY
     } else {
       if (urlCategory) setActiveCategory(urlCategory)
       if (urlSub) setActiveSub(urlSub)
+      if (urlAudience) setActiveAudience(urlAudience)
+      if (urlAgeGroup) setActiveAgeGroup(urlAgeGroup)
       if (urlBrand) setActiveBrand(urlBrand)
+      if (urlHatStyle) setActiveHatStyle(urlHatStyle)
     }
     hasRestoredRef.current = true
   }, [searchParams])
@@ -181,10 +229,15 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
   useEffect(() => {
     const urlCategory = searchParams?.get('category')?.trim()
     const urlSub = searchParams?.get('sub')?.trim()
+    const urlAudience = searchParams?.get('audience')?.trim()
+    const urlAgeGroup = searchParams?.get('ageGroup')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
+    const urlHatStyle = searchParams?.get('hatStyle')?.trim()
     if (urlCategory === 'All') {
       setActiveCategory('All')
       setActiveSub('All')
+      setActiveAudience('All')
+      setActiveAgeGroup('All')
       setActiveBrand('All')
       setActiveHatStyle('All')
       setActivePriceRange('All')
@@ -193,14 +246,21 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
       setSortBy('default')
       return
     }
+    if (urlHatStyle) {
+      setActiveHatStyle(urlHatStyle)
+    }
     if (urlBrand) {
       setActiveBrand(urlBrand)
-      return
+    }
+    if (urlAudience) {
+      setActiveAudience(urlAudience)
+    }
+    if (urlAgeGroup) {
+      setActiveAgeGroup(urlAgeGroup)
     }
     if (!urlCategory) return
     setActiveCategory(urlCategory)
     setActiveSub(urlSub || 'All')
-    setActiveBrand('All')
   }, [searchParams])
 
   useEffect(() => {
@@ -208,11 +268,14 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
     saveShopState({
       category: activeCategory,
       sub: activeSub,
+      audience: activeAudience,
+      ageGroup: activeAgeGroup,
       brand: activeBrand,
+      hatStyle: activeHatStyle,
       search: searchQuery,
       scrollY: typeof window !== 'undefined' ? window.scrollY : 0,
     })
-  }, [activeCategory, activeSub, activeBrand, searchQuery])
+  }, [activeCategory, activeSub, activeAudience, activeAgeGroup, activeBrand, activeHatStyle, searchQuery])
 
   useEffect(() => {
     if (loading || pendingScrollRef.current === null) return
@@ -272,11 +335,17 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
 
   const isSpecialCategory = SPECIAL_CATEGORIES.has(activeCategory)
 
-  const availableSubs = activeCategory === 'All' || isSpecialCategory
+  const productTypeOptions = activeCategory === 'All' || isSpecialCategory
     ? []
-    : ['All', ...(subsByCat[activeCategory.toLowerCase()] ?? [])]
+    : (PRODUCT_TYPES_BY_CAT[activeCategory.toLowerCase()] ?? [])
+  const availableSubs = ['All', ...productTypeOptions]
 
-  const availableHatStyles = activeSub === 'hats' ? ['All', ...HAT_STYLES] : []
+  const showAudience = !isSpecialCategory && categoryHasAudience(activeCategory)
+  const showAgeGroup = !isSpecialCategory && categoryHasAgeGroup(activeCategory)
+  const audienceOptions = showAudience ? ['All', ...AUDIENCES] : []
+  const ageGroupOptions = showAgeGroup ? ['All', ...KIDS_AGE_GROUPS] : []
+
+  const availableHatStyles = ['All', ...HAT_STYLES]
 
   const catFilteredProducts = products.filter((product) => categoryMatches(product, activeCategory))
   const brandsFromProducts = Array.from(new Set(catFilteredProducts.map((product) => product.brand).filter(Boolean)))
@@ -286,9 +355,11 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
 
   const filtered = products.filter((product) => {
     const catMatch = categoryMatches(product, activeCategory)
-    const subMatch = isSpecialCategory || activeSub === 'All' || product.subcategory.toLowerCase() === activeSub.toLowerCase()
-    const hatStyleMatch = activeSub !== 'hats' || activeHatStyle === 'All' || (product.hatStyle ?? '') === activeHatStyle
-    const brandMatch = isSpecialCategory || activeBrand === 'All' || product.brand === activeBrand
+    const subMatch = isSpecialCategory || productTypeMatches(product, activeSub)
+    const audienceMatch = !showAudience || audienceMatches(product, activeAudience)
+    const ageGroupMatch = !showAgeGroup || ageGroupMatches(product, activeAgeGroup)
+    const hatStyleMatch = activeHatStyle === 'All' || hatStyleMatches(product, activeHatStyle)
+    const brandMatch = isSpecialCategory || brandMatches(product, activeBrand)
 
     const range = PRICE_RANGES.find((r) => r.value === activePriceRange) ?? PRICE_RANGES[0]
     const price = effectivePriceCents(product)
@@ -304,10 +375,10 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
         product.brand.toLowerCase().includes(query) ||
         (product.description ?? '').toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
-        product.subcategory.toLowerCase().includes(query)
+        normalizeProductType(product).includes(query)
     }
 
-    return catMatch && subMatch && hatStyleMatch && brandMatch && priceMatch && stockMatch && searchMatch
+    return catMatch && subMatch && audienceMatch && ageGroupMatch && hatStyleMatch && brandMatch && priceMatch && stockMatch && searchMatch
   })
 
   // Default catalog arrangement applies only when no explicit sort is chosen.
@@ -316,8 +387,8 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
   const sorted = [...filtered].sort((a, b) => {
     if (useMerchandisingOrder) {
       const FALLBACK_PRIORITY = 999
-      const priorityA = subPriorityBySlug[a.subcategory.toLowerCase()] ?? FALLBACK_PRIORITY
-      const priorityB = subPriorityBySlug[b.subcategory.toLowerCase()] ?? FALLBACK_PRIORITY
+      const priorityA = subPriorityBySlug[normalizeProductType(a)] ?? FALLBACK_PRIORITY
+      const priorityB = subPriorityBySlug[normalizeProductType(b)] ?? FALLBACK_PRIORITY
       if (priorityA !== priorityB) return priorityA - priorityB
       return effectivePriceCents(a) - effectivePriceCents(b)
     }
@@ -337,12 +408,23 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
 
   const isSearching = searchQuery.trim().length > 0
   const hasActiveFilters =
-    isSearching || activeCategory !== 'All' || activeSub !== 'All' || activeHatStyle !== 'All' || activeBrand !== 'All' || activePriceRange !== 'All' || inStockOnly
+    isSearching ||
+    activeCategory !== 'All' ||
+    activeSub !== 'All' ||
+    activeAudience !== 'All' ||
+    activeAgeGroup !== 'All' ||
+    activeHatStyle !== 'All' ||
+    activeBrand !== 'All' ||
+    activePriceRange !== 'All' ||
+    inStockOnly
 
   const currentFilters = {
     category: activeCategory,
     sub: activeSub,
+    audience: activeAudience,
+    ageGroup: activeAgeGroup,
     brand: activeBrand,
+    hatStyle: activeHatStyle,
     search: searchInput,
   }
 
@@ -351,6 +433,10 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
     setActiveSub(sub)
     setActiveBrand(brand)
     setActiveHatStyle(hatStyle)
+    // Audience/age group are not selectable from the mega menu yet; reset them
+    // so a fresh category selection starts unfiltered.
+    setActiveAudience('All')
+    setActiveAgeGroup('All')
   }
 
   // Persist the exact filtered/sorted product sequence the customer is
@@ -414,6 +500,24 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-4">
+          {availableSubs.length > 0 && (
+            <PillRow label="Type" options={availableSubs} active={activeSub} onSelect={setActiveSub} />
+          )}
+          {audienceOptions.length > 0 && (
+            <PillRow label="Audience" options={audienceOptions} active={activeAudience} onSelect={setActiveAudience} />
+          )}
+          {ageGroupOptions.length > 0 && (
+            <PillRow label="Age Group" options={ageGroupOptions} active={activeAgeGroup} onSelect={setActiveAgeGroup} />
+          )}
+          {availableBrands.length > 0 && (
+            <PillRow label="Brand" options={availableBrands} active={activeBrand} onSelect={setActiveBrand} />
+          )}
+          {activeSub.toLowerCase() === 'hats' && (
+            <PillRow label="Hat Style" options={availableHatStyles} active={activeHatStyle} onSelect={setActiveHatStyle} />
+          )}
         </div>
 
         {loading ? (

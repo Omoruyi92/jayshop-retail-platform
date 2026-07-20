@@ -42,6 +42,9 @@ export async function POST(req: Request) {
     const sizes = (formData.get('sizes') as string) ?? ''
     const category = (formData.get('category') as string) ?? 'general'
     const subcategory = (formData.get('subcategory') as string) ?? ''
+    const productType = (formData.get('productType') as string) ?? ''
+    const audience = (formData.get('audience') as string) ?? ''
+    const ageGroup = (formData.get('ageGroup') as string) ?? ''
     const hatStyle = (formData.get('hatStyle') as string) ?? ''
     const brand = (formData.get('brand') as string) ?? ''
     
@@ -118,6 +121,9 @@ export async function POST(req: Request) {
           sizes,
           category: category ?? 'general',
           subcategory: subcategory ?? '',
+          productType: productType ?? '',
+          audience: audience ?? '',
+          ageGroup: ageGroup ?? '',
           hatStyle: hatStyle ?? '',
           brand: brand ?? '',
           imageUrl: finalImageUrl,

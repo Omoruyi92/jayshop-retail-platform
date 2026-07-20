@@ -5,18 +5,22 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
-import { SUBS_BY_CAT, BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
+import { SUBS_BY_CAT, BRANDS_BY_CAT, HAT_STYLES, PRODUCT_TYPES_BY_CAT, AUDIENCES, KIDS_AGE_GROUPS, displayCategoryName } from '@/lib/constants'
 
 const CATEGORY_LABELS: Record<string, string> = {
+  all: 'All',
   men: 'Men',
   women: 'Women',
   kids: 'Kids',
   accessories: 'Accessories',
   authentication: 'Authentication',
   sport: 'Sport',
+  blanks: 'Blanks',
+  featured: 'Featured',
+  'sales-clearance': 'Sales & Clearance',
 }
 
-const CATEGORY_SORT_ORDER = ['men', 'women', 'kids', 'accessories', 'sport']
+const CATEGORY_SORT_ORDER = ['all', 'men', 'women', 'kids', 'accessories', 'sport', 'blanks', 'featured', 'authentication', 'sales-clearance']
 
 function titleCase(s: string) {
   return s.split(/[-\s]+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -85,18 +89,24 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
         .map((c) => c.slug)
       : [...CATEGORY_SORT_ORDER]
 
+  function audienceOptions(category: string): string[] {
+    const c = category.toLowerCase()
+    if (c === 'kids') return [...KIDS_AGE_GROUPS]
+    if (['featured', 'sport', 'authentication', 'sales-clearance'].includes(c)) return [...AUDIENCES]
+    return []
+  }
+
+  function productTypeOptions(category: string): string[] {
+    return PRODUCT_TYPES_BY_CAT[category.toLowerCase()] ?? []
+  }
+
   const allPills: { label: string; value: string; hasDropdown: boolean; children: string[] }[] = [
     { label: 'All', value: 'All', hasDropdown: false, children: [] },
     ...realCategories.map((c) => {
       const label = labelsBySlug[c] ?? CATEGORY_LABELS[c] ?? titleCase(c)
-      const children = categories?.length
-        ? categories.find((cat) => cat.slug === c)?.children.map((s) => s.slug) ?? []
-        : (SUBS_BY_CAT[c] ?? [])
+      const children = productTypeOptions(c)
       return { label, value: c, hasDropdown: children.length > 0, children }
     }),
-    { label: 'New Arrivals', value: 'New Arrivals', hasDropdown: false, children: [] },
-    { label: 'Sales & Clearance', value: 'Sales & Clearance', hasDropdown: false, children: [] },
-    { label: 'Blanks', value: 'Blanks', hasDropdown: false, children: [] },
   ]
 
   const pills = allPills.filter((p) => p.value === 'All' || p.hasDropdown || p.children.length > 0)
@@ -124,24 +134,24 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     onSelect?.(category, sub, brand, hatStyle)
   }
 
-  function navigate(value: string, sub = 'All', brand = 'All', hatStyle = 'All') {
+  function navigate(value: string, sub = 'All', brand = 'All', hatStyle = 'All', audience?: string, ageGroup?: string) {
     lastFocusedCategory.current = value
     apply(value, sub, brand, hatStyle)
-    const href = value === 'All'
-      ? '/shop?category=All'
-      : (brand && brand !== 'All'
-        ? `/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}`
-        : (sub && sub !== 'All'
-          ? `/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}`
-          : `/shop?category=${encodeURIComponent(value)}`))
-    router.push(href)
+    const params = new URLSearchParams()
+    params.set('category', value)
+    if (sub && sub !== 'All') params.set('sub', sub)
+    if (brand && brand !== 'All') params.set('brand', brand)
+    if (hatStyle && hatStyle !== 'All') params.set('hatStyle', hatStyle)
+    if (audience && audience !== 'All') params.set('audience', audience)
+    if (ageGroup && ageGroup !== 'All') params.set('ageGroup', ageGroup)
+    router.push(`/shop?${params.toString()}`)
   }
 
   function subLink(category: string, sub: string, brand: string) {
-    if (brand && brand !== 'All') {
-      return `/shop?category=${encodeURIComponent(category)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}`
-    }
-    return `/shop?category=${encodeURIComponent(category)}&sub=${encodeURIComponent(sub)}`
+    const params = new URLSearchParams({ category })
+    if (sub && sub !== 'All') params.set('sub', sub)
+    if (brand && brand !== 'All') params.set('brand', brand)
+    return `/shop?${params.toString()}`
   }
 
   function allLink(category: string) {
@@ -192,7 +202,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                 </Link>
 
                 {hasDropdown && isHovered && (
-                  <div className="absolute left-0 top-full z-40 min-w-[16rem] pt-2" onMouseEnter={() => handleMouseEnter(value)}>
+                  <div className="absolute left-0 top-full z-40 min-w-[18rem] pt-2" onMouseEnter={() => handleMouseEnter(value)}>
                     <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                       <Link
                         href={allLink(value)}
@@ -207,7 +217,9 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                       <div className="my-1.5 h-px bg-gray-100" />
                       {children.map((sub) => {
                         const subHovered = hovered.sub === sub
-                        const brands = sub === 'hats' ? availableBrands(value) : []
+                        const audiences = audienceOptions(value)
+                        const brands = availableBrands(value)
+                        const isHatCategory = sub.toLowerCase() === 'hats' || sub.toLowerCase() === 'caps'
                         return (
                           <div key={sub} className="relative" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
                             <Link
@@ -218,8 +230,8 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                               }}
                               className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
                             >
-                              <span>{labelsBySlug[sub] ?? titleCase(sub)}</span>
-                              {brands.length > 0 && (
+                              <span>{labelsBySlug[sub.toLowerCase()] ?? titleCase(sub)}</span>
+                              {(audiences.length > 0 || brands.length > 0 || isHatCategory) && (
                                 <ChevronDown
                                   size={12}
                                   className={`rotate-[-90deg] text-gray-400 transition-transform ${subHovered ? 'text-jays-navy' : ''}`}
@@ -227,50 +239,71 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                               )}
                             </Link>
 
-                            {brands.length > 0 && subHovered && (
-                              <div className="absolute left-full top-0 z-50 ml-1 min-w-[15rem] pl-1" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
+                            {subHovered && (
+                              <div className="absolute left-full top-0 z-50 ml-1 min-w-[16rem] pl-1" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
                                 <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
-                                  {brands.map((brand) => {
-                                    const brandHovered = hovered.brand === brand
-                                    return (
-                                      <div key={brand} className="relative" onMouseEnter={() => handleBrandMouseEnter(value, sub, brand)}>
+                                  {audiences.length > 0 && (
+                                    <>
+                                      <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                                        {value.toLowerCase() === 'kids' ? 'Age Group' : 'Audience'}
+                                      </p>
+                                      {audiences.map((aud) => (
                                         <Link
+                                          key={aud}
+                                          href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&${value.toLowerCase() === 'kids' ? 'ageGroup' : 'audience'}=${encodeURIComponent(aud)}`}
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            if (value.toLowerCase() === 'kids') {
+                                              navigate(value, sub, 'All', 'All', undefined, aud)
+                                            } else {
+                                              navigate(value, sub, 'All', 'All', aud)
+                                            }
+                                          }}
+                                          className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
+                                        >
+                                          {aud}
+                                        </Link>
+                                      ))}
+                                      <div className="my-1.5 h-px bg-gray-100" />
+                                    </>
+                                  )}
+                                  {isHatCategory && (
+                                    <>
+                                      <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Hat Styles</p>
+                                      {HAT_STYLES.map((style) => (
+                                        <Link
+                                          key={style}
+                                          href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&hatStyle=${encodeURIComponent(style)}`}
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            navigate(value, sub, 'All', style)
+                                          }}
+                                          className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
+                                        >
+                                          {style}
+                                        </Link>
+                                      ))}
+                                      <div className="my-1.5 h-px bg-gray-100" />
+                                    </>
+                                  )}
+                                  {brands.length > 0 && (
+                                    <>
+                                      <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Brands</p>
+                                      {brands.map((brand) => (
+                                        <Link
+                                          key={brand}
                                           href={subLink(value, sub, brand)}
                                           onClick={(e) => {
                                             e.preventDefault()
                                             navigate(value, sub, brand, 'All')
                                           }}
-                                          className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
+                                          className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
                                         >
-                                          <span>{brand}</span>
-                                          <ChevronDown
-                                            size={12}
-                                            className={`rotate-[-90deg] text-gray-400 transition-transform ${brandHovered ? 'text-jays-navy' : ''}`}
-                                          />
+                                          {brand}
                                         </Link>
-
-                                        {brandHovered && (
-                                          <div className="absolute left-full top-0 z-50 ml-1 min-w-[13rem] pl-1" onMouseEnter={() => handleBrandMouseEnter(value, sub, brand)}>
-                                            <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
-                                              {HAT_STYLES.map((style) => (
-                                                <Link
-                                                  key={style}
-                                                  href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}&hatStyle=${encodeURIComponent(style)}`}
-                                                  onClick={(e) => {
-                                                    e.preventDefault()
-                                                    navigate(value, sub, brand, style)
-                                                  }}
-                                                  className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
-                                                >
-                                                  {style}
-                                                </Link>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
+                                      ))}
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -344,7 +377,9 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                     {children.map((sub) => {
                       const subKey = `${value}:${sub}`
                       const expandedSub = mobileExpanded.sub === subKey
-                      const brands = sub === 'hats' ? availableBrands(value) : []
+                      const productTypes = productTypeOptions(value)
+                      const brands = availableBrands(value)
+                      const isHatCategory = productTypes.some((p) => p.toLowerCase() === 'hats' || p.toLowerCase() === 'caps')
                       return (
                         <div key={sub} className="border-b border-gray-50 last:border-0">
                           <div className="flex items-center justify-between py-1.5">
@@ -357,9 +392,9 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                               }}
                               className="text-sm text-gray-600 hover:text-jays-navy"
                             >
-                              {labelsBySlug[sub] ?? titleCase(sub)}
+                              {labelsBySlug[sub.toLowerCase()] ?? titleCase(sub)}
                             </Link>
-                            {brands.length > 0 && (
+                            {(brands.length > 0 || isHatCategory) && (
                               <button
                                 type="button"
                                 onClick={() =>
@@ -374,58 +409,60 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                               </button>
                             )}
                           </div>
-                          {expandedSub && brands.length > 0 && (
+                          {expandedSub && (
                             <div className="pb-1 pl-3">
-                              {brands.map((brand) => {
-                                const brandKey = `${value}:${sub}:${brand}`
-                                const expandedBrand = mobileExpanded.brand === brandKey
-                                return (
-                                  <div key={brand} className="border-b border-gray-50 last:border-0">
-                                    <div className="flex items-center justify-between py-1">
-                                      <Link
-                                        href={subLink(value, sub, brand)}
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setMobileOpen(false)
-                                          navigate(value, sub, brand, 'All')
-                                        }}
-                                        className="text-sm text-gray-600 hover:text-jays-navy"
-                                      >
-                                        {brand}
-                                      </Link>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setMobileExpanded((prev) => ({
-                                            ...prev,
-                                            brand: prev.brand === brandKey ? null : brandKey,
-                                          }))}
-                                        className="p-1 text-jays-steel"
-                                      >
-                                        <ChevronDown size={14} className={`transition-transform ${expandedBrand ? 'rotate-180' : ''}`} />
-                                      </button>
-                                    </div>
-                                    {expandedBrand && (
-                                      <div className="pb-1 pl-3">
-                                        {HAT_STYLES.map((style) => (
-                                          <Link
-                                            key={style}
-                                            href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}&hatStyle=${encodeURIComponent(style)}`}
-                                            onClick={(e) => {
-                                              e.preventDefault()
-                                              setMobileOpen(false)
-                                              navigate(value, sub, brand, style)
-                                            }}
-                                            className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
-                                          >
-                                            {style}
-                                          </Link>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })}
+                              {productTypes.map((pt) => (
+                                <Link
+                                  key={pt}
+                                  href={subLink(value, sub, 'All')}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    setMobileOpen(false)
+                                    navigate(value, sub, 'All', 'All')
+                                  }}
+                                  className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
+                                >
+                                  {pt}
+                                </Link>
+                              ))}
+                              {isHatCategory && (
+                                <>
+                                  <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Hat Styles</p>
+                                  {HAT_STYLES.map((style) => (
+                                    <Link
+                                      key={style}
+                                      href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&hatStyle=${encodeURIComponent(style)}`}
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        setMobileOpen(false)
+                                        navigate(value, sub, 'All', style)
+                                      }}
+                                      className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
+                                    >
+                                      {style}
+                                    </Link>
+                                  ))}
+                                </>
+                              )}
+                              {brands.length > 0 && (
+                                <>
+                                  <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Brands</p>
+                                  {brands.map((brand) => (
+                                    <Link
+                                      key={brand}
+                                      href={subLink(value, sub, brand)}
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        setMobileOpen(false)
+                                        navigate(value, sub, brand, 'All')
+                                      }}
+                                      className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
+                                    >
+                                      {brand}
+                                    </Link>
+                                  ))}
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
