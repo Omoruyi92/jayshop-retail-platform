@@ -65,9 +65,9 @@ const restrictedPaths: Restriction[] = [
   { prefix: '/api/admin/feedback', minRole: 'VIEWER', methods: ['GET'] },
   { prefix: '/api/admin/slack-settings', minRole: 'VIEWER', methods: ['GET'] },
 
-  // Staff+ customer photo moderation
-  { prefix: '/admin/customer-photos', minRole: 'STAFF' },
-  { prefix: '/api/admin/customer-photos', minRole: 'STAFF' },
+  // Staff+ customer style submission moderation
+  { prefix: '/admin/customer-style-submissions', minRole: 'STAFF' },
+  { prefix: '/api/admin/customer-style-submissions', minRole: 'STAFF' },
 
   // Staff+ daily operations (write routes)
   { prefix: '/admin/holds', minRole: 'STAFF' },

@@ -48,7 +48,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
   const [displayStatusState, setDisplayStatusState] = useState(displayStatus)
   const [availability, setAvailability] = useState<ProductAvailability | undefined>(initialAvailability)
   const [moreInfoOpen, setMoreInfoOpen] = useState(false)
-  const [customerPhotos, setCustomerPhotos] = useState<{ id: string; imageUrl: string; customerName: string | null; instagramHandle: string | null; caption: string | null }[]>([])
 
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
@@ -103,20 +102,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
     { productId: product.id },
     { onInventoryChanged: refresh, onHoldChanged: refresh }
   )
-
-  // Fetch approved customer photos
-  useEffect(() => {
-    let cancelled = false
-    fetch(`/api/customer-photos/approved?productId=${encodeURIComponent(product.id)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setCustomerPhotos(Array.isArray(data) ? data : [])
-      })
-      .catch(() => {
-        if (!cancelled) setCustomerPhotos([])
-      })
-    return () => { cancelled = true }
-  }, [product.id])
 
   const colorOptions: { name: string; hex: string }[] = Array.isArray(product.colors)
     ? (product.colors as any[]).map((c) =>

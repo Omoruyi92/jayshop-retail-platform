@@ -89,6 +89,7 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
     try {
       const body = new FormData()
       files.forEach((file) => body.append('images', file))
+      body.append('productId', productId)
       body.append('customerName', customerName)
       body.append('customerEmail', customerEmail)
       body.append('customerPhone', customerPhone)
@@ -152,7 +153,7 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
           onClick={() => setUploadOpen(true)}
           className="flex items-center gap-1.5 text-xs font-semibold text-jays-royal hover:text-jays-navy transition-colors"
         >
-          <Camera size={14} /> Upload Your Photo
+          <Camera size={14} /> Upload Your Photos
         </button>
       </div>
 

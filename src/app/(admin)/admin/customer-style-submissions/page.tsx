@@ -12,6 +12,13 @@ interface CustomerStyleImage {
   sortOrder: number
 }
 
+interface ProductSnippet {
+  id: string
+  name: string
+  slug: string
+  imageUrl: string
+}
+
 interface Submission {
   id: string
   customerName: string | null
@@ -22,6 +29,7 @@ interface Submission {
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   createdAt: string
   images: CustomerStyleImage[]
+  product: ProductSnippet
 }
 
 export default function CustomerStyleSubmissionsPage() {
@@ -45,6 +53,7 @@ export default function CustomerStyleSubmissionsPage() {
 
   useEffect(() => {
     fetchSubmissions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
   async function updateStatus(id: string, newStatus: Submission['status']) {
@@ -118,6 +127,17 @@ export default function CustomerStyleSubmissionsPage() {
                 ))}
               </div>
               <div className="p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 relative shrink-0">
+                    <Image src={submission.product.imageUrl} alt={submission.product.name} fill className="object-cover" unoptimized />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-jays-navy truncate">{submission.product.name}</p>
+                    <p className="text-[10px] text-jays-steel truncate">
+                      {submission.images.length} {submission.images.length === 1 ? 'image' : 'images'}
+                    </p>
+                  </div>
+                </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-jays-navy truncate">
                     {submission.customerName || 'Anonymous'}

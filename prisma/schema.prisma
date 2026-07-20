@@ -93,6 +93,7 @@ model Product {
   likes              ProductLike[]
   reviews            ProductReview[]
   customerPhotos     CustomerPhoto[]
+  styleSubmissions   CustomerStyleSubmission[]
 
   @@index([status])
   @@index([category])
@@ -564,18 +565,21 @@ model HeroSlide {
 }
 
 model CustomerStyleSubmission {
-  id             String                @id @default(cuid())
-  customerName   String?
-  customerEmail  String?
-  customerPhone  String?
+  id              String                @id @default(cuid())
+  productId       String
+  customerName    String?
+  customerEmail   String?
+  customerPhone   String?
   instagramHandle String?
-  caption        String?
-  status         SubmissionStatus      @default(PENDING)
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
-  images         CustomerStyleImage[]
+  caption         String?
+  status          SubmissionStatus      @default(PENDING)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  images          CustomerStyleImage[]
+  product         Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([status])
+  @@index([productId, status])
   @@index([createdAt])
 }
 

@@ -79,7 +79,6 @@ const linkGroups: LinkGroup[] = [
     label: 'Community',
     links: [
       { href: '/admin/reviews', label: 'Reviews', icon: Star, minRole: 'VIEWER' },
-      { href: '/admin/customer-photos', label: 'Customer Photos', icon: Camera, minRole: 'STAFF' },
       { href: '/admin/customer-style-submissions', label: 'Style Submissions', icon: Users, minRole: 'STAFF' },
       { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare, minRole: 'VIEWER' },
       { href: '/admin/notifications', label: 'Notifications', icon: Bell, minRole: 'VIEWER' },

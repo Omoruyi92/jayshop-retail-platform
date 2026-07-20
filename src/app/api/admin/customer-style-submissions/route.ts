@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const submissions = await prisma.customerStyleSubmission.findMany({
     where: { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' },
     orderBy: { createdAt: 'desc' },
-    include: { images: { orderBy: { sortOrder: 'asc' } } },
+    include: { images: { orderBy: { sortOrder: 'asc' } }, product: { select: { id: true, name: true, slug: true, imageUrl: true } } },
   })
 
   return NextResponse.json(submissions)

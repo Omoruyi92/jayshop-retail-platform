@@ -23,12 +23,22 @@ async function saveImage(file: File) {
 export async function POST(req: Request) {
   try {
     const formData = await req.formData()
+    const productId = (formData.get('productId') as string | null) ?? ''
     const customerName = (formData.get('customerName') as string | null) ?? ''
     const customerEmail = (formData.get('customerEmail') as string | null) ?? ''
     const customerPhone = (formData.get('customerPhone') as string | null) ?? ''
     const instagramHandle = (formData.get('instagramHandle') as string | null) ?? ''
     const caption = (formData.get('caption') as string | null) ?? ''
     const files = formData.getAll('images') as File[]
+
+    if (!productId) {
+      return NextResponse.json({ error: 'Product is required' }, { status: 400 })
+    }
+
+    const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } })
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
 
     const validFiles = files.filter(f => f instanceof File && f.size > 0).slice(0, 2)
     if (validFiles.length === 0) {
@@ -48,6 +58,7 @@ export async function POST(req: Request) {
 
     const submission = await prisma.customerStyleSubmission.create({
       data: {
+        productId,
         customerName,
         customerEmail,
         customerPhone,
@@ -72,10 +83,14 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status') ?? 'APPROVED'
+    const productId = searchParams.get('productId')
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50', 10), 100)
 
+    const where: any = { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' }
+    if (productId) where.productId = productId
+
     const submissions = await prisma.customerStyleSubmission.findMany({
-      where: { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' },
+      where,
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: { images: { orderBy: { sortOrder: 'asc' } } },
