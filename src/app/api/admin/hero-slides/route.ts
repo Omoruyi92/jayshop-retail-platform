@@ -7,7 +7,7 @@ import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
-const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
 const VIDEO_TYPES = new Set(['video/mp4', 'video/webm'])
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024

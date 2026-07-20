@@ -1,9 +1,41 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X, Camera, Loader2, Instagram, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
+
+/**
+ * Lightweight modal (no Radix). Radix's Dialog/Presence combo has a known
+ * infinite-render bug on this React build ("Maximum update depth exceeded")
+ * so this component renders its own fixed overlay via a portal instead.
+ */
+function SimpleModal({
+  open,
+  onClose,
+  className = '',
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  className?: string
+  children: React.ReactNode
+}) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted || !open) return null
+  return createPortal(
+    <div className="fixed inset-0 z-50">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className={`fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none ${className}`}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body
+  )
+}
 
 interface CustomerStyleImage {
   id: string
@@ -190,14 +222,18 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
       )}
 
       {/* Upload modal */}
-      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upload Your Photo</DialogTitle>
-            <DialogClose className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors">
-              <X size={18} />
-            </DialogClose>
-          </DialogHeader>
+      <SimpleModal open={uploadOpen} onClose={() => setUploadOpen(false)} className="max-w-md">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <h3 className="font-display text-base font-bold uppercase text-jays-navy">Upload Your Photo</h3>
+          <button
+            type="button"
+            onClick={() => setUploadOpen(false)}
+            className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div>
           <form onSubmit={handleSubmit} className="space-y-3">
             <p className="text-xs text-jays-steel">
               Upload up to 2 photos. Mention{' '}
@@ -274,18 +310,22 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
               Submit {files.length > 1 ? 'Photos' : 'Photo'}
             </button>
           </form>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </SimpleModal>
 
       {/* Lightbox */}
-      <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>How Others Are Wearing It</DialogTitle>
-            <DialogClose className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors">
-              <X size={18} />
-            </DialogClose>
-          </DialogHeader>
+      <SimpleModal open={!!lightbox} onClose={() => setLightbox(null)} className="max-w-2xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <h3 className="font-display text-base font-bold uppercase text-jays-navy">How Others Are Wearing It</h3>
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div>
           {lightbox && (
             <div className="space-y-3">
               <div className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
@@ -326,8 +366,8 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </SimpleModal>
     </div>
   )
 }

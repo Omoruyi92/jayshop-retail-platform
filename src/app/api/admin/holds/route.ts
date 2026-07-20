@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'holds:read')
   if (error) return error
 
   // Inline auto-expire so the staff queue reflects reality without waiting for

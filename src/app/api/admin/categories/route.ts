@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,8 +10,8 @@ function slugify(str: string) {
 
 // Admin: returns ALL categories (active + inactive) with children, for
 // management in the admin dashboard.
-export async function GET() {
-  const { error } = await requireAdminSession()
+export async function GET(req: Request) {
+  const { error } = await requireRole(req, 'categories:read')
   if (error) return error
 
   const categories = await prisma.category.findMany({
@@ -19,6 +19,8 @@ export async function GET() {
     orderBy: { sortOrder: 'asc' },
     include: {
       children: { orderBy: { sortOrder: 'asc' } },
+      productTypes: { orderBy: { sortOrder: 'asc' } },
+      categoryBrands: { orderBy: { sortOrder: 'asc' }, include: { brand: true } },
     },
   })
 
@@ -28,7 +30,7 @@ export async function GET() {
 // Admin: create a new top-level category or a subcategory (when parentId
 // is provided).
 export async function POST(req: Request) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'categories:write')
   if (error) return error
 
   try {

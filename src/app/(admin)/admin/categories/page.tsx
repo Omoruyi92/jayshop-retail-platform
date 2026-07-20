@@ -7,6 +7,20 @@ import { useMutation } from '@/components/sync/hooks/useMutation'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ChevronDown, ChevronRight, ArrowUp, ArrowDown, Plus, Trash2, Check, X, Pencil } from 'lucide-react'
 
+interface ProductTypeOption {
+  id: string
+  name: string
+  slug: string
+  isActive: boolean
+  sortOrder: number
+}
+
+interface CategoryBrandLink {
+  id: string
+  brandId: string
+  brand: { id: string; name: string; slug: string; imageUrl: string }
+}
+
 interface Category {
   id: string
   name: string
@@ -16,6 +30,14 @@ interface Category {
   sortOrder: number
   sortPriority: number | null
   children: Category[]
+  productTypes?: ProductTypeOption[]
+  categoryBrands?: CategoryBrandLink[]
+}
+
+interface BrandOption {
+  id: string
+  name: string
+  slug: string
 }
 
 const INPUT_CLS = 'border border-border rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40'
@@ -34,6 +56,12 @@ export default function AdminCategoriesPage() {
   const [newSubName, setNewSubName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [addingTypeFor, setAddingTypeFor] = useState<string | null>(null)
+  const [newTypeName, setNewTypeName] = useState('')
+  const [editingTypeId, setEditingTypeId] = useState<string | null>(null)
+  const [editingTypeName, setEditingTypeName] = useState('')
+  const [addingBrandFor, setAddingBrandFor] = useState<string | null>(null)
+  const [selectedBrandId, setSelectedBrandId] = useState('')
 
   const fetchCategories = useCallback(async (): Promise<Category[]> => {
     const data = await jsonFetch('/api/admin/categories')
@@ -42,6 +70,13 @@ export default function AdminCategoriesPage() {
 
   const { data: categories, loading } = useFetch<Category[]>('admin-categories', fetchCategories)
   const list = useMemo(() => categories ?? [], [categories])
+
+  const fetchBrands = useCallback(async (): Promise<BrandOption[]> => {
+    const data = await jsonFetch('/api/admin/brands')
+    return data.brands ?? []
+  }, [])
+  const { data: brandOptions } = useFetch<BrandOption[]>('admin-brands-for-categories', fetchBrands)
+  const allBrands = useMemo(() => brandOptions ?? [], [brandOptions])
 
   const createMutation = useMutation(
     async (body: { name: string; parentId?: string | null }) =>
@@ -76,6 +111,66 @@ export default function AdminCategoriesPage() {
       invalidateOnSuccess: ['admin-categories'],
       onSuccess: () => toast.success('Category deleted'),
       onError: (err) => toast.error(err.message || 'Failed to delete category'),
+    }
+  )
+
+  const createTypeMutation = useMutation(
+    async ({ categoryId, name }: { categoryId: string; name: string }) =>
+      jsonFetch(`/api/admin/categories/${categoryId}/product-types`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      }),
+    {
+      invalidateOnSuccess: ['admin-categories'],
+      onSuccess: () => toast.success('Type added'),
+      onError: (err) => toast.error(err.message || 'Failed to add type'),
+    }
+  )
+
+  const patchTypeMutation = useMutation(
+    async ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      jsonFetch(`/api/admin/categories/product-types/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+    {
+      invalidateOnSuccess: ['admin-categories'],
+      onError: (err) => toast.error(err.message || 'Failed to update type'),
+    }
+  )
+
+  const deleteTypeMutation = useMutation(
+    async (id: string) => jsonFetch(`/api/admin/categories/product-types/${id}`, { method: 'DELETE' }),
+    {
+      invalidateOnSuccess: ['admin-categories'],
+      onSuccess: () => toast.success('Type removed'),
+      onError: (err) => toast.error(err.message || 'Failed to remove type'),
+    }
+  )
+
+  const assignBrandMutation = useMutation(
+    async ({ categoryId, brandId }: { categoryId: string; brandId: string }) =>
+      jsonFetch(`/api/admin/categories/${categoryId}/brands`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandId }),
+      }),
+    {
+      invalidateOnSuccess: ['admin-categories'],
+      onSuccess: () => toast.success('Brand assigned'),
+      onError: (err) => toast.error(err.message || 'Failed to assign brand'),
+    }
+  )
+
+  const unassignBrandMutation = useMutation(
+    async ({ categoryId, brandId }: { categoryId: string; brandId: string }) =>
+      jsonFetch(`/api/admin/categories/${categoryId}/brands/${brandId}`, { method: 'DELETE' }),
+    {
+      invalidateOnSuccess: ['admin-categories'],
+      onSuccess: () => toast.success('Brand unassigned'),
+      onError: (err) => toast.error(err.message || 'Failed to unassign brand'),
     }
   )
 
@@ -228,6 +323,187 @@ export default function AdminCategoriesPage() {
     )
   }
 
+  function renderTypesAndBrands(cat: Category) {
+    const types = cat.productTypes ?? []
+    const links = cat.categoryBrands ?? []
+    const assignedBrandIds = new Set(links.map((l) => l.brandId))
+    const unassignedBrands = allBrands.filter((b) => !assignedBrandIds.has(b.id))
+
+    return (
+      <div className="ml-6 grid gap-3 sm:grid-cols-2 rounded-xl border border-border bg-jays-ice/20 p-3">
+        <div>
+          <p className="text-xs font-bold uppercase text-jays-steel mb-1.5">Types</p>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {types.map((t) =>
+              editingTypeId === t.id ? (
+                <div key={t.id} className="flex items-center gap-1">
+                  <input
+                    autoFocus
+                    value={editingTypeName}
+                    onChange={(e) => setEditingTypeName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (editingTypeName.trim()) patchTypeMutation.mutate({ id: t.id, body: { name: editingTypeName.trim() } })
+                        setEditingTypeId(null)
+                      }
+                      if (e.key === 'Escape') setEditingTypeId(null)
+                    }}
+                    className={`${INPUT_CLS} text-xs py-1 w-28`}
+                  />
+                  <button
+                    onClick={() => {
+                      if (editingTypeName.trim()) patchTypeMutation.mutate({ id: t.id, body: { name: editingTypeName.trim() } })
+                      setEditingTypeId(null)
+                    }}
+                    className="text-green-600 hover:text-green-700"
+                  >
+                    <Check size={14} />
+                  </button>
+                  <button onClick={() => setEditingTypeId(null)} className="text-jays-steel hover:text-jays-navy">
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <span
+                  key={t.id}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    t.isActive ? 'bg-white border-border text-jays-navy' : 'bg-gray-50 border-gray-200 text-gray-400'
+                  }`}
+                >
+                  {t.name}
+                  <button
+                    onClick={() => { setEditingTypeId(t.id); setEditingTypeName(t.name) }}
+                    className="text-jays-steel hover:text-jays-navy"
+                    aria-label="Rename type"
+                  >
+                    <Pencil size={11} />
+                  </button>
+                  <button
+                    onClick={() => patchTypeMutation.mutate({ id: t.id, body: { isActive: !t.isActive } })}
+                    className="text-jays-steel hover:text-jays-navy"
+                    aria-label="Toggle active"
+                    title={t.isActive ? 'Deactivate' : 'Activate'}
+                  >
+                    {t.isActive ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                  </button>
+                  <button
+                    onClick={() => { if (confirm(`Remove type "${t.name}"?`)) deleteTypeMutation.mutate(t.id) }}
+                    className="text-jays-red hover:text-red-700"
+                    aria-label="Delete type"
+                  >
+                    <X size={11} />
+                  </button>
+                </span>
+              )
+            )}
+            {types.length === 0 && <span className="text-xs text-jays-steel">No types yet.</span>}
+          </div>
+          {addingTypeFor === cat.id ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!newTypeName.trim()) return
+                createTypeMutation.mutate({ categoryId: cat.id, name: newTypeName.trim() })
+                setNewTypeName('')
+                setAddingTypeFor(null)
+              }}
+              className="flex gap-1.5"
+            >
+              <input
+                autoFocus
+                value={newTypeName}
+                onChange={(e) => setNewTypeName(e.target.value)}
+                placeholder="New type name"
+                className={`${INPUT_CLS} text-xs py-1 max-w-[160px]`}
+              />
+              <button type="submit" className="bg-jays-navy text-white px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-jays-royal">
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAddingTypeFor(null); setNewTypeName('') }}
+                className="text-xs font-semibold text-jays-steel hover:text-jays-navy px-1"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button
+              onClick={() => setAddingTypeFor(cat.id)}
+              className="text-xs font-semibold text-jays-navy hover:text-jays-royal inline-flex items-center gap-1"
+            >
+              <Plus size={12} /> Add Type
+            </button>
+          )}
+        </div>
+
+        <div>
+          <p className="text-xs font-bold uppercase text-jays-steel mb-1.5">Brands</p>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {links.map((link) => (
+              <span
+                key={link.id}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-2 py-0.5 text-xs font-medium text-jays-navy"
+              >
+                {link.brand.name}
+                <button
+                  onClick={() => unassignBrandMutation.mutate({ categoryId: cat.id, brandId: link.brandId })}
+                  className="text-jays-red hover:text-red-700"
+                  aria-label="Unassign brand"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+            {links.length === 0 && <span className="text-xs text-jays-steel">No brands assigned.</span>}
+          </div>
+          {addingBrandFor === cat.id ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!selectedBrandId) return
+                assignBrandMutation.mutate({ categoryId: cat.id, brandId: selectedBrandId })
+                setSelectedBrandId('')
+                setAddingBrandFor(null)
+              }}
+              className="flex gap-1.5"
+            >
+              <select
+                autoFocus
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(e.target.value)}
+                className={`${INPUT_CLS} text-xs py-1 max-w-[160px]`}
+              >
+                <option value="">Select brand…</option>
+                {unassignedBrands.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              <button type="submit" className="bg-jays-navy text-white px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-jays-royal">
+                Assign
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAddingBrandFor(null); setSelectedBrandId('') }}
+                className="text-xs font-semibold text-jays-steel hover:text-jays-navy px-1"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button
+              onClick={() => setAddingBrandFor(cat.id)}
+              className="text-xs font-semibold text-jays-navy hover:text-jays-royal inline-flex items-center gap-1"
+              disabled={unassignedBrands.length === 0}
+            >
+              <Plus size={12} /> Assign Brand
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="page-header mt-2">
@@ -264,6 +540,7 @@ export default function AdminCategoriesPage() {
               {renderRow(cat, 0)}
               {expanded.has(cat.id) && (
                 <div className="space-y-2">
+                  {renderTypesAndBrands(cat)}
                   {cat.children.map((sub) => renderRow(sub, 1))}
                   {addingSubFor === cat.id ? (
                     <form onSubmit={(e) => handleAddSub(e, cat.id)} className="ml-6 flex flex-wrap gap-2">

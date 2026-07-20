@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB, productTypesForCategory, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS, PRODUCT_TYPES } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS, PRODUCT_TYPES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
@@ -22,6 +22,7 @@ interface Product {
   id: string
   name: string
   slug: string
+  description?: string | null
   priceCents: number
   salePriceCents: number
   imageUrl: string
@@ -60,7 +61,10 @@ const LOW_STOCK_THRESHOLD = 10
  */
 function getStockBadgeStatus(p: Product): { status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'; label: string } {
   if (p.availability) {
-    switch (p.availability.status) {
+    // Use the worst-case per size/location status so a size that's genuinely
+    // low/out at a specific location is flagged even if the product's total
+    // stock across all locations still looks healthy.
+    switch (p.availability.worstStatus ?? p.availability.status) {
       case 'low-stock':
         return { status: 'LOW_STOCK', label: 'Low Stock' }
       case 'out-of-stock':
@@ -106,7 +110,7 @@ function getStatusLabel(p: Product, displayStatus: string): string | undefined {
 
 export default function AdminProductsPage() {
   const { isOwner, isManager, isStaff } = useCurrentAdmin()
-  const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
+  const { mainCategories, subsByCat, labelsBySlug, productTypesBySlug, brandsBySlug } = useCategoryTree()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading]   = useState(true)
   const [showAdd, setShowAdd]   = useState(false)
@@ -173,7 +177,7 @@ export default function AdminProductsPage() {
       for (const file of candidates) {
         if (accepted.length + images.length >= 3) break
         if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-          toast.error(`${file.name}: unsupported format. Use JPG, PNG, or WebP.`)
+          toast.error(`${file.name}: unsupported format. Use JPG, PNG, WebP, or AVIF.`)
           continue
         }
         if (file.size > MAX_IMAGE_SIZE_BYTES) {
@@ -207,7 +211,10 @@ export default function AdminProductsPage() {
     setForm(f => ({ ...f, colors: f.colors.filter(c => c !== col) }))
   }
 
-  const currentProductTypes = useMemo(() => productTypesForCategory(form.category), [form.category])
+  const currentProductTypes = useMemo(
+    () => productTypesBySlug[form.category.toLowerCase()] ?? productTypesBySlug.men ?? [],
+    [form.category, productTypesBySlug]
+  )
   const showAudience = categoryHasAudience(form.category)
   const showAgeGroup = categoryHasAgeGroup(form.category)
   const isHatProduct = form.productType === 'Hats' || form.productType === 'Caps'
@@ -400,7 +407,7 @@ export default function AdminProductsPage() {
                 className={INPUT_CLS}
               />
               <datalist id="brand-suggestions">
-                {POPULAR_BRANDS.map(b => <option key={b} value={b} />)}
+                {Array.from(new Set([...(brandsBySlug[form.category.toLowerCase()] ?? []), ...POPULAR_BRANDS])).map(b => <option key={b} value={b} />)}
               </datalist>
             </div>
             {needsSizes && (
@@ -462,8 +469,8 @@ export default function AdminProductsPage() {
             </div>
             <div className="sm:col-span-2 border-t border-border pt-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">Product Images (up to 3)</label>
-              <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
-              <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, or WebP. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+              <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, WebP, or AVIF. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
               <div className="flex gap-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-border group">
@@ -689,15 +696,21 @@ export default function AdminProductsPage() {
                     {(() => {
                       const stock = getStockBadgeStatus(p)
                       const isInStock = stock.status === 'IN_STOCK'
-                      const affectedLocations = p.availability?.locationBreakdown.filter(
-                        (loc) => loc.status !== 'in-stock'
-                      ) ?? []
+                      const alertDetails = [
+                        ...(p.availability?.outOfStockDetails ?? []),
+                        ...(p.availability?.lowStockDetails ?? []),
+                      ]
                       return (
                         <div className="space-y-1">
                           <StatusBadge status={stock.status} label={stock.label} />
-                          {!isInStock && affectedLocations.length > 0 && (
+                          {!isInStock && alertDetails.length > 0 && (
                             <p className="text-[10px] text-jays-steel leading-tight">
-                              {affectedLocations.map((loc) => loc.locationName).join(', ')}
+                              {alertDetails.map((d, i) => (
+                                <span key={i}>
+                                  {i > 0 && ', '}
+                                  {d.locationName} · {d.size === 'ONE_SIZE' ? 'Qty' : d.size}: {d.available}
+                                </span>
+                              ))}
                             </p>
                           )}
                         </div>

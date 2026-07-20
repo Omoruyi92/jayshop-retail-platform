@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 async function saveImage(file: File) {

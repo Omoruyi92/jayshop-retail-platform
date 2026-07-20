@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +9,7 @@ function slugify(str: string) {
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'categories:write')
   if (error) return error
 
   try {
@@ -65,7 +65,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'categories:write')
   if (error) return error
 
   const category = await prisma.category.findUnique({

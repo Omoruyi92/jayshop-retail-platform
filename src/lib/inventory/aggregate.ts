@@ -29,6 +29,14 @@ export type LocationAvailability = {
   sizeDetail: Record<string, SizeDetail>
 }
 
+export type StockAlertDetail = {
+  locationId: string
+  locationName: string
+  size: string
+  available: number
+  status: InventoryStatus
+}
+
 export type ProductAvailability = {
   /** @deprecated Use availableBalance for true availability; this is the raw SizeInventory.quantity sum. */
   totalAvailable: number
@@ -40,6 +48,18 @@ export type ProductAvailability = {
   reservedQuantity: number
   soldQuantity: number
   availableBalance: number
+  /**
+   * Worst-case status across every individual size/location combination.
+   * Unlike `status` (based on the summed availableBalance across all
+   * locations), this surfaces a low/out condition even when the product's
+   * total stock looks healthy overall but a specific size at a specific
+   * location has run low or out. Use this for admin-facing alerts; keep
+   * `status` for customer-facing checkout gating.
+   */
+  worstStatus: InventoryStatus
+  worstStatusLabel: string
+  lowStockDetails: StockAlertDetail[]
+  outOfStockDetails: StockAlertDetail[]
 }
 
 const LOW_STOCK_THRESHOLD = 10
@@ -173,6 +193,24 @@ export function buildAvailability(sizeInventories: InventoryRow[]): ProductAvail
   const statusLabel = labelForStatus(status)
   const displayText = displayTextFor(availableBalance, statusLabel)
 
+  // ── Worst-case per size/location rollup ───────────────────────────────
+  // Surfaces a size that's genuinely low/out at a specific location even
+  // when the product's summed availableBalance still looks healthy.
+  const lowStockDetails: StockAlertDetail[] = []
+  const outOfStockDetails: StockAlertDetail[] = []
+  for (const loc of locationBreakdown) {
+    for (const [size, sd] of Object.entries(loc.sizeDetail)) {
+      if (sd.status === 'out-of-stock') {
+        outOfStockDetails.push({ locationId: loc.locationId, locationName: loc.locationName, size, available: sd.available, status: sd.status })
+      } else if (sd.status === 'low-stock') {
+        lowStockDetails.push({ locationId: loc.locationId, locationName: loc.locationName, size, available: sd.available, status: sd.status })
+      }
+    }
+  }
+  const worstStatus: InventoryStatus =
+    outOfStockDetails.length > 0 ? 'out-of-stock' : lowStockDetails.length > 0 ? 'low-stock' : 'in-stock'
+  const worstStatusLabel = labelForStatus(worstStatus)
+
   return {
     totalAvailable,
     status,
@@ -183,6 +221,10 @@ export function buildAvailability(sizeInventories: InventoryRow[]): ProductAvail
     reservedQuantity,
     soldQuantity,
     availableBalance,
+    worstStatus,
+    worstStatusLabel,
+    lowStockDetails,
+    outOfStockDetails,
   }
 }
 

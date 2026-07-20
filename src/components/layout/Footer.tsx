@@ -284,10 +284,12 @@ export default function Footer() {
           </div>
           
           <div className="flex flex-col items-center gap-3 mt-4">
-            <div className="flex items-center gap-4 text-[10px] sm:text-xs font-semibold text-blue-300/80 uppercase tracking-wider">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[10px] sm:text-xs font-semibold text-blue-300/80 uppercase tracking-wider">
               <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
               <span className="text-blue-700/60">|</span>
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <span className="text-blue-700/60">|</span>
+              <Link href="/style-submission-policy" className="hover:text-white transition-colors">Style Submission Policy</Link>
             </div>
             <p className="text-center text-[10px] text-blue-400">
               &copy; {new Date().getFullYear()} Jays Shop. {t.footer.copyright}

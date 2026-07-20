@@ -18,8 +18,10 @@ export default function HomeHero({ isGameDayToday = false }: HomeHeroProps) {
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy text-white shadow-xl ring-1 ring-black/5">
-        {/* Slideshow overlay on default background */}
+      {/* Standard hero banner: fixed responsive container with edge-to-edge
+          background image using object-cover. Cropping is acceptable to keep
+          proportions and layout stable. */}
+      <div className="relative max-h-[85vh] min-h-[460px] overflow-hidden rounded-3xl bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy text-white shadow-xl ring-1 ring-black/5 sm:min-h-[520px]">
         <HeroSlideshow scope="HOME" />
 
         {/* subtle dotted texture */}
@@ -54,13 +56,13 @@ export default function HomeHero({ isGameDayToday = false }: HomeHeroProps) {
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto max-w-2xl px-6 pb-12 pt-14 text-center sm:px-8 sm:pb-16 sm:pt-16">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] backdrop-blur-sm sm:text-xs">
+        <div className="relative z-10 mx-auto max-w-2xl px-6 pb-8 pt-10 text-center sm:px-8 sm:pb-10 sm:pt-12">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] backdrop-blur-sm sm:text-xs">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red animate-pulse" />
             Live Inventory · Rogers Centre
           </div>
 
-          <h1 className="mb-4 font-display text-4xl font-bold uppercase tracking-wide leading-[1.1] sm:text-6xl">
+          <h1 className="mb-3 font-display text-3xl font-bold uppercase tracking-wide leading-[1.08] sm:text-5xl">
             {h.heroTitle1}
             <br />
             <span className="bg-gradient-to-r from-orange-500 via-jays-red to-amber-500 bg-clip-text text-transparent">
@@ -68,18 +70,18 @@ export default function HomeHero({ isGameDayToday = false }: HomeHeroProps) {
             </span>
           </h1>
 
-          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-blue-100 sm:text-lg">
+          <p className="mx-auto mb-5 max-w-2xl text-sm leading-snug text-blue-100 sm:text-base">
             {h.heroSubtitle}
           </p>
 
-          <div className="mx-auto mb-8 max-w-md">
+          <div className="mx-auto mb-5 max-w-md">
             <UpcomingMatchCard />
           </div>
 
-          <div className="mb-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mb-5 flex flex-col justify-center gap-2.5 sm:flex-row">
             <Link
               href="/shop"
-              className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-base px-8 py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
+              className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-sm sm:text-base px-7 py-2.5 sm:px-8 sm:py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
             >
               {h.browseShop}
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,13 +90,13 @@ export default function HomeHero({ isGameDayToday = false }: HomeHeroProps) {
             </Link>
             <Link
               href="/my-holds"
-              className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-sm px-6 py-3 rounded-xl hover:border-white hover:bg-white/10 transition-all"
+              className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-xs sm:text-sm px-6 py-2.5 sm:py-3 rounded-xl hover:border-white hover:bg-white/10 transition-all"
             >
               {h.viewMyHolds}
             </Link>
           </div>
 
-          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-3 text-left text-xs text-blue-100/85 sm:grid-cols-3 sm:text-sm">
+          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-2.5 text-left text-xs text-blue-100/85 sm:grid-cols-3 sm:text-sm">
             <div className="flex items-center gap-1.5">
               <span>🏟️</span>
               <span>12 store locations</span>

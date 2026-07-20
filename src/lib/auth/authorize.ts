@@ -23,7 +23,7 @@ export function actionMinRole(action: string): AdminRole {
     case 'holds:read':
       return 'STAFF'
     case 'holds:resolve':
-      return 'MANAGER'
+      return 'STAFF'
     case 'transfers:create':
       return 'MANAGER'
     case 'pos-keys:manage':
@@ -63,6 +63,14 @@ export function actionMinRole(action: string): AdminRole {
     case 'gallery:read':
       return 'STAFF'
     case 'gallery:write':
+      return 'MANAGER'
+    case 'categories:read':
+      return 'STAFF'
+    case 'categories:write':
+      return 'MANAGER'
+    case 'products:write':
+      return 'MANAGER'
+    case 'products:delete':
       return 'MANAGER'
     case 'admin:manage':
       return 'OWNER'

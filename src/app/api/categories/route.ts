@@ -15,8 +15,24 @@ export async function GET() {
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
       },
+      productTypes: {
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+      },
+      categoryBrands: {
+        orderBy: { sortOrder: 'asc' },
+        include: { brand: true },
+      },
     },
   })
 
-  return NextResponse.json({ categories })
+  const shaped = categories.map((c) => ({
+    ...c,
+    productTypes: c.productTypes.map((pt) => ({ name: pt.name, slug: pt.slug })),
+    brands: c.categoryBrands
+      .filter((cb) => cb.brand.status === 'ACTIVE')
+      .map((cb) => ({ name: cb.brand.name, slug: cb.brand.slug, imageUrl: cb.brand.imageUrl })),
+  }))
+
+  return NextResponse.json({ categories: shaped })
 }

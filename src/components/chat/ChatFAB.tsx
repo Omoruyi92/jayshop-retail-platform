@@ -46,10 +46,14 @@ export default function ChatFAB() {
 
   return (
     <>
+      {/* Floating launcher: hidden on mobile (sm:hidden) where the bottom nav's
+          own Chat tab already opens this drawer via the 'open-chat' event —
+          avoids a duplicate chat entry point. Desktop (no bottom nav) keeps
+          the floating button. */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-20 sm:bottom-6 right-4 z-50 bg-jays-royal text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-jays-navy transition-colors"
+          className="hidden sm:flex fixed bottom-6 right-4 z-50 bg-jays-royal text-white w-14 h-14 rounded-full shadow-lg items-center justify-center hover:bg-jays-navy transition-colors"
           aria-label="Open chat"
         >
           <MessageCircle size={24} />

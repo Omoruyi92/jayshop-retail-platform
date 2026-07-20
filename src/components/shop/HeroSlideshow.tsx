@@ -18,9 +18,10 @@ interface HeroSlideshowProps {
   scope: 'HOME' | 'SHOP'
   interval?: number
   className?: string
+  imagePosition?: 'center' | 'top' | 'bottom'
 }
 
-export default function HeroSlideshow({ scope, interval = 6000, className = '' }: HeroSlideshowProps) {
+export default function HeroSlideshow({ scope, interval = 6000, className = '', imagePosition = 'center' }: HeroSlideshowProps) {
   const [slides, setSlides] = useState<Slide[]>([])
   const [index, setIndex] = useState(0)
   const [loaded, setLoaded] = useState(false)
@@ -71,7 +72,7 @@ export default function HeroSlideshow({ scope, interval = 6000, className = '' }
               sizes="100vw"
               quality={95}
               priority={i === 0}
-              className="object-cover"
+              className={`h-full w-full object-cover object-${imagePosition}`}
               unoptimized
             />
           )}

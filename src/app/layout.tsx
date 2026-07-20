@@ -3,7 +3,6 @@ import './globals.css'
 import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { Toaster } from 'sonner'
-import RootSessionProvider from '@/components/layout/RootSessionProvider'
 import DevServiceWorkerCleanup from '@/components/layout/DevServiceWorkerCleanup'
 
 const display = Plus_Jakarta_Sans({
@@ -94,9 +93,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans bg-jays-ice text-gray-900 antialiased">
         <DevServiceWorkerCleanup />
-        <RootSessionProvider>
-          {children}
-        </RootSessionProvider>
+        {children}
         <Toaster richColors position="top-center" />
       </body>
     </html>

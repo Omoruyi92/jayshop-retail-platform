@@ -1,6 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { MAIN_CATEGORIES as STATIC_MAIN, SUBS_BY_CAT as STATIC_SUBS } from '@/lib/constants'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  MAIN_CATEGORIES as STATIC_MAIN,
+  SUBS_BY_CAT as STATIC_SUBS,
+  PRODUCT_TYPES_BY_CAT as STATIC_PRODUCT_TYPES,
+  BRANDS_BY_CAT as STATIC_BRANDS,
+} from '@/lib/constants'
 
 export interface CategoryNode {
   id: string
@@ -10,6 +15,8 @@ export interface CategoryNode {
   sortOrder: number
   sortPriority: number | null
   children: CategoryNode[]
+  productTypes?: { name: string; slug: string }[]
+  brands?: { name: string; slug: string; imageUrl: string }[]
 }
 
 /**
@@ -31,20 +38,29 @@ export function useCategoryTree() {
     return () => { active = false }
   }, [])
 
-  const mainCategories: string[] = categories?.length
-    ? categories.map((c) => c.slug)
-    : [...STATIC_MAIN]
+  const mainCategories: string[] = useMemo(
+    () => (categories?.length ? categories.map((c) => c.slug) : [...STATIC_MAIN]),
+    [categories]
+  )
 
-  const subsByCat: Record<string, string[]> = categories?.length
-    ? Object.fromEntries(categories.map((c) => [c.slug, c.children.map((s) => s.slug)]))
-    : STATIC_SUBS
+  const subsByCat: Record<string, string[]> = useMemo(
+    () =>
+      categories?.length
+        ? Object.fromEntries(categories.map((c) => [c.slug, c.children.map((s) => s.slug)]))
+        : STATIC_SUBS,
+    [categories]
+  )
 
-  const labelsBySlug: Record<string, string> = categories?.length
-    ? Object.fromEntries([
-        ...categories.map((c) => [c.slug, c.name]),
-        ...categories.flatMap((c) => c.children.map((s) => [s.slug, s.name])),
-      ])
-    : {}
+  const labelsBySlug: Record<string, string> = useMemo(
+    () =>
+      categories?.length
+        ? Object.fromEntries([
+            ...categories.map((c) => [c.slug, c.name]),
+            ...categories.flatMap((c) => c.children.map((s) => [s.slug, s.name])),
+          ])
+        : {},
+    [categories]
+  )
 
   // Merchandising priority per subcategory slug (e.g. jerseys=1, hats=2,
   // fleece=3, accessories=4), sourced from Category.sortPriority so admins
@@ -52,18 +68,50 @@ export function useCategoryTree() {
   // the same slug appears under multiple parent categories, the lowest
   // (highest-priority) value wins. Slugs with no priority set are omitted
   // here and fall back to "sort last" wherever this map is consumed.
-  const subPriorityBySlug: Record<string, number> = {}
-  if (categories?.length) {
-    for (const cat of categories) {
-      for (const sub of cat.children) {
-        if (typeof sub.sortPriority !== 'number') continue
-        const existing = subPriorityBySlug[sub.slug]
-        if (existing === undefined || sub.sortPriority < existing) {
-          subPriorityBySlug[sub.slug] = sub.sortPriority
+  const subPriorityBySlug: Record<string, number> = useMemo(() => {
+    const map: Record<string, number> = {}
+    if (categories?.length) {
+      for (const cat of categories) {
+        for (const sub of cat.children) {
+          if (typeof sub.sortPriority !== 'number') continue
+          const existing = map[sub.slug]
+          if (existing === undefined || sub.sortPriority < existing) {
+            map[sub.slug] = sub.sortPriority
+          }
         }
       }
     }
-  }
+    return map
+  }, [categories])
+
+  // Type ("Jerseys", "Fleece", ...) and Brand options per top-level
+  // category slug, sourced from admin-managed CategoryProductType /
+  // CategoryBrand records. Falls back to the static constants per-key
+  // while loading or when a category has zero configured rows (e.g.
+  // Featured / Sales & Clearance, which aren't real Category rows).
+  const productTypesBySlug: Record<string, string[]> = useMemo(() => {
+    const map: Record<string, string[]> = { ...STATIC_PRODUCT_TYPES }
+    if (categories?.length) {
+      for (const cat of categories) {
+        if (cat.productTypes && cat.productTypes.length > 0) {
+          map[cat.slug] = cat.productTypes.map((pt) => pt.name)
+        }
+      }
+    }
+    return map
+  }, [categories])
+
+  const brandsBySlug: Record<string, string[]> = useMemo(() => {
+    const map: Record<string, string[]> = { ...STATIC_BRANDS }
+    if (categories?.length) {
+      for (const cat of categories) {
+        if (cat.brands && cat.brands.length > 0) {
+          map[cat.slug] = cat.brands.map((b) => b.name)
+        }
+      }
+    }
+    return map
+  }, [categories])
 
   return {
     categories: categories ?? [],
@@ -71,6 +119,8 @@ export function useCategoryTree() {
     subsByCat,
     labelsBySlug,
     subPriorityBySlug,
+    productTypesBySlug,
+    brandsBySlug,
     loading: categories === null,
   }
 }

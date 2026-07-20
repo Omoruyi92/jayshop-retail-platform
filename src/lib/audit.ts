@@ -40,6 +40,7 @@ export type AuditAction =
   | 'promotion.created'
   | 'promotion.updated'
   | 'promotion.archived'
+  | 'promotion.deleted'
   | 'feedback.approved'
   | 'feedback.rejected'
   | 'review.approved'

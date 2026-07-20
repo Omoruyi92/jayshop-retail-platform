@@ -7,7 +7,7 @@ import ShopHero from '@/components/shop/ShopHero'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { BRANDS_BY_CAT, HAT_STYLES, PRODUCT_TYPES_BY_CAT, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
+import { HAT_STYLES, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
@@ -117,6 +117,40 @@ function brandMatches(product: Product, activeBrand: string): boolean {
   return product.brand.toLowerCase() === activeBrand.toLowerCase()
 }
 
+function FilterSelect({
+  label,
+  options,
+  active,
+  onSelect,
+  formatLabel,
+}: {
+  label: string
+  options: string[]
+  active: string
+  onSelect: (value: string) => void
+  formatLabel?: (value: string) => string
+}) {
+  if (options.length === 0) return null
+  return (
+    <div className="min-w-0">
+      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
+        {label}
+      </label>
+      <select
+        value={options.find((o) => o.toLowerCase() === active.toLowerCase()) ?? active}
+        onChange={(e) => onSelect(e.target.value)}
+        className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-display font-semibold uppercase tracking-wide text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {formatLabel ? formatLabel(option) : option}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function PillRow({
   label,
   options,
@@ -156,7 +190,7 @@ function PillRow({
 
 export default function ShopPageClient({ activeCategory: initialCategory }: { activeCategory: string }) {
   const { t } = useLanguage()
-  const { subsByCat, subPriorityBySlug } = useCategoryTree()
+  const { subsByCat, subPriorityBySlug, productTypesBySlug, brandsBySlug } = useCategoryTree()
   const s = t.shop
   const searchParams = useSearchParams()
 
@@ -337,7 +371,7 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
 
   const productTypeOptions = activeCategory === 'All' || isSpecialCategory
     ? []
-    : (PRODUCT_TYPES_BY_CAT[activeCategory.toLowerCase()] ?? [])
+    : (productTypesBySlug[activeCategory.toLowerCase()] ?? [])
   const availableSubs = ['All', ...productTypeOptions]
 
   const showAudience = !isSpecialCategory && categoryHasAudience(activeCategory)
@@ -349,7 +383,7 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
 
   const catFilteredProducts = products.filter((product) => categoryMatches(product, activeCategory))
   const brandsFromProducts = Array.from(new Set(catFilteredProducts.map((product) => product.brand).filter(Boolean)))
-  const predefinedBrands = activeCategory === 'All' || isSpecialCategory ? [] : (BRANDS_BY_CAT[activeCategory.toLowerCase()] ?? [])
+  const predefinedBrands = activeCategory === 'All' || isSpecialCategory ? [] : (brandsBySlug[activeCategory.toLowerCase()] ?? [])
   const combinedBrands = Array.from(new Set([...predefinedBrands, ...brandsFromProducts]))
   const availableBrands = activeCategory === 'All' || isSpecialCategory ? [] : ['All', ...combinedBrands]
 
@@ -502,23 +536,11 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-4">
-          {availableSubs.length > 0 && (
-            <PillRow label="Type" options={availableSubs} active={activeSub} onSelect={setActiveSub} />
-          )}
-          {audienceOptions.length > 0 && (
-            <PillRow label="Audience" options={audienceOptions} active={activeAudience} onSelect={setActiveAudience} />
-          )}
-          {ageGroupOptions.length > 0 && (
-            <PillRow label="Age Group" options={ageGroupOptions} active={activeAgeGroup} onSelect={setActiveAgeGroup} />
-          )}
-          {availableBrands.length > 0 && (
-            <PillRow label="Brand" options={availableBrands} active={activeBrand} onSelect={setActiveBrand} />
-          )}
-          {activeSub.toLowerCase() === 'hats' && (
+        {activeSub.toLowerCase() === 'hats' && (
+          <div className="mb-4 flex flex-wrap items-center gap-4">
             <PillRow label="Hat Style" options={availableHatStyles} active={activeHatStyle} onSelect={setActiveHatStyle} />
-          )}
-        </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">

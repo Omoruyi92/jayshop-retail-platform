@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 import { getDefaultTenantId } from '@/lib/tenant'
 import { getMainStoreLocationId } from '@/lib/store-locations'
 
@@ -28,7 +28,7 @@ async function processImage(file: File | null, existingUrl: string) {
 }
 
 export async function POST(req: Request) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'products:write')
   if (error) return error
 
   try {

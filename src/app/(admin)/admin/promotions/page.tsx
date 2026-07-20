@@ -62,6 +62,18 @@ export default function AdminPromotionsPage() {
     }
   )
 
+  const deleteMutation = useMutation(
+    async (id: string) => {
+      const res = await fetch(`/api/admin/promotions/${id}?permanent=true`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+    },
+    {
+      invalidateOnSuccess: ['admin-promotions'],
+      onSuccess: () => toast.success('Promotion permanently deleted'),
+      onError: () => toast.error('Failed to delete promotion'),
+    }
+  )
+
   const statusMutation = useMutation(
     async ({ id, status }: { id: string; status: string }) => {
       const res = await fetch(`/api/admin/promotions/${id}`, {
@@ -161,13 +173,21 @@ export default function AdminPromotionsPage() {
                       {promo.status !== 'ARCHIVED' && (
                         <button
                           onClick={() => {
-                            if (confirm('Archive this promotion?')) archiveMutation.mutate(promo.id)
+                            if (confirm('Archive this promotion? It will be hidden from the customer banner but kept for future reference.')) archiveMutation.mutate(promo.id)
                           }}
                           className="text-jays-red hover:text-red-700 text-xs font-semibold"
                         >
                           Archive
                         </button>
                       )}
+                      <button
+                        onClick={() => {
+                          if (confirm('Permanently delete this promotion? This action cannot be undone.')) deleteMutation.mutate(promo.id)
+                        }}
+                        className="text-red-800 hover:text-red-900 text-xs font-semibold"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>

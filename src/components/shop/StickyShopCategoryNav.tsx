@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
-import { SUBS_BY_CAT, BRANDS_BY_CAT, HAT_STYLES, PRODUCT_TYPES_BY_CAT, AUDIENCES, KIDS_AGE_GROUPS, displayCategoryName } from '@/lib/constants'
+import { SUBS_BY_CAT, HAT_STYLES, AUDIENCES, KIDS_AGE_GROUPS, displayCategoryName } from '@/lib/constants'
 
 const CATEGORY_LABELS: Record<string, string> = {
   all: 'All',
@@ -33,12 +33,13 @@ interface StickyShopCategoryNavProps {
 
 export default function StickyShopCategoryNav({ activeCategory, onSelect }: StickyShopCategoryNavProps) {
   const router = useRouter()
-  const { categories, labelsBySlug, loading } = useCategoryTree()
+  const { categories, labelsBySlug, loading, productTypesBySlug, brandsBySlug } = useCategoryTree()
   const [hovered, setHovered] = useState<{ category: string | null; sub: string | null; brand: string | null }>({
     category: null,
     sub: null,
     brand: null,
   })
+  const [hoveredAttr, setHoveredAttr] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, string | null>>({})
   const [visible, setVisible] = useState(true)
@@ -50,13 +51,17 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   const lastFocusedCategory = useRef<string | null>(null)
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handleClick(e: MouseEvent | TouchEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setMobileOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('touchstart', handleClick)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('touchstart', handleClick)
+    }
   }, [])
 
   useEffect(() => {
@@ -97,7 +102,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   }
 
   function productTypeOptions(category: string): string[] {
-    return PRODUCT_TYPES_BY_CAT[category.toLowerCase()] ?? []
+    return productTypesBySlug[category.toLowerCase()] ?? []
   }
 
   const allPills: { label: string; value: string; hasDropdown: boolean; children: string[] }[] = [
@@ -114,20 +119,25 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   function handleMouseEnter(category: string) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setHovered({ category, sub: null, brand: null })
+    setHoveredAttr(null)
   }
 
   function handleSubMouseEnter(category: string, sub: string) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setHovered({ category, sub, brand: null })
+    setHoveredAttr(null)
   }
 
-  function handleBrandMouseEnter(category: string, sub: string, brand: string) {
+  function handleAttrMouseEnter(attr: string) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    setHovered({ category, sub, brand })
+    setHoveredAttr(attr)
   }
 
   function handleMouseLeave() {
-    hoverTimeoutRef.current = setTimeout(() => setHovered({ category: null, sub: null, brand: null }), 150)
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHovered({ category: null, sub: null, brand: null })
+      setHoveredAttr(null)
+    }, 150)
   }
 
   function apply(category: string, sub: string, brand: string, hatStyle: string) {
@@ -159,7 +169,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   }
 
   function availableBrands(category: string): string[] {
-    return BRANDS_BY_CAT[category.toLowerCase()] ?? []
+    return brandsBySlug[category.toLowerCase()] ?? []
   }
 
   return (
@@ -240,7 +250,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                             </Link>
 
                             {subHovered && (
-                              <div className="absolute left-full top-0 z-50 ml-1 min-w-[16rem] pl-1" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
+                              <div className="absolute left-full top-0 z-50 ml-1 min-w-[14rem] pl-1" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
                                 <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                                   {audiences.length > 0 && (
                                     <>
@@ -264,44 +274,78 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                           {aud}
                                         </Link>
                                       ))}
-                                      <div className="my-1.5 h-px bg-gray-100" />
                                     </>
                                   )}
-                                  {isHatCategory && (
+
+                                  {(isHatCategory || brands.length > 0) && (
                                     <>
-                                      <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Hat Styles</p>
-                                      {HAT_STYLES.map((style) => (
-                                        <Link
-                                          key={style}
-                                          href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&hatStyle=${encodeURIComponent(style)}`}
-                                          onClick={(e) => {
-                                            e.preventDefault()
-                                            navigate(value, sub, 'All', style)
-                                          }}
-                                          className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
-                                        >
-                                          {style}
-                                        </Link>
-                                      ))}
-                                      <div className="my-1.5 h-px bg-gray-100" />
-                                    </>
-                                  )}
-                                  {brands.length > 0 && (
-                                    <>
-                                      <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Brands</p>
-                                      {brands.map((brand) => (
-                                        <Link
-                                          key={brand}
-                                          href={subLink(value, sub, brand)}
-                                          onClick={(e) => {
-                                            e.preventDefault()
-                                            navigate(value, sub, brand, 'All')
-                                          }}
-                                          className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
-                                        >
-                                          {brand}
-                                        </Link>
-                                      ))}
+                                      {audiences.length > 0 && <div className="my-1.5 h-px bg-gray-100" />}
+                                      <div className="flex items-center gap-3">
+                                        {isHatCategory && (
+                                          <div className="relative" onMouseEnter={() => handleAttrMouseEnter('hatStyle')}>
+                                            <button
+                                              type="button"
+                                              className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-jays-ice/60 hover:text-jays-navy ${
+                                                hoveredAttr === 'hatStyle' ? 'bg-jays-ice/60 text-jays-navy' : 'text-gray-700'
+                                              }`}
+                                            >
+                                              Hat Styles
+                                              <ChevronDown size={12} className="text-gray-400" />
+                                            </button>
+                                            {hoveredAttr === 'hatStyle' && (
+                                              <div className="absolute left-0 top-full z-50 mt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('hatStyle')}>
+                                                <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
+                                                  {HAT_STYLES.map((style) => (
+                                                    <Link
+                                                      key={style}
+                                                      href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&hatStyle=${encodeURIComponent(style)}`}
+                                                      onClick={(e) => {
+                                                        e.preventDefault()
+                                                        navigate(value, sub, 'All', style)
+                                                      }}
+                                                      className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
+                                                    >
+                                                      {style}
+                                                    </Link>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {brands.length > 0 && (
+                                          <div className="relative" onMouseEnter={() => handleAttrMouseEnter('brand')}>
+                                            <button
+                                              type="button"
+                                              className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-jays-ice/60 hover:text-jays-navy ${
+                                                hoveredAttr === 'brand' ? 'bg-jays-ice/60 text-jays-navy' : 'text-gray-700'
+                                              }`}
+                                            >
+                                              Brands
+                                              <ChevronDown size={12} className="text-gray-400" />
+                                            </button>
+                                            {hoveredAttr === 'brand' && (
+                                              <div className="absolute right-0 top-full z-50 mt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('brand')}>
+                                                <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
+                                                  {brands.map((brand) => (
+                                                    <Link
+                                                      key={brand}
+                                                      href={subLink(value, sub, brand)}
+                                                      onClick={(e) => {
+                                                        e.preventDefault()
+                                                        navigate(value, sub, brand, 'All')
+                                                      }}
+                                                      className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
+                                                    >
+                                                      {brand}
+                                                    </Link>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
                                     </>
                                   )}
                                 </div>
@@ -336,7 +380,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-gray-100 bg-white px-4 py-3 md:hidden">
+        <div
+          className="border-t border-gray-100 bg-white px-4 py-3 md:hidden overflow-y-auto overscroll-contain"
+          style={{ maxHeight: 'calc(100vh - var(--header-height, 3.5rem) - 3rem)', WebkitOverflowScrolling: 'touch' }}
+        >
           {pills.map(({ label, value, hasDropdown, children }) => {
             const active = activeCategory?.toLowerCase() === value.toLowerCase()
             const expandedCat = mobileExpanded.category === value

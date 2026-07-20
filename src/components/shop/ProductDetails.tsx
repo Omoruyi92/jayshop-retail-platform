@@ -10,6 +10,7 @@ import ChampionBadge from '@/components/ui/ChampionBadge'
 import HowOthersAreWearingIt from '@/components/shop/HowOthersAreWearingIt'
 import { formatCAD } from '@/lib/utils'
 import { titleCase } from '@/lib/text'
+import { colorToSwatch } from '@/lib/constants'
 import type { Product } from '@prisma/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
@@ -103,9 +104,15 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
   )
 
   const colorOptions: { name: string; hex: string }[] = Array.isArray(product.colors)
-    ? (product.colors as any[]).map((c) =>
-        typeof c === 'string' ? { name: c, hex: c } : { name: c.name || c.hex || '', hex: c.hex || c.name || '' }
-      ).filter((c) => c.hex)
+    ? (product.colors as any[]).map((c) => {
+        const name = typeof c === 'string' ? c : c.name || c.hex || ''
+        const rawHex = typeof c === 'string' ? c : c.hex || c.name || ''
+        // Resolve against the shared color library so a name-only value
+        // (or a name mistakenly stored in the hex field, e.g. "Royal Blue")
+        // always renders the correct swatch color instead of falling back
+        // to an invalid CSS color (which silently renders as blank/white).
+        return { name, hex: colorToSwatch(rawHex) }
+      }).filter((c) => c.hex)
     : []
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]?.name || '')
   const isOnSale = !!product.salePriceCents && product.salePriceCents > 0 && product.salePriceCents < product.priceCents

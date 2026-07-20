@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { resolveHold } from '@/lib/holds/resolveHold'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +10,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAdminSession()
+    const { session, error } = await requireRole(req, 'holds:resolve')
     if (error) return error
     const adminId = (session as { user?: { adminId?: string } } | null)?.user?.adminId ?? undefined
 

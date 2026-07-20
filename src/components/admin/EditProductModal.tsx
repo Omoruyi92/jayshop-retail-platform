@@ -12,6 +12,7 @@ interface Product {
   id: string
   name: string
   slug: string
+  description?: string | null
   priceCents: number
   salePriceCents: number
   imageUrl: string
@@ -52,7 +53,7 @@ const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focu
 function buildInitialForm(product: Product) {
   return {
     name:        product.name,
-    description: '',
+    description: product.description ?? '',
     price:       (product.priceCents / 100).toFixed(2),
     salePrice:   product.salePriceCents > 0 ? (product.salePriceCents / 100).toFixed(2) : '',
     quantity:    String(product.quantity),
@@ -154,7 +155,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
       for (const file of candidates) {
         if (accepted.length + images.length >= 3) break
         if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-          toast.error(`${file.name}: unsupported format. Use JPG, PNG, or WebP.`)
+          toast.error(`${file.name}: unsupported format. Use JPG, PNG, WebP, or AVIF.`)
           continue
         }
         if (file.size > MAX_IMAGE_SIZE_BYTES) {
@@ -208,7 +209,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
     const formData = new FormData()
     formData.append('name', form.name.trim())
-    if (form.description) formData.append('description', form.description)
+    if (form.description !== undefined) formData.append('description', form.description)
     formData.append('priceCents', priceCents.toString())
     formData.append('salePriceCents', salePriceCents.toString())
     formData.append('category', form.category)
@@ -224,7 +225,7 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
     formData.append('isSport', String(form.isSport))
     formData.append('isBlankJersey', String(form.isBlankJersey))
     if (needsSizes) formData.append('sizes', form.sizes)
-    formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: c }))))
+    formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: colorToSwatch(c) }))))
     formData.append('sku', form.sku.trim())
     formData.append('material', form.material.trim())
     formData.append('careInstructions', form.careInstructions.trim())
@@ -363,8 +364,8 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
 
           <div className="sm:col-span-2 border-t border-border pt-4">
              <label className="block text-xs font-medium text-gray-600 mb-2">Product Images (up to 3)</label>
-             <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
-             <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, or WebP. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
+             <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={handleFileChange} disabled={images.length >= 3} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal mb-3 disabled:opacity-50" />
+             <p className="text-[10px] text-jays-steel mb-2">JPG, PNG, WebP, or AVIF. Max {MAX_IMAGE_SIZE_MB}MB each. At least one image required.</p>
              <div className="flex gap-4">
                {images.map((img, idx) => (
                  <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-border group">

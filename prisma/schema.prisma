@@ -40,10 +40,47 @@ model Category {
   sortPriority Int?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  productTypes    CategoryProductType[]
+  categoryBrands  CategoryBrand[]
 
   @@unique([parentId, slug])
   @@index([parentId])
   @@index([isActive])
+}
+
+// Admin-managed "Type" options (e.g. Jerseys, Fleece, Hats) scoped to a
+// top-level Category. Replaces the previously hardcoded
+// PRODUCT_TYPES_BY_CAT constant so admins can add/remove/rename types
+// without a code deploy.
+model CategoryProductType {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+// Join table assigning existing global Brand records to a top-level
+// Category, replacing the previously hardcoded BRANDS_BY_CAT constant.
+model CategoryBrand {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  brandId    String
+  brand      Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@unique([categoryId, brandId])
+  @@index([categoryId])
+  @@index([brandId])
 }
 
 model Product {
@@ -371,6 +408,7 @@ model Brand {
   status    String   @default("ACTIVE")
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  categoryLinks CategoryBrand[]
 
   @@index([slug])
   @@index([status])

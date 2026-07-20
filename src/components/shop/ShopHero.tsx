@@ -16,9 +16,10 @@ export default function ShopHero({
   livePulse: boolean
 }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy">
-      {/* Slideshow overlay on default background */}
-      <HeroSlideshow scope="SHOP" />
+    <section className="relative max-h-[60vh] min-h-[360px] overflow-hidden bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy sm:max-h-[55vh] lg:min-h-[420px]">
+      {/* Standard hero banner: edge-to-edge background image using object-cover
+          inside a fixed responsive container. Cropping preserves proportions. */}
+      <HeroSlideshow scope="SHOP" imagePosition="top" />
 
       {/* sunburst rays, premium stadium-marquee feel */}
       <div

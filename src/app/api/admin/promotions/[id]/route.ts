@@ -84,12 +84,33 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       return NextResponse.json({ error: 'Promotion not found' }, { status: 404 })
     }
 
+    const { searchParams } = new URL(req.url)
+    const permanent = searchParams.get('permanent') === 'true'
+    const admin = session!.user as AdminSession['user']
+
+    if (permanent) {
+      await prisma.promotionMessage.delete({ where: { id } })
+
+      await recordAudit({
+        tx: prisma,
+        action: 'promotion.deleted',
+        entityType: 'PromotionMessage',
+        entityId: id,
+        actorId: admin.adminId,
+        actorType: 'admin',
+        actorEmail: admin.email,
+        before: existing,
+        req,
+      })
+
+      return NextResponse.json({ success: true, deleted: true })
+    }
+
     await prisma.promotionMessage.update({
       where: { id },
       data: { status: 'ARCHIVED' },
     })
 
-    const admin = session!.user as AdminSession['user']
     await recordAudit({
       tx: prisma,
       action: 'promotion.archived',

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireAdminSession } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/authorize'
 import {
   isLocalUpload,
   getImageReferences,
@@ -27,7 +27,7 @@ async function processImage(file: File | null, existingUrl: string | null) {
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { error } = await requireAdminSession()
+  const { error } = await requireRole(req, 'products:write')
   if (error) return error
 
   try {
@@ -175,8 +175,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const { error } = await requireAdminSession()
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const { error } = await requireRole(req, 'products:delete')
   if (error) return error
 
   try {

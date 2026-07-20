@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
-import { statusForQuantity, rollupStatus } from '@/lib/inventory/status'
-import { getManyProductsAvailability } from '@/lib/inventory/aggregate'
+import { rollupStatus } from '@/lib/inventory/status'
+import { getManyProductsAvailability, statusForTotal } from '@/lib/inventory/aggregate'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,6 +62,8 @@ export async function GET(req: Request) {
         locationId: true,
         size: true,
         quantity: true,
+        heldQuantity: true,
+        pickedQuantity: true,
       },
     }),
     prisma.hold.count({ where: { status: 'ACTIVE' } }),
@@ -181,7 +183,13 @@ export async function GET(req: Request) {
   const outOfStock: { productId: string; name: string; size: string; locationCode: string }[] = []
 
   for (const row of sizeInventoryRows) {
-    const status = statusForQuantity(row.quantity)
+    // Use available balance (quantity - held - picked) with the same
+    // threshold as the shop-facing/admin availability service (aggregate.ts)
+    // so analytics low/out-of-stock detection matches the badges shown
+    // elsewhere (product list, inventory modal, PDP).
+    const available = Math.max(0, row.quantity - row.heldQuantity - row.pickedQuantity)
+    const availStatus = statusForTotal(available)
+    const status = availStatus === 'low-stock' ? 'low' : availStatus === 'out-of-stock' ? 'out' : 'healthy'
     const loc = locationMap.get(row.locationId)
     const prod = productMap.get(row.productId)
 
@@ -213,7 +221,7 @@ export async function GET(req: Request) {
 
     // low / out lists
     if (status === 'low' && prod && loc) {
-      lowStock.push({ productId: row.productId, name: prod.name, size: row.size, locationCode: loc.code, quantity: row.quantity })
+      lowStock.push({ productId: row.productId, name: prod.name, size: row.size, locationCode: loc.code, quantity: available })
     }
     if (status === 'out' && prod && loc) {
       outOfStock.push({ productId: row.productId, name: prod.name, size: row.size, locationCode: loc.code })
