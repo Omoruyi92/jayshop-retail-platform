@@ -150,9 +150,9 @@ export default function CategoryBanner({ activeCategory }: { activeCategory: str
   const isDark = config.textClass === 'text-white'
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+    <section className="w-full px-4 pt-6 sm:px-6 lg:px-8">
       <div
-        className={`relative overflow-hidden rounded-3xl bg-gradient-to-br shadow-xl ring-1 ring-black/5 transition-colors duration-300 ${config.gradient} ${config.textClass}`}
+        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br shadow-lg ring-1 ring-black/5 transition-colors duration-300 ${config.gradient} ${config.textClass}`}
       >
         {/* subtle dotted texture, matches the sticky category nav treatment */}
         <div

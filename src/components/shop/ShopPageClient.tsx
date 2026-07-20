@@ -373,7 +373,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
       <div className="bg-white">
         {children}
 
-        <div className="mx-auto w-full max-w-none bg-white px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
         <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             {!loading && (
@@ -414,13 +414,13 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         </div>
 
         {loading ? (
-          <div className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+          <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm animate-pulse">
-                <div className="aspect-[3/4] bg-jays-ice" />
+              <div key={index} className="overflow-hidden rounded-2xl bg-transparent animate-pulse">
+                <div className="aspect-[3/4] bg-jays-ice/40" />
                 <div className="space-y-2 p-3">
-                  <div className="h-3 w-3/4 rounded bg-gray-200" />
-                  <div className="h-3 w-1/2 rounded bg-gray-100" />
+                  <div className="h-3 w-3/4 rounded bg-gray-100" />
+                  <div className="h-3 w-1/2 rounded bg-gray-50" />
                 </div>
               </div>
             ))}
@@ -431,7 +431,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
           />
         ) : (
-          <div className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+          <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {sorted.map((product) => (
               <ProductCard
                 key={product.id}

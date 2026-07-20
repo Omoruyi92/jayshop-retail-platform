@@ -63,16 +63,16 @@ export default function ProductCard({
     <Link
       href={`/shop/${product.slug}`}
       onClick={handleClick}
-      className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 rounded-2xl ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+      className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
     >
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-md group-hover:border-jays-navy/10">
-        <div className="relative aspect-[3/4] bg-white overflow-hidden" style={{ position: 'relative' }}>
+      <div className="group overflow-hidden bg-transparent transition-transform duration-300 ease-out hover:-translate-y-1">
+        <div className="relative aspect-[3/4] overflow-hidden" style={{ position: 'relative' }}>
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
             style={{ position: 'absolute', inset: 0 }}
           />
           {!isSoldOut && (product.isFeatured || product.isNewArrival) && (
@@ -107,7 +107,7 @@ export default function ProductCard({
             </div>
           )}
         </div>
-        <div className="p-4">
+        <div className="p-3">
           <p className="font-semibold text-jays-navy text-sm leading-tight line-clamp-2 tracking-tight" title={product.name}>
             {titleCase(product.name)}
           </p>

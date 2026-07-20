@@ -94,8 +94,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-      <TrackRecentlyViewed
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <TrackRecentlyViewed
         id={product.id}
         slug={product.slug}
         name={product.name}
@@ -142,6 +143,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
       <div className="mt-12 lg:mt-16 border-t border-gray-100 pt-12">
         <RecentlyViewed />
       </div>
+    </div>
     </div>
   )
 }
