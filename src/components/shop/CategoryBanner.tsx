@@ -113,7 +113,7 @@ const BANNERS: Record<string, BannerConfig> = {
     eyebrow: 'Fan Favourites',
     title: 'FEATURED PRODUCTS',
     subtitle: 'Top-rated and hand-picked Blue Jays gear chosen for every fan.',
-    gradient: 'from-jays-blue via-blue-500 to-jays-navy',
+    gradient: 'from-blue-500 via-blue-600 to-jays-navy',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Star,
@@ -155,15 +155,47 @@ const BANNERS: Record<string, BannerConfig> = {
   },
 }
 
-export default function CategoryBanner({ activeCategory }: { activeCategory: string }) {
-  // URL categories arrive as lowercase slugs (e.g. "blanks", "sales-clearance"),
-  // but BANNERS uses display-style keys. Try exact match, then slug-normalized match,
-  // and finally fall back to the All/Dugout default.
-  const normalized = activeCategory
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+function bannerKey(activeCategory: string): string {
+  const raw = activeCategory.trim()
+  if (!raw || raw.toLowerCase() === 'all') return 'All'
+
+  // Exact match first (handles "All", "Featured", "Sales & Clearance", "Blanks")
+  if (BANNERS[raw]) return raw
+
+  // Lowercase slug match (handles "men", "women", "sport", "authentic", etc.)
+  const lower = raw.toLowerCase()
+  if (BANNERS[lower]) return lower
+
+  // Hyphenated slug normalization (e.g. "sales-clearance" -> "Sales Clearance")
+  const normalized = raw
+    .split(/[-\s]+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(' ')
-  const config = BANNERS[activeCategory] ?? BANNERS[normalized] ?? BANNERS.All
+  if (BANNERS[normalized]) return normalized
+
+  // Special-case mappings for slugs that don't normalize cleanly
+  const aliases: Record<string, string> = {
+    'sales-clearance': 'Sales & Clearance',
+    'sales clearance': 'Sales & Clearance',
+    'sale': 'Sales & Clearance',
+    'clearance': 'Sales & Clearance',
+    'new-arrivals': 'New Arrivals',
+    'new arrivals': 'New Arrivals',
+    'new': 'New Arrivals',
+    'featured': 'Featured',
+    'blanks': 'Blanks',
+    'blank': 'Blanks',
+    'authentication': 'authentication',
+    'authentic': 'authentic',
+  }
+  const alias = aliases[lower]
+  if (alias && BANNERS[alias]) return alias
+
+  return 'All'
+}
+
+export default function CategoryBanner({ activeCategory }: { activeCategory: string }) {
+  const config = BANNERS[bannerKey(activeCategory)] ?? BANNERS.All
   const Icon = config.icon
   const isDark = config.textClass === 'text-white'
 

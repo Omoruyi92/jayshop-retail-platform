@@ -68,12 +68,16 @@ function effectivePriceCents(product: Product): number {
 }
 
 function categoryMatches(product: Product, activeCategory: string): boolean {
-  if (activeCategory === 'All') return true
-  if (activeCategory === 'Featured') return product.isFeatured
-  if (activeCategory === 'New Arrivals') return product.isNewArrival
-  if (activeCategory === 'Sales & Clearance') return product.isClearance || product.salePriceCents > 0
-  if (activeCategory === 'Blanks') return product.isBlankJersey
-  return product.category.toLowerCase() === activeCategory.toLowerCase()
+  const cat = activeCategory.trim()
+  const catLower = cat.toLowerCase()
+  if (cat === 'All' || catLower === 'all') return true
+  if (catLower === 'featured') return product.isFeatured
+  if (catLower === 'new-arrivals' || catLower === 'new arrivals' || catLower === 'new') return product.isNewArrival
+  if (catLower === 'sales-clearance' || catLower === 'sales & clearance' || catLower === 'sales clearance' || catLower === 'clearance' || catLower === 'sale') {
+    return product.isClearance || product.salePriceCents > 0
+  }
+  if (catLower === 'blanks' || catLower === 'blank') return product.isBlankJersey
+  return product.category.toLowerCase() === catLower
 }
 
 function PillRow({
