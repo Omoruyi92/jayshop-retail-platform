@@ -57,7 +57,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
         .map((c) => c.slug)
       : [...CATEGORY_SORT_ORDER]
 
-  const pills: { label: string; value: string; hasDropdown: boolean; children: string[] }[] = [
+  const allPills: { label: string; value: string; hasDropdown: boolean; children: string[] }[] = [
     { label: 'All', value: 'All', hasDropdown: false, children: [] },
     ...realCategories.map((c) => {
       const label = labelsBySlug[c] ?? CATEGORY_LABELS[c] ?? titleCase(c)
@@ -66,11 +66,12 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
         : (SUBS_BY_CAT[c] ?? [])
       return { label, value: c, hasDropdown: children.length > 0, children }
     }),
-    { label: 'Featured', value: 'Featured', hasDropdown: false, children: [] },
     { label: 'New Arrivals', value: 'New Arrivals', hasDropdown: false, children: [] },
     { label: 'Sales & Clearance', value: 'Sales & Clearance', hasDropdown: false, children: [] },
     { label: 'Blanks', value: 'Blanks', hasDropdown: false, children: [] },
   ]
+
+  const pills = allPills.filter((p) => p.value === 'All' || p.hasDropdown || p.children.length > 0)
 
   function handleMouseEnter(category: string) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
