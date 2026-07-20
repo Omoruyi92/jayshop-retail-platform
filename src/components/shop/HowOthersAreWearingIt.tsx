@@ -159,31 +159,34 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
 
       {loading ? (
         <p className="text-sm text-jays-steel">Loading gallery…</p>
-      ) : submissions.length === 0 ? (
-        <p className="text-sm text-jays-steel">
-          Be the first to share how you wear it. Upload up to 2 photos or mention{' '}
-          <span className="font-semibold text-jays-navy">@BlueJays</span> on Instagram for a chance to be featured.
-        </p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {featuredImages.map(({ id, imageUrl, submission }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => openLightbox(submission, submission.images.findIndex((i) => i.id === id))}
-              className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 text-left"
-            >
-              <Image src={imageUrl} alt="Customer style" fill className="object-cover" unoptimized />
-              {submission.instagramHandle && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
-                  <p className="text-[10px] text-white flex items-center gap-1">
-                    <Instagram size={10} /> @{submission.instagramHandle}
-                  </p>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
+        <>
+          <p className="text-sm text-jays-steel mb-3">
+            Be the first to share how you wear it. Upload up to 2 photos or mention{' '}
+            <span className="font-semibold text-jays-navy">@BlueJays</span> on Instagram for a chance to be featured.
+          </p>
+          {submissions.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {featuredImages.map(({ id, imageUrl, submission }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => openLightbox(submission, submission.images.findIndex((i) => i.id === id))}
+                  className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 text-left"
+                >
+                  <Image src={imageUrl} alt="Customer style" fill className="object-cover" unoptimized />
+                  {submission.instagramHandle && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
+                      <p className="text-[10px] text-white flex items-center gap-1">
+                        <Instagram size={10} /> @{submission.instagramHandle}
+                      </p>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Upload modal */}
