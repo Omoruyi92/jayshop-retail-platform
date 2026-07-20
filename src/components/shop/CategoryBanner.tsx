@@ -156,7 +156,14 @@ const BANNERS: Record<string, BannerConfig> = {
 }
 
 export default function CategoryBanner({ activeCategory }: { activeCategory: string }) {
-  const config = BANNERS[activeCategory] ?? BANNERS.All
+  // URL categories arrive as lowercase slugs (e.g. "blanks", "sales-clearance"),
+  // but BANNERS uses display-style keys. Try exact match, then slug-normalized match,
+  // and finally fall back to the All/Dugout default.
+  const normalized = activeCategory
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+  const config = BANNERS[activeCategory] ?? BANNERS[normalized] ?? BANNERS.All
   const Icon = config.icon
   const isDark = config.textClass === 'text-white'
 

@@ -51,7 +51,7 @@ export default function HeroSlideshow({ scope, interval = 6000, className = '' }
       {slides.map((slide, i) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`}
         >
           {slide.mediaType === 'VIDEO' ? (
             <video
@@ -68,6 +68,8 @@ export default function HeroSlideshow({ scope, interval = 6000, className = '' }
               src={slide.url}
               alt={slide.altText || `${scope} hero image`}
               fill
+              sizes="100vw"
+              quality={95}
               priority={i === 0}
               className="object-cover"
               unoptimized
