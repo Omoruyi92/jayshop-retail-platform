@@ -15,7 +15,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   sport: 'Sport',
 }
 
-const CATEGORY_SORT_ORDER = ['men', 'women', 'kids', 'accessories', 'sport', 'authentication']
+const CATEGORY_SORT_ORDER = ['men', 'women', 'kids', 'accessories', 'sport']
 
 function titleCase(s: string) {
   return s.split(/[-\s]+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
