@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { SUBS_BY_CAT, BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
@@ -27,6 +28,7 @@ interface StickyShopCategoryNavProps {
 }
 
 export default function StickyShopCategoryNav({ activeCategory, onSelect }: StickyShopCategoryNavProps) {
+  const router = useRouter()
   const { categories, labelsBySlug, loading } = useCategoryTree()
   const [hovered, setHovered] = useState<{ category: string | null; sub: string | null; brand: string | null }>({
     category: null,
@@ -38,6 +40,9 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
 
+  const categoryRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+  const lastFocusedCategory = useRef<string | null>(null)
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -47,6 +52,12 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  useEffect(() => {
+    if (lastFocusedCategory.current && categoryRefs.current[lastFocusedCategory.current]) {
+      categoryRefs.current[lastFocusedCategory.current]?.focus({ preventScroll: true })
+    }
+  }, [activeCategory])
 
   const realCategories = loading
     ? [...CATEGORY_SORT_ORDER]
@@ -96,6 +107,19 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     onSelect?.(category, sub, brand, hatStyle)
   }
 
+  function navigate(value: string, sub = 'All', brand = 'All', hatStyle = 'All') {
+    lastFocusedCategory.current = value
+    apply(value, sub, brand, hatStyle)
+    const href = value === 'All'
+      ? '/shop?category=All'
+      : (brand && brand !== 'All'
+        ? `/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}`
+        : (sub && sub !== 'All'
+          ? `/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}`
+          : `/shop?category=${encodeURIComponent(value)}`))
+    router.push(href)
+  }
+
   function subLink(category: string, sub: string, brand: string) {
     if (brand && brand !== 'All') {
       return `/shop?category=${encodeURIComponent(category)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}`
@@ -117,18 +141,23 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
       className="sticky z-30 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)]"
       style={{ top: 'calc(var(--header-height, 3.5rem) + var(--subnav-height, 2.75rem))' }}
     >
-      <div className="relative mx-auto flex w-full max-w-none items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="hidden items-center gap-1 py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
+      <div className="relative mx-auto flex w-full max-w-none items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="hidden items-center justify-center gap-1 py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
           {pills.map(({ label, value, hasDropdown, children }) => {
             const active = activeCategory?.toLowerCase() === value.toLowerCase()
             const isHovered = hovered.category === value
             return (
               <div key={value} className="relative" onMouseEnter={() => handleMouseEnter(value)}>
                 <Link
+                  ref={(el) => { categoryRefs.current[value] = el }}
                   href={value === 'All' ? '/shop?category=All' : allLink(value)}
-                  onClick={() => apply(value, 'All', 'All', 'All')}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    navigate(value, 'All', 'All', 'All')
+                  }}
                   className={`
                     inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-all
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40
                     ${active
                       ? 'bg-jays-navy text-white shadow-sm'
                       : 'text-jays-navy hover:bg-jays-ice/60'}
@@ -148,7 +177,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                     <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                       <Link
                         href={allLink(value)}
-                        onClick={() => apply(value, 'All', 'All', 'All')}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          navigate(value, 'All', 'All', 'All')
+                        }}
                         className="block rounded-lg px-3 py-2 text-sm font-semibold text-jays-navy hover:bg-jays-ice/60"
                       >
                         All {label}
@@ -161,7 +193,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                           <div key={sub} className="relative" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
                             <Link
                               href={subLink(value, sub, 'All')}
-                              onClick={() => apply(value, sub, 'All', 'All')}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                navigate(value, sub, 'All', 'All')
+                              }}
                               className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
                             >
                               <span>{labelsBySlug[sub] ?? titleCase(sub)}</span>
@@ -182,7 +217,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                       <div key={brand} className="relative" onMouseEnter={() => handleBrandMouseEnter(value, sub, brand)}>
                                         <Link
                                           href={subLink(value, sub, brand)}
-                                          onClick={() => apply(value, sub, brand, 'All')}
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            navigate(value, sub, brand, 'All')
+                                          }}
                                           className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
                                         >
                                           <span>{brand}</span>
@@ -199,7 +237,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                                 <Link
                                                   key={style}
                                                   href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}&hatStyle=${encodeURIComponent(style)}`}
-                                                  onClick={() => apply(value, sub, brand, style)}
+                                                  onClick={(e) => {
+                                                    e.preventDefault()
+                                                    navigate(value, sub, brand, style)
+                                                  }}
                                                   className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-jays-ice/60 hover:text-jays-navy"
                                                 >
                                                   {style}
@@ -250,11 +291,16 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
             return (
               <div key={value} className="border-b border-gray-50 last:border-0">
                 <div className="flex items-center justify-between py-2">
-                  <Link
-                    href={value === 'All' ? '/shop?category=All' : allLink(value)}
-                    onClick={() => { setMobileOpen(false); apply(value, 'All', 'All', 'All') }}
-                    className={`text-sm font-semibold ${active ? 'text-jays-navy' : 'text-gray-700'}`}
-                  >
+                      <Link
+                        ref={(el) => { categoryRefs.current[value] = el }}
+                        href={value === 'All' ? '/shop?category=All' : allLink(value)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setMobileOpen(false)
+                          navigate(value, 'All', 'All', 'All')
+                        }}
+                        className={`text-sm font-semibold ${active ? 'text-jays-navy' : 'text-gray-700'}`}
+                      >
                     {label}
                   </Link>
                   {hasDropdown && (
@@ -285,7 +331,11 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                           <div className="flex items-center justify-between py-1.5">
                             <Link
                               href={subLink(value, sub, 'All')}
-                              onClick={() => { setMobileOpen(false); apply(value, sub, 'All', 'All') }}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setMobileOpen(false)
+                                navigate(value, sub, 'All', 'All')
+                              }}
                               className="text-sm text-gray-600 hover:text-jays-navy"
                             >
                               {labelsBySlug[sub] ?? titleCase(sub)}
@@ -315,7 +365,11 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                     <div className="flex items-center justify-between py-1">
                                       <Link
                                         href={subLink(value, sub, brand)}
-                                        onClick={() => { setMobileOpen(false); apply(value, sub, brand, 'All') }}
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          setMobileOpen(false)
+                                          navigate(value, sub, brand, 'All')
+                                        }}
                                         className="text-sm text-gray-600 hover:text-jays-navy"
                                       >
                                         {brand}
@@ -338,7 +392,11 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                           <Link
                                             key={style}
                                             href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&brand=${encodeURIComponent(brand)}&hatStyle=${encodeURIComponent(style)}`}
-                                            onClick={() => { setMobileOpen(false); apply(value, sub, brand, style) }}
+                                            onClick={(e) => {
+                                              e.preventDefault()
+                                              setMobileOpen(false)
+                                              navigate(value, sub, brand, style)
+                                            }}
                                             className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
                                           >
                                             {style}
