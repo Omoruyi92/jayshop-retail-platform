@@ -8,6 +8,7 @@ import ProductReviews from '@/components/shop/ProductReviews'
 import RecentlyViewed from '@/components/shop/RecentlyViewed'
 import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
 import YouMayAlsoLike from '@/components/shop/YouMayAlsoLike'
+import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
 
 export const revalidate = 30
@@ -94,7 +95,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-[var(--subnav-height,2.75rem)]">
+      <StickyShopCategoryNav activeCategory={product.category} />
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <TrackRecentlyViewed
         id={product.id}

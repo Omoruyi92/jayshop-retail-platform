@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/shop/ProductCard'
 import ShopHero from '@/components/shop/ShopHero'
+import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
+import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { BRANDS_BY_CAT, HAT_STYLES } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
@@ -117,14 +119,14 @@ function PillRow({
   )
 }
 
-export default function ShopPageClient({ children }: { children?: ReactNode }) {
+export default function ShopPageClient({ activeCategory: initialCategory }: { activeCategory: string }) {
   const { t } = useLanguage()
   const { subsByCat, subPriorityBySlug } = useCategoryTree()
   const s = t.shop
   const searchParams = useSearchParams()
 
   const [products, setProducts] = useState<Product[]>([])
-  const [activeCategory, setActiveCategory] = useState<string>('All')
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory || 'All')
   const [activeSub, setActiveSub] = useState<string>('All')
   const [activeHatStyle, setActiveHatStyle] = useState<string>('All')
   const [activeBrand, setActiveBrand] = useState<string>('All')
@@ -371,10 +373,10 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         livePulse={livePulse}
       />
 
-      <div className="bg-white">
-        {children}
+      <StickyShopCategoryNav activeCategory={activeCategory} onSelect={handleCategoryNavSelect} />
+      <CategoryBanner activeCategory={activeCategory} />
 
-        <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
+      <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
         <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             {!loading && (
@@ -445,7 +447,6 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             ))}
           </div>
         )}
-      </div>
       </div>
     </>
   )

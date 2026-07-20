@@ -7,7 +7,6 @@ import StatusChip from '@/components/ui/StatusChip'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import BackToShopButton from '@/components/shop/BackToShopButton'
 import HowOthersAreWearingIt from '@/components/shop/HowOthersAreWearingIt'
 import { formatCAD } from '@/lib/utils'
 import { titleCase } from '@/lib/text'
@@ -119,7 +118,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
 
   return (
     <div className="flex flex-col pb-8">
-      <BackToShopButton />
       <div className="flex items-start justify-between gap-4 mb-4">
         <h1 className="font-display text-2xl font-bold text-jays-navy leading-tight">
           {titleCase(product.name)}

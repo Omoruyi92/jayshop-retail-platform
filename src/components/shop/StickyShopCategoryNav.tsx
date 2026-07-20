@@ -37,6 +37,8 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   })
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, string | null>>({})
+  const [visible, setVisible] = useState(true)
+  const lastScrollY = useRef(0)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
 
@@ -58,6 +60,21 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
       categoryRefs.current[lastFocusedCategory.current]?.focus({ preventScroll: true })
     }
   }, [activeCategory])
+
+  useEffect(() => {
+    function onScroll() {
+      const current = window.scrollY
+      const delta = current - lastScrollY.current
+      if (delta > 6) {
+        setVisible(false)
+      } else if (delta < -6) {
+        setVisible(true)
+      }
+      lastScrollY.current = current
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const realCategories = loading
     ? [...CATEGORY_SORT_ORDER]
@@ -138,8 +155,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   return (
     <div
       ref={navRef}
-      className="sticky z-30 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)]"
-      style={{ top: 'calc(var(--header-height, 3.5rem) + var(--subnav-height, 2.75rem))' }}
+      className={`fixed left-0 right-0 z-30 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)] transition-transform duration-300 ${
+        visible ? 'translate-y-0' : '-translate-y-full'
+      }`}
+      style={{ top: 'calc(var(--header-height, 3.5rem))' }}
     >
       <div className="relative mx-auto flex w-full max-w-none items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="hidden items-center justify-center gap-1 py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
