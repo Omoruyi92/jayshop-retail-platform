@@ -5,7 +5,7 @@ import ShopPageClient from '@/components/shop/ShopPageClient'
 export default function ShopPage({
   searchParams,
 }: {
-  searchParams?: { category?: string }
+  searchParams?: { category?: string; sub?: string }
 }) {
   const activeCategory = typeof searchParams?.category === 'string' ? searchParams.category : 'All'
 

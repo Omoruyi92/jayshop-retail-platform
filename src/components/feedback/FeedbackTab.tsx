@@ -57,17 +57,16 @@ export default function FeedbackTab() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed left-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-r-xl bg-jays-red px-2.5 py-4 font-display text-xs font-bold uppercase tracking-[0.25em] text-white shadow-xl transition-transform hover:translate-x-0.5 md:block"
-        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+        className="fixed right-6 top-24 z-30 hidden rounded-full bg-jays-red px-3.5 py-2 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg transition-transform hover:scale-105 md:block"
         aria-label="Open feedback form"
       >
-        FEEDBACK
+        Feedback
       </button>
 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 left-4 z-40 rounded-full bg-jays-red px-4 py-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-white shadow-xl transition-transform active:scale-[0.98] md:hidden"
+        className="fixed bottom-24 right-4 z-30 rounded-full bg-jays-red px-3.5 py-2 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg transition-transform active:scale-[0.98] md:hidden"
         aria-label="Open feedback form"
       >
         Feedback

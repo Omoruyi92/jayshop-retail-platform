@@ -139,6 +139,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
   useEffect(() => {
     const saved = loadShopState()
     const urlCategory = searchParams?.get('category')?.trim()
+    const urlSub = searchParams?.get('sub')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
     if (urlCategory === 'All') {
       // Explicit reset request from the "All" pill — always show the full
@@ -157,13 +158,14 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     }
     if (saved) {
       setActiveCategory(urlCategory || saved.category)
-      setActiveSub(saved.sub)
+      setActiveSub(urlSub || saved.sub)
       setActiveBrand(urlBrand || saved.brand)
       setSearchInput(saved.search)
       setSearchQuery(saved.search)
       pendingScrollRef.current = saved.scrollY
     } else {
       if (urlCategory) setActiveCategory(urlCategory)
+      if (urlSub) setActiveSub(urlSub)
       if (urlBrand) setActiveBrand(urlBrand)
     }
     hasRestoredRef.current = true
@@ -171,6 +173,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
 
   useEffect(() => {
     const urlCategory = searchParams?.get('category')?.trim()
+    const urlSub = searchParams?.get('sub')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
     if (urlCategory === 'All') {
       setActiveCategory('All')
@@ -188,7 +191,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     }
     if (!urlCategory) return
     setActiveCategory(urlCategory)
-    setActiveSub('All')
+    setActiveSub(urlSub || 'All')
     setActiveBrand('All')
   }, [searchParams])
 
@@ -360,9 +363,10 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         livePulse={livePulse}
       />
 
-      {children}
+      <div className="bg-white">
+        {children}
 
-      <div className="mx-auto w-full max-w-none px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-none bg-white px-4 pb-8 pt-6 sm:px-6 lg:px-8">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
@@ -513,6 +517,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             ))}
           </div>
         )}
+      </div>
       </div>
     </>
   )
