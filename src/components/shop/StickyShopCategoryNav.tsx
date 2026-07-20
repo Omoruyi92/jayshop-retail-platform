@@ -80,7 +80,7 @@ export default async function StickyShopCategoryNav({ activeCategory }: { active
                   key={value}
                   href={`/shop?category=${encodeURIComponent(value)}`}
                   className={`
-                    shrink-0 px-4 py-1.5 rounded-full text-xs font-display font-bold uppercase tracking-wide transition-all
+                    shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all
                     ${active
                       ? 'bg-jays-navy text-white shadow-sm'
                       : 'bg-white text-jays-navy border border-jays-navy/10 hover:border-jays-navy/30 hover:bg-jays-ice/50'}

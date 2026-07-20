@@ -53,8 +53,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-oswald)', 'sans-serif'],
-        sans: ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-oswald)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

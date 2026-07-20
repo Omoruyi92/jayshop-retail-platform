@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { Oswald, Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { Toaster } from 'sonner'
 import RootSessionProvider from '@/components/layout/RootSessionProvider'
 import DevServiceWorkerCleanup from '@/components/layout/DevServiceWorkerCleanup'
 
-const oswald = Oswald({
+const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-oswald',
@@ -58,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn(oswald.variable, inter.variable)}>
+    <html lang="en" className={cn(display.variable, inter.variable)}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         {process.env.NODE_ENV !== 'production' && (

@@ -92,6 +92,7 @@ model Product {
   players            PlayerProduct[]
   likes              ProductLike[]
   reviews            ProductReview[]
+  customerPhotos     CustomerPhoto[]
 
   @@index([status])
   @@index([category])
@@ -525,4 +526,22 @@ model StoreGalleryImage {
   @@index([category, status])
   @@index([createdAt])
   @@index([status, sortOrder])
+}
+
+model CustomerPhoto {
+  id               String   @id @default(cuid())
+  productId        String
+  imageUrl         String
+  caption          String?
+  customerName     String?
+  instagramHandle  String?
+  status           String   @default("PENDING")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, status])
+  @@index([status])
+  @@index([createdAt])
 }

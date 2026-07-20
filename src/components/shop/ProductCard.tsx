@@ -5,6 +5,7 @@ import StatusChip from '@/components/ui/StatusChip'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
 import { saveShopState } from '@/lib/shop/shopState'
+import { titleCase } from '@/lib/text'
 
 interface CurrentFilters {
   category: string
@@ -71,7 +72,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             style={{ position: 'absolute', inset: 0 }}
           />
           {!isSoldOut && (product.isFeatured || product.isNewArrival) && (
@@ -107,8 +108,8 @@ export default function ProductCard({
           )}
         </div>
         <div className="p-4">
-          <p className="font-display font-semibold text-jays-navy uppercase text-sm leading-tight line-clamp-2 tracking-wide" title={product.name}>
-            {product.name}
+          <p className="font-semibold text-jays-navy text-sm leading-tight line-clamp-2 tracking-tight" title={product.name}>
+            {titleCase(product.name)}
           </p>
         </div>
       </div>

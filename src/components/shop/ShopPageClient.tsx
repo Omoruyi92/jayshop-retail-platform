@@ -362,49 +362,85 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
 
       {children}
 
-      <div className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
-          <PillRow
-            label="Subcategory"
-            options={availableSubs}
-            active={activeSub}
-            onSelect={(value) => {
-              setActiveSub(value)
-              setActiveBrand('All')
-              setActiveHatStyle('All')
-            }}
-            formatLabel={(sub) =>
-              sub === 'All'
-                ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
-                : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')
-            }
-          />
+      <div className="mx-auto w-full max-w-none px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
+              Subcategory
+            </label>
+            <select
+              value={activeSub}
+              onChange={(e) => {
+                setActiveSub(e.target.value)
+                setActiveBrand('All')
+                setActiveHatStyle('All')
+              }}
+              disabled={availableSubs.length === 0}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20 disabled:opacity-50"
+            >
+              {availableSubs.map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub === 'All'
+                    ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
+                    : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {activeSub === 'hats' && (
-            <PillRow
-              label="Hat Style"
-              options={availableHatStyles}
-              active={activeHatStyle}
-              onSelect={setActiveHatStyle}
-              formatLabel={(style) => (style === 'All' ? 'All Styles' : style)}
-            />
+            <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
+              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
+                Hat Style
+              </label>
+              <select
+                value={activeHatStyle}
+                onChange={(e) => setActiveHatStyle(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
+              >
+                {availableHatStyles.map((style) => (
+                  <option key={style} value={style}>
+                    {style === 'All' ? 'All Styles' : style}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
-          <PillRow
-            label="Brand"
-            options={availableBrands}
-            active={activeBrand}
-            onSelect={setActiveBrand}
-            formatLabel={(brand) => (brand === 'All' ? 'All Brands' : brand)}
-          />
+          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
+              Brand
+            </label>
+            <select
+              value={activeBrand}
+              onChange={(e) => setActiveBrand(e.target.value)}
+              disabled={availableBrands.length === 0}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20 disabled:opacity-50"
+            >
+              {availableBrands.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand === 'All' ? 'All Brands' : brand}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <PillRow
-            label="Price"
-            options={PRICE_RANGES.map((r) => r.value)}
-            active={activePriceRange}
-            onSelect={setActivePriceRange}
-            formatLabel={(value) => PRICE_RANGES.find((r) => r.value === value)?.label ?? value}
-          />
+          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
+              Price
+            </label>
+            <select
+              value={activePriceRange}
+              onChange={(e) => setActivePriceRange(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
+            >
+              {PRICE_RANGES.map((range) => (
+                <option key={range.value} value={range.value}>
+                  {range.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -447,8 +483,8 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         </div>
 
         {loading ? (
-          <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-            {Array.from({ length: 8 }).map((_, index) => (
+          <div className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            {Array.from({ length: 10 }).map((_, index) => (
               <div key={index} className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm animate-pulse">
                 <div className="aspect-[3/4] bg-jays-ice" />
                 <div className="space-y-2 p-3">
@@ -464,7 +500,7 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
             body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
           />
         ) : (
-          <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          <div className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {sorted.map((product) => (
               <ProductCard
                 key={product.id}
