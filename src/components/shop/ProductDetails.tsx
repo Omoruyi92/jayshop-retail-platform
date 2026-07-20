@@ -8,12 +8,13 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
 import BackToShopButton from '@/components/shop/BackToShopButton'
+import HowOthersAreWearingIt from '@/components/shop/HowOthersAreWearingIt'
 import { formatCAD } from '@/lib/utils'
 import { titleCase } from '@/lib/text'
 import type { Product } from '@prisma/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
-import { Heart, X, Camera, Loader2, Instagram } from 'lucide-react'
+import { Heart, X } from 'lucide-react'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { ProductAvailability } from '@/lib/inventory/aggregate'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
@@ -48,13 +49,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
   const [availability, setAvailability] = useState<ProductAvailability | undefined>(initialAvailability)
   const [moreInfoOpen, setMoreInfoOpen] = useState(false)
   const [customerPhotos, setCustomerPhotos] = useState<{ id: string; imageUrl: string; customerName: string | null; instagramHandle: string | null; caption: string | null }[]>([])
-  const [uploadOpen, setUploadOpen] = useState(false)
-  const [uploadLoading, setUploadLoading] = useState(false)
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [uploadName, setUploadName] = useState('')
-  const [uploadHandle, setUploadHandle] = useState('')
-  const [uploadCaption, setUploadCaption] = useState('')
 
   const hasSizes = sizes.length > 0
   const liked = isLiked(product.id)
@@ -131,42 +125,6 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
     : []
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]?.name || '')
   const isOnSale = !!product.salePriceCents && product.salePriceCents > 0 && product.salePriceCents < product.priceCents
-
-  async function handleUpload(e: React.FormEvent) {
-    e.preventDefault()
-    if (!uploadFile) return
-    setUploadLoading(true)
-    try {
-      const body = new FormData()
-      body.append('productId', product.id)
-      body.append('image', uploadFile)
-      body.append('customerName', uploadName)
-      body.append('instagramHandle', uploadHandle.replace(/^@/, ''))
-      body.append('caption', uploadCaption)
-      const res = await fetch('/api/customer-photos', { method: 'POST', body })
-      if (!res.ok) throw new Error('Upload failed')
-      setUploadOpen(false)
-      setUploadFile(null)
-      setUploadPreview(null)
-      setUploadName('')
-      setUploadHandle('')
-      setUploadCaption('')
-      alert('Photo submitted for review. Thanks!')
-    } catch {
-      alert('Upload failed. Please try again.')
-    } finally {
-      setUploadLoading(false)
-    }
-  }
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => setUploadPreview(reader.result as string)
-    reader.readAsDataURL(file)
-  }
 
   function isSizeOos(size: string): boolean {
     if (!sizeAvailability) return false
@@ -405,106 +363,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
         </DialogContent>
       </Dialog>
 
-      <div className="mt-8 pt-6 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display font-semibold text-jays-navy uppercase mb-0">
-            How Others Are Wearing It
-          </h3>
-          <button
-            type="button"
-            onClick={() => setUploadOpen(true)}
-            className="flex items-center gap-1.5 text-xs font-semibold text-jays-royal hover:text-jays-navy transition-colors"
-          >
-            <Camera size={14} /> Upload Your Photo
-          </button>
-        </div>
-
-        {customerPhotos.length === 0 ? (
-          <p className="text-sm text-jays-steel">
-            Be the first to share how you wear it. Upload your photo or mention{' '}
-            <span className="font-semibold text-jays-navy">@BlueJays</span> on Instagram for a chance to be featured.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {customerPhotos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
-                <img src={photo.imageUrl} alt="Customer wearing this product" className="w-full h-full object-cover" />
-                {photo.instagramHandle && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
-                    <p className="text-[10px] text-white flex items-center gap-1">
-                      <Instagram size={10} /> @{photo.instagramHandle}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Upload modal */}
-      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upload Your Photo</DialogTitle>
-            <DialogClose className="rounded-lg p-1.5 text-jays-steel hover:bg-jays-ice transition-colors">
-              <X size={18} />
-            </DialogClose>
-          </DialogHeader>
-          <form onSubmit={handleUpload} className="space-y-3">
-            <p className="text-xs text-jays-steel">
-              Upload your photo or mention{' '}
-              <span className="font-semibold text-jays-navy">@BlueJays</span> on Instagram for a chance to be featured. All submissions are reviewed before publishing.
-            </p>
-
-            <label className="block">
-              <span className="block text-xs font-medium text-gray-700 mb-1">Photo</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                required
-                className="block w-full text-sm text-jays-steel file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-jays-ice file:text-jays-navy"
-              />
-            </label>
-
-            {uploadPreview && (
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-
-            <input
-              value={uploadName}
-              onChange={(e) => setUploadName(e.target.value)}
-              placeholder="Your name (optional)"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-            />
-            <input
-              value={uploadHandle}
-              onChange={(e) => setUploadHandle(e.target.value)}
-              placeholder="Instagram handle (optional)"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-            />
-            <textarea
-              value={uploadCaption}
-              onChange={(e) => setUploadCaption(e.target.value)}
-              placeholder="Caption (optional)"
-              rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40"
-            />
-
-            <button
-              type="submit"
-              disabled={uploadLoading || !uploadFile}
-              className="w-full bg-jays-navy text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-jays-royal transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {uploadLoading && <Loader2 size={16} className="animate-spin" />}
-              Submit Photo
-            </button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <HowOthersAreWearingIt productId={product.id} />
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

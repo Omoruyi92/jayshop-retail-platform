@@ -1,12 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import UpcomingMatchCard from '@/components/home/UpcomingMatchCard'
+import HomeHero from '@/components/home/HomeHero'
 import FanTestimonials from '@/components/home/FanTestimonials'
 import PartnerLogoMarquee from '@/components/ui/PartnerLogoMarquee'
-import BrandWatermarks from '@/components/ui/BrandWatermarks'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 
 export default function HomePage() {
@@ -14,9 +11,6 @@ export default function HomePage() {
   const h = t.home
   const [isGameDayToday, setIsGameDayToday] = useState(false)
 
-  // The Game Day Hold Policy banner only applies to the Section 123 Stadium
-  // Queue on active game days — it should disappear entirely on non-game
-  // days rather than show a static/irrelevant notice.
   useEffect(() => {
     let cancelled = false
     fetch('/api/game-days/next')
@@ -85,100 +79,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-jays-ice">
-      {/* ── Hero — card-based, matches the Shop category banner treatment ── */}
-      <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy text-white shadow-xl ring-1 ring-black/5">
-          {/* subtle dotted texture, matches CategoryBanner */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.06]"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
-              backgroundSize: '18px 18px',
-            }}
-          />
-          {/* two soft glow orbs — the same layered feel as the shop banners, no extra stripe overlay */}
-          <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-jays-red/20 blur-3xl" />
-          <div aria-hidden="true" className="pointer-events-none absolute -right-12 -bottom-24 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl" />
-
-          <BrandWatermarks className="z-0" />
-          <LetsGoJaysWatermark className="z-0" />
-
-          {/* Champions badge — simplified, no spin ring / sparkle marks */}
-          <div className="absolute right-4 top-4 z-10 hidden items-center gap-2 sm:flex">
-            <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-md">
-              <p className="text-[9px] font-medium uppercase leading-tight tracking-[0.12em] text-blue-200/80">American League</p>
-              <p className="font-display text-sm font-bold uppercase leading-tight tracking-wide text-white">Champions</p>
-              <p className="text-[10px] font-semibold text-yellow-300/90">2025 ⚾</p>
-            </div>
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-white/25 bg-white/10 shadow-lg sm:h-16 sm:w-16">
-              <Image
-                src="/brand/alcs-2025-round.png"
-                alt="2025 ALCS Champions"
-                width={80}
-                height={80}
-                className="h-full w-full rounded-full object-cover"
-              />
-            </div>
-          </div>
-
-          <div className="relative z-10 mx-auto max-w-2xl px-6 pb-12 pt-14 text-center sm:px-8 sm:pb-16 sm:pt-16">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] backdrop-blur-sm sm:text-xs">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red animate-pulse" />
-              Live Inventory · Rogers Centre
-            </div>
-
-            <h1 className="mb-4 font-display text-4xl font-bold uppercase tracking-wide leading-[1.1] sm:text-6xl">
-              {h.heroTitle1}
-              <br />
-              <span className="bg-gradient-to-r from-orange-500 via-jays-red to-amber-500 bg-clip-text text-transparent">
-                {h.heroTitle2}
-              </span>
-            </h1>
-
-            <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-blue-100 sm:text-lg">
-              {h.heroSubtitle}
-            </p>
-
-            <div className="mx-auto mb-8 max-w-md">
-              <UpcomingMatchCard />
-            </div>
-
-            <div className="mb-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                href="/shop"
-                className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-base px-8 py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
-              >
-                {h.browseShop}
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-              <Link
-                href="/my-holds"
-                className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-sm px-6 py-3 rounded-xl hover:border-white hover:bg-white/10 transition-all"
-              >
-                {h.viewMyHolds}
-              </Link>
-            </div>
-
-            <div className="mx-auto grid max-w-2xl grid-cols-1 gap-3 text-left text-xs text-blue-100/85 sm:grid-cols-3 sm:text-sm">
-              <div className="flex items-center gap-1.5">
-                <span>🏟️</span>
-                <span>12 store locations</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span>⏰</span>
-                <span>3-hr express holds</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span>💳</span>
-                <span>Free to reserve</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHero isGameDayToday={isGameDayToday} />
 
       {/* ── How It Works ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">

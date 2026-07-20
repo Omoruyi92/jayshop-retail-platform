@@ -545,3 +545,66 @@ model CustomerPhoto {
   @@index([status])
   @@index([createdAt])
 }
+
+model HeroSlide {
+  id          String     @id @default(cuid())
+  scope       SlideScope @default(HOME)
+  mediaType   MediaType  @default(IMAGE)
+  url         String
+  mobileUrl   String?
+  altText     String?
+  sortOrder   Int        @default(0)
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([scope, active, sortOrder])
+  @@index([active])
+  @@index([createdAt])
+}
+
+model CustomerStyleSubmission {
+  id             String                @id @default(cuid())
+  customerName   String?
+  customerEmail  String?
+  customerPhone  String?
+  instagramHandle String?
+  caption        String?
+  status         SubmissionStatus      @default(PENDING)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  images         CustomerStyleImage[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CustomerStyleImage {
+  id           String                  @id @default(cuid())
+  submissionId String
+  imageUrl     String
+  caption      String?
+  sortOrder    Int                     @default(0)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  submission   CustomerStyleSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@index([createdAt])
+}
+
+enum SlideScope {
+  HOME
+  SHOP
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import SearchBar from '@/components/shop/SearchBar'
+import HeroSlideshow from '@/components/shop/HeroSlideshow'
 
 export default function ShopHero({
   searchValue,
@@ -16,6 +17,9 @@ export default function ShopHero({
 }) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy">
+      {/* Slideshow overlay on default background */}
+      <HeroSlideshow scope="SHOP" />
+
       {/* sunburst rays, premium stadium-marquee feel */}
       <div
         aria-hidden
