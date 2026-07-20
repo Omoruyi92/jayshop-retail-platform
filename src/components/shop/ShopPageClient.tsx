@@ -343,6 +343,13 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
     search: searchInput,
   }
 
+  function handleCategoryNavSelect(category: string, sub: string, brand: string, hatStyle: string) {
+    setActiveCategory(category)
+    setActiveSub(sub)
+    setActiveBrand(brand)
+    setActiveHatStyle(hatStyle)
+  }
+
   // Persist the exact filtered/sorted product sequence the customer is
   // currently viewing so the product detail page can offer Previous/Next
   // navigation within this same category/filter/sort context, without
@@ -367,86 +374,6 @@ export default function ShopPageClient({ children }: { children?: ReactNode }) {
         {children}
 
         <div className="mx-auto w-full max-w-none bg-white px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
-          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
-              Subcategory
-            </label>
-            <select
-              value={activeSub}
-              onChange={(e) => {
-                setActiveSub(e.target.value)
-                setActiveBrand('All')
-                setActiveHatStyle('All')
-              }}
-              disabled={availableSubs.length === 0}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20 disabled:opacity-50"
-            >
-              {availableSubs.map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub === 'All'
-                    ? (activeCategory === 'Kids' ? 'All Kids' : s.allSubcategories)
-                    : sub.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-')}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {activeSub === 'hats' && (
-            <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
-              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
-                Hat Style
-              </label>
-              <select
-                value={activeHatStyle}
-                onChange={(e) => setActiveHatStyle(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
-              >
-                {availableHatStyles.map((style) => (
-                  <option key={style} value={style}>
-                    {style === 'All' ? 'All Styles' : style}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
-              Brand
-            </label>
-            <select
-              value={activeBrand}
-              onChange={(e) => setActiveBrand(e.target.value)}
-              disabled={availableBrands.length === 0}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20 disabled:opacity-50"
-            >
-              {availableBrands.map((brand) => (
-                <option key={brand} value={brand}>
-                  {brand === 'All' ? 'All Brands' : brand}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="min-w-[10rem] flex-1 sm:max-w-[14rem]">
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
-              Price
-            </label>
-            <select
-              value={activePriceRange}
-              onChange={(e) => setActivePriceRange(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
-            >
-              {PRICE_RANGES.map((range) => (
-                <option key={range.value} value={range.value}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             {!loading && (
