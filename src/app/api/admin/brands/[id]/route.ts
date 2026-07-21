@@ -7,6 +7,7 @@ import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { brandToSlug } from '@/lib/constants'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,6 +93,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       req,
     })
 
+    revalidatePath('/brands')
+    revalidatePath(`/brands/${brand.slug}`)
+    if (updated.slug !== brand.slug) revalidatePath(`/brands/${updated.slug}`)
+
     return NextResponse.json({ brand: updated })
   } catch (err) {
     console.error('PATCH /api/admin/brands/[id]', err)
@@ -130,6 +135,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       before: { name: brand.name, slug: brand.slug },
       req,
     })
+
+    revalidatePath('/brands')
+    revalidatePath(`/brands/${brand.slug}`)
 
     return NextResponse.json({ success: true })
   } catch (err) {

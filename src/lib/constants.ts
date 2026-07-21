@@ -73,7 +73,7 @@ export const POPULAR_BRANDS = [
   'Peace Collective',
   'Adidas',
   'Fanatics',
-  '47 Brand',
+  "'47",
   'Mitchell & Ness',
   'Majestic',
   'Under Armour',

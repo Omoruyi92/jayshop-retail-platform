@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import HomeHero from '@/components/home/HomeHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
@@ -7,7 +7,13 @@ import FanTestimonials from '@/components/home/FanTestimonials'
 import PartnerLogoMarquee from '@/components/ui/PartnerLogoMarquee'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 
-export default function HomePageClient({ initialHeroSlides }: { initialHeroSlides?: HeroSlide[] }) {
+export default function HomePageClient({
+  initialHeroSlides,
+  children,
+}: {
+  initialHeroSlides?: HeroSlide[]
+  children?: ReactNode
+}) {
   const { t } = useLanguage()
   const h = t.home
   const [isGameDayToday, setIsGameDayToday] = useState(false)
@@ -81,6 +87,11 @@ export default function HomePageClient({ initialHeroSlides }: { initialHeroSlide
   return (
     <div className="bg-jays-ice">
       <HomeHero isGameDayToday={isGameDayToday} initialSlides={initialHeroSlides} />
+
+      {/* ── Catalog previews: Brand / Player / Linked Gear ─────────
+          Pure-white, seamless with product/brand cards; server-rendered
+          entry points into the full /brands, /players catalogs. ───── */}
+      {children}
 
       {/* ── How It Works ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">

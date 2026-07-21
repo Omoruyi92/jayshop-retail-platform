@@ -18,7 +18,7 @@ function mediaType(mime: string): 'IMAGE' | 'VIDEO' {
   return 'IMAGE'
 }
 
-async function saveFile(file: File, scope: 'home' | 'shop') {
+async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing') {
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
   const isImage = mediaType(file.type) === 'IMAGE'
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   if (error) return error
 
   const { searchParams } = new URL(req.url)
-  const scope = searchParams.get('scope')?.toUpperCase() as 'HOME' | 'SHOP' | null
+  const scope = searchParams.get('scope')?.toUpperCase() as 'HOME' | 'SHOP' | 'STYLE_LANDING' | null
 
   const where: any = {}
   if (scope) where.scope = scope
@@ -69,10 +69,10 @@ export async function POST(req: Request) {
     const altText = (formData.get('altText') as string | null) ?? ''
     const file = formData.get('file') as File | null
 
-    if (!['HOME', 'SHOP'].includes(scopeRaw)) {
-      return NextResponse.json({ error: 'Scope must be HOME or SHOP' }, { status: 400 })
+    if (!['HOME', 'SHOP', 'STYLE_LANDING'].includes(scopeRaw)) {
+      return NextResponse.json({ error: 'Scope must be HOME, SHOP, or STYLE_LANDING' }, { status: 400 })
     }
-    const scope = scopeRaw.toLowerCase() as 'home' | 'shop'
+    const scope = scopeRaw.toLowerCase() as 'home' | 'shop' | 'style_landing'
 
     if (!file || file.size === 0) {
       return NextResponse.json({ error: 'Slide file is required' }, { status: 400 })
@@ -90,12 +90,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unsupported video format' }, { status: 400 })
     }
 
-    const count = await prisma.heroSlide.count({ where: { scope: scopeRaw as 'HOME' | 'SHOP' } })
+    const count = await prisma.heroSlide.count({ where: { scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' } })
     const url = await saveFile(file, scope)
 
     const slide = await prisma.heroSlide.create({
       data: {
-        scope: scopeRaw as 'HOME' | 'SHOP',
+        scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING',
         mediaType: type,
         url,
         altText,

@@ -15,7 +15,7 @@ export interface Slide {
 }
 
 interface HeroSlideshowProps {
-  scope: 'HOME' | 'SHOP'
+  scope: 'HOME' | 'SHOP' | 'STYLE_LANDING'
   interval?: number
   className?: string
   imagePosition?: 'center' | 'top' | 'bottom'

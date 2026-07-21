@@ -133,6 +133,7 @@ model Product {
   reviews            ProductReview[]
   customerPhotos     CustomerPhoto[]
   styleSubmissions   CustomerStyleSubmission[]
+  styles             ProductStyle[]
 
   @@index([status])
   @@index([category])
@@ -637,9 +638,52 @@ model CustomerStyleImage {
   @@index([createdAt])
 }
 
+// "Shop by Style" landing page category (e.g. Jerseys, Streetwear, Game Day
+// Fits, Jackets, Hats, Hoodies). Distinct from Category (product taxonomy) —
+// this is a customer-facing merchandising concept used to build masonry
+// cards on the Style landing page and a style-filtered listing page.
+model StyleCategory {
+  id              String         @id @default(cuid())
+  name            String
+  slug            String         @unique
+  description     String?
+  coverImageUrl   String
+  heroImageUrl    String?
+  heroVideoUrl    String?
+  heroOverlayText String?
+  heroCtaLabel    String?
+  heroCtaUrl      String?
+  sortOrder       Int            @default(0)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  products        ProductStyle[]
+
+  @@index([isActive, sortOrder])
+  @@index([slug])
+}
+
+// Many-to-many join between Product and StyleCategory — a product may
+// reasonably belong to more than one style (e.g. a jersey could be both
+// "Jerseys" and "Game Day Fits").
+model ProductStyle {
+  id              String        @id @default(cuid())
+  productId       String
+  styleCategoryId String
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  styleCategory   StyleCategory @relation(fields: [styleCategoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, styleCategoryId])
+  @@index([productId])
+  @@index([styleCategoryId])
+}
+
 enum SlideScope {
   HOME
   SHOP
+  STYLE_LANDING
 }
 
 enum MediaType {

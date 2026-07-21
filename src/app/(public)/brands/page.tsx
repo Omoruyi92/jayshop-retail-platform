@@ -1,14 +1,17 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import { getBrandProductCounts } from '@/lib/brands'
 
 export const revalidate = 60
 
 export default async function BrandsIndexPage() {
-  const brands = await prisma.brand.findMany({
+  const brandRows = await prisma.brand.findMany({
     where: { status: 'ACTIVE' },
     orderBy: { name: 'asc' },
   })
+  const counts = await getBrandProductCounts(brandRows.map((b) => b.name))
+  const brands = brandRows.map((b, i) => ({ ...b, productCount: counts[i] }))
 
   if (brands.length === 0) {
     return (
@@ -51,6 +54,9 @@ export default async function BrandsIndexPage() {
               )}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-jays-navy uppercase tracking-wide">{brand.name}</span>
+            <span className="text-[11px] text-jays-steel mt-1">
+              {brand.productCount} product{brand.productCount === 1 ? '' : 's'}
+            </span>
           </Link>
         ))}
       </div>

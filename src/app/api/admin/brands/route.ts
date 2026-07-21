@@ -7,6 +7,8 @@ import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { brandToSlug } from '@/lib/constants'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { getBrandProductCounts } from '@/lib/brands'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,9 +30,7 @@ export async function GET(req: Request) {
       orderBy: { name: 'asc' },
     })
 
-    const counts = await Promise.all(
-      brands.map((b) => prisma.product.count({ where: { brand: b.name, status: { not: 'ARCHIVED' } } }))
-    )
+    const counts = await getBrandProductCounts(brands.map((b) => b.name))
 
     return NextResponse.json({
       brands: brands.map((b, i) => ({ ...b, productCount: counts[i] })),
@@ -84,6 +84,9 @@ export async function POST(req: Request) {
       after: { name, slug, status, imageUrl: finalImageUrl },
       req,
     })
+
+    revalidatePath('/brands')
+    revalidatePath(`/brands/${slug}`)
 
     return NextResponse.json({ brand }, { status: 201 })
   } catch (err) {

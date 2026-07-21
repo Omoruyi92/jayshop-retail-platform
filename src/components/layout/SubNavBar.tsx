@@ -12,18 +12,20 @@ import {
   ShoppingBag,
   Globe,
   Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react'
 
 const links = [
-  { href: '/',            label: 'Home',           icon: Home },
-  { href: '/shop',        label: 'Shop',           icon: ShoppingBag },
-  { href: '/brands',      label: 'Brands',         icon: Globe },
-  { href: '/about-us',    label: 'About Us',       icon: Info },
-  { href: '/about',       label: 'Our Heritage',   icon: Landmark },
-  { href: '/size-chart',  label: 'Size Chart',     icon: Ruler },
-  { href: '/my-holds',    label: 'My Holds',       icon: Package },
-  { href: '/players',     label: 'Shop by Player', icon: Users },
-  { href: '/gallery',     label: 'Gallery',        icon: ImageIcon },
+  { href: '/',               label: 'Home',           icon: Home },
+  { href: '/shop',           label: 'Shop',           icon: ShoppingBag },
+  { href: '/brands',         label: 'Brands',         icon: Globe },
+  { href: '/about-us',       label: 'About Us',       icon: Info },
+  { href: '/about',          label: 'Our Heritage',   icon: Landmark },
+  { href: '/size-chart',     label: 'Size Chart',     icon: Ruler },
+  { href: '/my-holds',       label: 'My Holds',       icon: Package },
+  { href: '/players',        label: 'Shop by Player', icon: Users },
+  { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles },
+  { href: '/gallery',        label: 'Gallery',        icon: ImageIcon },
 ]
 
 export default function SubNavBar() {

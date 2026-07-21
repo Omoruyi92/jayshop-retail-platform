@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import ProductCard from '@/components/shop/ProductCard'
 import ShopHero from '@/components/shop/ShopHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
@@ -202,6 +203,7 @@ export default function ShopPageClient({
   const searchParams = useSearchParams()
 
   const [products, setProducts] = useState<Product[]>([])
+  const [brandDirectory, setBrandDirectory] = useState<{ name: string; slug: string; imageUrl: string }[]>([])
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory || 'All')
   const [activeSub, setActiveSub] = useState<string>('All')
   const [activeAudience, setActiveAudience] = useState<string>('All')
@@ -364,6 +366,17 @@ export default function ShopPageClient({
     return () => clearInterval(interval)
   }, [fetchProducts])
 
+  // Fetch the brand directory once so the active-brand indicator (shown when
+  // arriving via the partner marquee or the Brands page) can display the
+  // matching logo — same Brand records that drive /brands, single source of
+  // truth for brand name -> logo lookups.
+  useEffect(() => {
+    fetch('/api/brands')
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.brands)) setBrandDirectory(d.brands) })
+      .catch(() => {})
+  }, [])
+
   // Real-time sync: refetch the catalog immediately when any inventory or hold
   // mutation happens server-side, so stock badges/sold-out states never lag.
   useInventoryStream(
@@ -469,6 +482,14 @@ export default function ShopPageClient({
     search: searchInput,
   }
 
+  const activeBrandInfo = activeBrand !== 'All'
+    ? brandDirectory.find((b) => b.name.toLowerCase() === activeBrand.toLowerCase())
+    : undefined
+
+  function clearBrand() {
+    setActiveBrand('All')
+  }
+
   function handleCategoryNavSelect(category: string, sub: string, brand: string, hatStyle: string) {
     setActiveCategory(category)
     setActiveSub(sub)
@@ -502,6 +523,36 @@ export default function ShopPageClient({
       />
 
       <StickyShopCategoryNav activeCategory={activeCategory} onSelect={handleCategoryNavSelect} />
+
+      {activeBrand !== 'All' && (
+        <div className="border-b border-gray-100 bg-jays-ice/40">
+          <div className="mx-auto flex max-w-7xl items-center gap-2.5 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-8">
+            {activeBrandInfo?.imageUrl ? (
+              <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white shadow-sm sm:h-8 sm:w-8">
+                <Image src={activeBrandInfo.imageUrl} alt={activeBrandInfo.name} fill className="object-contain p-1" sizes="32px" />
+              </div>
+            ) : (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-jays-navy/10 text-[11px] font-bold text-jays-navy sm:h-8 sm:w-8">
+                {(activeBrandInfo?.name ?? activeBrand).charAt(0)}
+              </div>
+            )}
+            <p className="min-w-0 truncate text-xs text-jays-steel sm:text-sm">
+              Browsing <span className="font-semibold text-jays-navy">{activeBrandInfo?.name ?? activeBrand}</span>
+            </p>
+            <button
+              type="button"
+              onClick={clearBrand}
+              className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-jays-navy/15 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-jays-navy shadow-sm transition-colors hover:bg-jays-navy/5"
+            >
+              Clear
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <CategoryBanner activeCategory={activeCategory} />
 
       <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">

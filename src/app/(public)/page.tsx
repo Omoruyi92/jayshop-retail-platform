@@ -1,4 +1,7 @@
 import HomePageClient from '@/components/home/HomePageClient'
+import BrandCatalogPreview from '@/components/home/BrandCatalogPreview'
+import PlayerCatalogPreview from '@/components/home/PlayerCatalogPreview'
+import LinkedGearPreview from '@/components/home/LinkedGearPreview'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -15,5 +18,11 @@ export default async function HomePage() {
     })
     .catch(() => [])
 
-  return <HomePageClient initialHeroSlides={initialHeroSlides} />
+  return (
+    <HomePageClient initialHeroSlides={initialHeroSlides}>
+      <BrandCatalogPreview />
+      <PlayerCatalogPreview />
+      <LinkedGearPreview />
+    </HomePageClient>
+  )
 }

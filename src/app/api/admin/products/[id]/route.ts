@@ -10,6 +10,8 @@ import {
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { brandToSlug } from '@/lib/constants'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +39,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const existing = await prisma.product.findUnique({
       where: { id: params.id },
-      select: { imageUrl: true, imageUrl2: true, imageUrl3: true, isNewArrival: true },
+      select: { imageUrl: true, imageUrl2: true, imageUrl3: true, isNewArrival: true, brand: true },
     })
 
     const contentType = req.headers.get('content-type') || ''
@@ -174,6 +176,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     await cleanupIfChanged(oldImageUrl2, body.imageUrl2)
     await cleanupIfChanged(oldImageUrl3, body.imageUrl3)
 
+    revalidatePath('/brands')
+    if (existing?.brand) revalidatePath(`/brands/${brandToSlug(existing.brand)}`)
+    if (body.brand && body.brand !== existing?.brand) revalidatePath(`/brands/${brandToSlug(body.brand)}`)
+
     return NextResponse.json({
       ...product,
       remaining: product.quantity - product.heldQuantity - product.pickedQuantity,
@@ -191,7 +197,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     const existing = await prisma.product.findUnique({
       where: { id: params.id },
-      select: { imageUrl: true },
+      select: { imageUrl: true, brand: true },
     })
 
     await prisma.product.delete({ where: { id: params.id } })
@@ -200,6 +206,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     // (New Arrivals bell, etc.) — remove any notifications referencing this
     // product. Receipts cascade-delete automatically via the schema.
     await prisma.customerNotification.deleteMany({ where: { productId: params.id } })
+
+    revalidatePath('/brands')
+    if (existing?.brand) revalidatePath(`/brands/${brandToSlug(existing.brand)}`)
 
     if (existing?.imageUrl && isLocalUpload(existing.imageUrl)) {
       const refs = await getImageReferences(prisma, existing.imageUrl.replace(/^\/uploads\//, ''))

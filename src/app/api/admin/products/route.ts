@@ -7,6 +7,8 @@ import { requireRole } from '@/lib/auth/authorize'
 import { getDefaultTenantId } from '@/lib/tenant'
 import { getMainStoreLocationId } from '@/lib/store-locations'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { brandToSlug } from '@/lib/constants'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -188,6 +190,9 @@ export async function POST(req: Request) {
 
       return created
     })
+
+    revalidatePath('/brands')
+    if (product.brand) revalidatePath(`/brands/${brandToSlug(product.brand)}`)
 
     return NextResponse.json({ product }, { status: 201 })
   } catch (err) {

@@ -3,18 +3,6 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
-export const PARTNERS = [
-  { src: '/brand/partners/nike.png',              alt: 'Nike',              landscape: true,  href: '/shop?brand=Nike' },
-  { src: '/brand/partners/new-era.png',           alt: 'New Era',           landscape: false, href: '/shop?brand=New Era' },
-  { src: '/brand/partners/fanatics.png',          alt: 'Fanatics',          landscape: true,  href: '/shop?brand=Fanatics' },
-  { src: '/brand/partners/levelwear.png',         alt: 'Levelwear',         landscape: false, href: '/shop?brand=Level Wear' },
-  { src: '/brand/partners/47brand.jpg',           alt: '47 Brand',          landscape: false, href: '/shop?brand=47 Brand' },
-  { src: '/brand/partners/roots.jpg',             alt: 'Roots',             landscape: true,  href: '/shop?brand=Roots' },
-  { src: '/brand/partners/peace-collective.png',  alt: 'Peace Collective',  landscape: false, href: '/shop?brand=Peace Collective' },
-  { src: '/brand/partners/mitchell-ness.png',     alt: 'Mitchell & Ness',   landscape: true,  href: '/shop?brand=Mitchell & Ness' },
-  { src: '/brand/partners/bulletin.png',          alt: 'Bulletin',          landscape: false, href: '/shop?brand=Bulletin' },
-]
-
 const OPEN_HOUR = 10
 const CLOSE_HOUR = 17
 

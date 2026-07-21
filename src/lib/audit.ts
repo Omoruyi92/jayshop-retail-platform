@@ -49,6 +49,11 @@ export type AuditAction =
   | 'gallery.created'
   | 'gallery.updated'
   | 'gallery.archived'
+  | 'style-category.created'
+  | 'style-category.updated'
+  | 'style-category.deleted'
+  | 'style-category.product-assigned'
+  | 'style-category.product-unassigned'
 
 type AuditInput = {
   tx: Prisma.TransactionClient | PrismaClient

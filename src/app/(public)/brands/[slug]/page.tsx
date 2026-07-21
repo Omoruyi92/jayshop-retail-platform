@@ -31,7 +31,7 @@ export default async function BrandPage({
   if (!brand) notFound()
 
   const products = await prisma.product.findMany({
-    where: { status: { not: 'ARCHIVED' }, brand: { equals: brand.name, mode: 'insensitive' } },
+    where: { status: { not: 'ARCHIVED' }, brand: { equals: brand.name.trim(), mode: 'insensitive' } },
     orderBy: [{ createdAt: 'desc' }],
   })
 
