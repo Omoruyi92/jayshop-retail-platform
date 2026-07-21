@@ -524,25 +524,28 @@ export default function ShopPageClient({
 
       <StickyShopCategoryNav activeCategory={activeCategory} onSelect={handleCategoryNavSelect} />
 
-      {activeBrand !== 'All' && (
-        <div className="border-b border-gray-100 bg-jays-ice/40">
-          <div className="mx-auto flex max-w-7xl items-center gap-2.5 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-8">
+      <CategoryBanner activeCategory={activeCategory} />
+
+      <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
+        {activeBrand !== 'All' && (
+          <div className="mb-4 flex items-center gap-2.5">
             {activeBrandInfo?.imageUrl ? (
-              <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white shadow-sm sm:h-8 sm:w-8">
-                <Image src={activeBrandInfo.imageUrl} alt={activeBrandInfo.name} fill className="object-contain p-1" sizes="32px" />
+              <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-md bg-white">
+                <Image src={activeBrandInfo.imageUrl} alt={activeBrandInfo.name} fill className="object-contain" sizes="28px" />
               </div>
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-jays-navy/10 text-[11px] font-bold text-jays-navy sm:h-8 sm:w-8">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-jays-navy/10 text-xs font-bold text-jays-navy">
                 {(activeBrandInfo?.name ?? activeBrand).charAt(0)}
               </div>
             )}
-            <p className="min-w-0 truncate text-xs text-jays-steel sm:text-sm">
-              Browsing <span className="font-semibold text-jays-navy">{activeBrandInfo?.name ?? activeBrand}</span>
+            <p className="min-w-0 truncate text-sm text-jays-steel">
+              Shopping <span className="font-semibold text-jays-navy">{activeBrandInfo?.name ?? activeBrand}</span>
+              <span className="hidden text-jays-steel/70 sm:inline"> · {sorted.length} {sorted.length === 1 ? 'product' : 'products'}</span>
             </p>
             <button
               type="button"
               onClick={clearBrand}
-              className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-jays-navy/15 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-jays-navy shadow-sm transition-colors hover:bg-jays-navy/5"
+              className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-jays-steel transition-colors hover:text-jays-navy"
             >
               Clear
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -550,12 +553,8 @@ export default function ShopPageClient({
               </svg>
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      <CategoryBanner activeCategory={activeCategory} />
-
-      <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
         <div className="mb-5 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             {!loading && (

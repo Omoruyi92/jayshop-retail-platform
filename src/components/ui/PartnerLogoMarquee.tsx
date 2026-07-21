@@ -1,11 +1,13 @@
 // PartnerLogoMarquee.tsx — bold, colorful scrolling strip of partner/brand logos.
-// Non-clickable: brand navigation lives in the Top Brands section below, so
-// this marquee is purely a visual trust strip. Sourced from the same Brand
-// model (via /api/brands) used by the Top Brands preview and the /brands
-// listing page, so any brand added/edited in the admin panel is reflected
-// here automatically — single source of truth across all three surfaces.
+// Clicking a logo navigates to the Shop catalog pre-filtered to that brand
+// (/shop?brand=<name>), which renders the prominent brand-header hero (see
+// ShopPageClient's active-brand banner). Sourced from the same Brand model
+// (via /api/brands) used by the Top Brands preview and the /brands listing
+// page, so any brand added/edited in the admin panel is reflected here
+// automatically — single source of truth across all three surfaces.
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 
 /* Cycle through the Jays palette so the strip reads as vibrant, not monochrome */
@@ -43,8 +45,9 @@ function LogoCard({
   accent: (typeof ACCENTS)[number]
 }) {
   return (
-    <div
-      title={alt}
+    <Link
+      href={`/shop?brand=${encodeURIComponent(alt)}`}
+      title={`Shop ${alt}`}
       className={`group relative flex h-24 w-36 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-lg ring-2 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] sm:h-28 sm:w-44 ${accent.ring} ${accent.glow}`}
     >
       {src ? (
@@ -59,7 +62,7 @@ function LogoCard({
         <span className="font-display text-lg font-bold text-jays-navy">{alt.charAt(0)}</span>
       )}
       <span className={`absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full ${accent.dot} opacity-0 shadow-[0_0_10px_rgba(255,255,255,0.6)] transition-opacity duration-300 group-hover:opacity-100`} />
-    </div>
+    </Link>
   )
 }
 

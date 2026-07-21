@@ -30,14 +30,15 @@ export default async function ShopByStylePage() {
     name: s.name,
     slug: s.slug,
     coverImageUrl: s.coverImageUrl,
+    coverVideoUrl: s.heroVideoUrl,
     productCount: s._count.products,
   }))
 
   return (
-    <div>
+    <div className="bg-white">
       <StylesHero initialSlides={initialHeroSlides} />
 
-      <div className="mx-auto w-full max-w-7xl px-1 py-1 sm:px-1.5 sm:py-1.5">
+      <div className="mx-auto w-full max-w-7xl bg-white px-1 py-1 sm:px-1.5 sm:py-1.5">
         {styles.length === 0 ? (
           <EmptyState
             title="No styles available right now"

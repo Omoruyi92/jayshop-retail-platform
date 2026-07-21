@@ -48,6 +48,7 @@ export default async function BrandPage({
   const pageCards = cards.slice(start, start + PRODUCTS_PER_PAGE)
 
   return (
+    <div className="min-h-screen bg-white">
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/brands" className="text-sm text-jays-steel hover:text-jays-navy">Brands</Link>
@@ -100,6 +101,7 @@ export default async function BrandPage({
           />
         </>
       )}
+    </div>
     </div>
   )
 }

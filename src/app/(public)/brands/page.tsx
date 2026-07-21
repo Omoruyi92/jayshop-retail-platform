@@ -15,17 +15,20 @@ export default async function BrandsIndexPage() {
 
   if (brands.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 text-center">
-        <h1 className="font-display text-3xl sm:text-4xl font-bold text-jays-navy uppercase tracking-wide mb-2">
-          Shop by Brand
-        </h1>
-        <p className="text-jays-steel">No brands available right now.</p>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 text-center">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-jays-navy uppercase tracking-wide mb-2">
+            Shop by Brand
+          </h1>
+          <p className="text-jays-steel">No brands available right now.</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <h1 className="font-display text-3xl sm:text-4xl font-bold text-jays-navy uppercase tracking-wide mb-2">
         Shop by Brand
       </h1>
@@ -59,6 +62,7 @@ export default async function BrandsIndexPage() {
             </span>
           </Link>
         ))}
+      </div>
       </div>
     </div>
   )

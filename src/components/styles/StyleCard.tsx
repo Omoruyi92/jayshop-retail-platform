@@ -9,6 +9,7 @@ export type StyleCardData = {
   name: string
   slug: string
   coverImageUrl: string
+  coverVideoUrl?: string | null
   productCount: number
 }
 
@@ -26,14 +27,27 @@ export default function StyleCard({
       href={`/shop-by-style/${style.slug}`}
       className={`group relative block overflow-hidden bg-jays-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70 ${className}`}
     >
-      <Image
-        src={style.coverImageUrl}
-        alt={style.name}
-        fill
-        priority={priority}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        className="object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-110"
-      />
+      {style.coverVideoUrl ? (
+        <video
+          src={style.coverVideoUrl}
+          poster={style.coverImageUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-110"
+        />
+      ) : (
+        <Image
+          src={style.coverImageUrl}
+          alt={style.name}
+          fill
+          priority={priority}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-110"
+        />
+      )}
 
       {/* Base gradient — keeps the name legible over any photo */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent transition-opacity duration-500 group-hover:from-black/85" />

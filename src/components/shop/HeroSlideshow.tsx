@@ -27,6 +27,12 @@ interface HeroSlideshowProps {
    * admin-configured media appears.
    */
   initialSlides?: Slide[]
+  /**
+   * Whether to apply the darkening gradient overlay that keeps overlaid
+   * text/badges readable. Set false for hero sections that show only the
+   * uploaded media with no text on top, for a clean edge-to-edge look.
+   */
+  overlay?: boolean
 }
 
 export default function HeroSlideshow({
@@ -35,6 +41,7 @@ export default function HeroSlideshow({
   className = '',
   imagePosition = 'center',
   initialSlides,
+  overlay = true,
 }: HeroSlideshowProps) {
   const hasInitialSlides = Array.isArray(initialSlides)
   const [slides, setSlides] = useState<Slide[]>(
@@ -98,7 +105,7 @@ export default function HeroSlideshow({
               unoptimized
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />
+          {overlay && <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />}
         </div>
       ))}
     </div>

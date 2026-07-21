@@ -33,6 +33,7 @@ export default async function StyleDetailPage({ params }: { params: { slug: stri
   )
 
   return (
+    <div className="min-h-screen bg-white">
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/shop-by-style" className="text-sm text-jays-steel hover:text-jays-navy">
@@ -68,6 +69,7 @@ export default async function StyleDetailPage({ params }: { params: { slug: stri
           ))}
         </div>
       )}
+    </div>
     </div>
   )
 }

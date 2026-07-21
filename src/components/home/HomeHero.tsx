@@ -1,11 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import UpcomingMatchCard from '@/components/home/UpcomingMatchCard'
-import BrandWatermarks from '@/components/ui/BrandWatermarks'
-import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 
 interface HomeHeroProps {
@@ -13,104 +8,47 @@ interface HomeHeroProps {
   initialSlides?: HeroSlide[]
 }
 
+/**
+ * Edge-to-edge homepage hero. The uploaded HOME hero image/video is the
+ * primary visual — only a minimal, unboxed live-inventory tag + headline sit
+ * directly over the media in the bottom-left corner (no card/panel
+ * background), so the artwork itself stays the focus. The Game Day notice
+ * lives in its own distinct spot (top-right) so it never competes with the
+ * corner headline. CTAs and the trust stats row live in a separate section
+ * just below the hero (see HomePageClient) rather than overlaying the media.
+ */
 export default function HomeHero({ isGameDayToday = false, initialSlides }: HomeHeroProps) {
   const { t } = useLanguage()
   const h = t.home
 
   return (
-    <section className="relative isolate min-h-[560px] w-full overflow-hidden bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy text-white sm:min-h-[600px]">
-      {/* Edge-to-edge hero: no wrapping container margins/padding/rounding, so
-          uploaded HOME media fills the full viewport width. Reuses the Shop
-          hero's proven media technique (HeroSlideshow with object-cover +
-          object-top) for a consistent, non-distorted look across breakpoints. */}
+    <section className="relative isolate h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[62vh] lg:max-h-[620px]">
+      {/* Full-bleed hero media, primary visual focus */}
       <HeroSlideshow scope="HOME" imagePosition="top" initialSlides={initialSlides} />
 
-      {/* subtle dotted texture */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-[2] opacity-[0.06]"
-        style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
-          backgroundSize: '18px 18px',
-        }}
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 z-[2] h-56 w-56 rounded-full bg-jays-red/20 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-12 -bottom-24 z-[2] h-64 w-64 rounded-full bg-amber-400/10 blur-3xl" />
-
-      <BrandWatermarks className="z-[2]" />
-      <LetsGoJaysWatermark className="z-[2]" />
-
-      <div className="absolute right-4 top-4 z-10 hidden items-center gap-2 sm:flex">
-        <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-md">
-          <p className="text-[9px] font-medium uppercase leading-tight tracking-[0.12em] text-blue-200/80">American League</p>
-          <p className="font-display text-sm font-bold uppercase leading-tight tracking-wide text-white">Champions</p>
-          <p className="text-[10px] font-semibold text-yellow-300/90">2025 ⚾</p>
+      {/* Game Day notice — top-right corner, its own distinct spot so it
+          never collides with the bottom-left headline. Only rendered on
+          confirmed game days. */}
+      {isGameDayToday && (
+        <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-jays-navy/60 px-3 py-1.5 text-[10px] font-display font-semibold uppercase tracking-[0.12em] text-amber-200 shadow-lg backdrop-blur-md sm:px-3.5 sm:text-[11px]">
+            <span className="text-sm leading-none">⚾</span>
+            <span>{h.gameDayBanner}</span>
+          </div>
         </div>
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-white/25 bg-white/10 shadow-lg sm:h-16 sm:w-16">
-          <Image
-            src="/brand/alcs-2025-round.png"
-            alt="2025 ALCS Champions"
-            width={80}
-            height={80}
-            className="h-full w-full rounded-full object-cover"
-          />
-        </div>
-      </div>
+      )}
 
-      <div className="relative z-10 mx-auto max-w-2xl px-6 pb-8 pt-10 text-center sm:px-8 sm:pb-10 sm:pt-12">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] backdrop-blur-sm sm:text-xs">
+      {/* Corner headline — unboxed, sits directly on the media (gradient
+          overlay from HeroSlideshow keeps it legible) rather than in a
+          card/panel. */}
+      <div className="absolute bottom-0 left-0 z-10 max-w-[85%] px-4 pb-4 sm:max-w-md sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-blue-200/90 drop-shadow sm:text-[11px]">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red animate-pulse" />
           Live Inventory · Rogers Centre
         </div>
-
-        <h1 className="mb-3 font-display text-3xl font-bold uppercase tracking-wide leading-[1.08] sm:text-5xl">
-          {h.heroTitle1}
-          <br />
-          <span className="bg-gradient-to-r from-orange-500 via-jays-red to-amber-500 bg-clip-text text-transparent">
-            {h.heroTitle2}
-          </span>
+        <h1 className="font-display text-xl font-bold uppercase leading-tight tracking-wide text-white drop-shadow-md sm:text-2xl lg:text-3xl">
+          {h.heroTitle1} <span className="text-amber-300">{h.heroTitle2}</span>
         </h1>
-
-        <p className="mx-auto mb-5 max-w-2xl text-sm leading-snug text-blue-100 sm:text-base">
-          {h.heroSubtitle}
-        </p>
-
-        <div className="mx-auto mb-5 max-w-md">
-          <UpcomingMatchCard />
-        </div>
-
-        <div className="mb-5 flex flex-col justify-center gap-2.5 sm:flex-row">
-          <Link
-            href="/shop"
-            className="inline-flex items-center justify-center gap-2 bg-jays-red text-white font-display font-semibold uppercase tracking-wider text-sm sm:text-base px-7 py-2.5 sm:px-8 sm:py-3 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all shadow-lg"
-          >
-            {h.browseShop}
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <Link
-            href="/my-holds"
-            className="inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white font-display font-semibold uppercase tracking-wider text-xs sm:text-sm px-6 py-2.5 sm:py-3 rounded-xl hover:border-white hover:bg-white/10 transition-all"
-          >
-            {h.viewMyHolds}
-          </Link>
-        </div>
-
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-2.5 text-left text-xs text-blue-100/85 sm:grid-cols-3 sm:text-sm">
-          <div className="flex items-center gap-1.5">
-            <span>🏟️</span>
-            <span>12 store locations</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span>⏰</span>
-            <span>3-hr express holds</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span>💳</span>
-            <span>Free to reserve</span>
-          </div>
-        </div>
       </div>
     </section>
   )
