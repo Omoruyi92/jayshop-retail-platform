@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import { logInventoryTransaction, resolveActorFromSession } from '@/lib/inventory/logTransaction'
 import { aggregateAvailable, syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import { getProductAvailability } from '@/lib/inventory/aggregate'

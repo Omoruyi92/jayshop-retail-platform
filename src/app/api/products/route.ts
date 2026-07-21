@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getManyProductsAvailability } from '@/lib/inventory/aggregate'
+import { buildManyAvailability } from '@/lib/inventory/aggregate'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,25 @@ export async function GET(request: Request) {
     },
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
-      sizeInventories: { select: { size: true, quantity: true, heldQuantity: true, pickedQuantity: true } },
+      sizeInventories: {
+        select: {
+          size: true,
+          quantity: true,
+          heldQuantity: true,
+          pickedQuantity: true,
+          location: {
+            select: {
+              id: true,
+              name: true,
+              section: true,
+              gate: true,
+              isMainStore: true,
+              isPickupQueue: true,
+              sortOrder: true,
+            },
+          },
+        },
+      },
       _count: { select: { likes: true, ...(includeArchived && { holds: true }) } },
     },
   })
@@ -76,7 +95,14 @@ export async function GET(request: Request) {
 
   // Pull centralized availability status + per-location breakdown from the
   // single source of truth so admin/customer stock badges stay synchronized.
-  const availabilityMap = await getManyProductsAvailability(products.map((p) => p.id))
+  // Reuses the `sizeInventories` already fetched in the query above instead
+  // of re-querying SizeInventory + Product (previously done via
+  // `getManyProductsAvailability`, which issued its own duplicate query).
+  const mainStoreLocationId = await getMainStoreLocationId()
+  const sizeInventoryRows = products.flatMap((p) =>
+    p.sizeInventories.map((s) => ({ ...s, productId: p.id }))
+  )
+  const availabilityMap = buildManyAvailability(products, sizeInventoryRows, mainStoreLocationId)
 
   const productsWithAvailability = productsWithRemaining.map((p) => ({
     ...p,

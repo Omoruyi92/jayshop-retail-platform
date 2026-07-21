@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'

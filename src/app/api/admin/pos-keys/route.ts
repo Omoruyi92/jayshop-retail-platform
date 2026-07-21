@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { requireRole, AdminSession } from '@/lib/auth/authorize'
+import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { generateRawPosKey, POS_BCRYPT_COST } from '@/lib/pos/auth'
 

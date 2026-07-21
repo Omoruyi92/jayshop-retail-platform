@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import {
   isLocalUpload,
   getImageReferences,

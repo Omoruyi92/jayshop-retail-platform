@@ -1,5 +1,5 @@
 import ShopPageClient from '@/components/shop/ShopPageClient'
-import { prisma } from '@/lib/prisma'
+import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,12 +14,7 @@ export default async function ShopPage({
   // (or the default fallback banner, when none are configured) is present in
   // the very first render — avoiding a flash of the default background
   // before the client-side slideshow fetch would otherwise resolve.
-  const initialHeroSlides = await prisma.heroSlide
-    .findMany({
-      where: { scope: 'SHOP', active: true },
-      orderBy: { sortOrder: 'asc' },
-    })
-    .catch(() => [])
+  const initialHeroSlides = await getHeroSlides('SHOP')
 
   return (
     <ShopPageClient activeCategory={activeCategory} initialHeroSlides={initialHeroSlides} />

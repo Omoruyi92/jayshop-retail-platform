@@ -1,7 +1,10 @@
 import { AdminRole } from '@prisma/client'
-import { getServerSession } from 'next-auth'
-import { NextResponse } from 'next/server'
-import { authOptions } from '@/lib/auth'
+
+// Client-safe module: pure logic/types/constants only. Do NOT import
+// next-auth or next/server here — this file is imported by client
+// components (e.g. useCurrentAdmin, admin/admins page) and any server-only
+// dependency pulled in here bloats those client bundles. Server-side session
+// checks (requireRole) live in `./authorize.server`.
 
 export const roleOrder: AdminRole[] = ['VIEWER', 'STAFF', 'MANAGER', 'OWNER']
 
@@ -102,43 +105,4 @@ export type AdminSession = {
     image?: string | null
   }
   expires: string
-}
-
-export type AuthCheckResult =
-  | { session: AdminSession; error: null }
-  | { session: null; error: NextResponse }
-
-/**
- * Ensures the session includes an admin role and that the role meets or
- * exceeds the minimum required role for an action.
- */
-export async function requireRole(
-  req: Request,
-  action: string
-): Promise<AuthCheckResult> {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.adminId) {
-    return {
-      session: null,
-      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    }
-  }
-
-  let role = (session.user as any).role
-
-  // Fallback to database if role is missing in session cookie
-  if (!role && session.user.adminId) {
-    const { prisma } = await import('@/lib/prisma')
-    const dbAdmin = await prisma.admin.findUnique({ where: { id: session.user.adminId } })
-    if (dbAdmin) role = dbAdmin.role
-  }
-
-  if (!role || !can(role, action)) {
-    return {
-      session: null,
-      error: NextResponse.json({ error: `Forbidden: required action ${action}` }, { status: 403 }),
-    }
-  }
-
-  return { session: session as unknown as AdminSession, error: null }
 }

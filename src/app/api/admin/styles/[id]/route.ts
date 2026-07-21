@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireRole, AdminSession } from '@/lib/auth/authorize'
+import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
@@ -109,6 +110,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           prisma.styleCategory.update({ where: { id: other.id }, data: { sortOrder: existing.sortOrder } }),
         ])
         const updated = await prisma.styleCategory.findUnique({ where: { id: existing.id } })
+        revalidatePath('/shop-by-style')
         return NextResponse.json({ style: updated })
       }
 
@@ -146,6 +148,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       req,
     })
 
+    revalidatePath('/shop-by-style')
+    revalidatePath(`/shop-by-style/${existing.slug}`)
+    if (typeof data.slug === 'string' && data.slug !== existing.slug) {
+      revalidatePath(`/shop-by-style/${data.slug}`)
+    }
+
     return NextResponse.json({ style })
   } catch (err) {
     return apiErrorResponse(err)
@@ -176,6 +184,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       before: { name: existing.name, slug: existing.slug },
       req,
     })
+
+    revalidatePath('/shop-by-style')
+    revalidatePath(`/shop-by-style/${existing.slug}`)
 
     return NextResponse.json({ success: true })
   } catch (err) {

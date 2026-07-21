@@ -2,7 +2,7 @@ import HomePageClient from '@/components/home/HomePageClient'
 import BrandCatalogPreview from '@/components/home/BrandCatalogPreview'
 import PlayerCatalogPreview from '@/components/home/PlayerCatalogPreview'
 import LinkedGearPreview from '@/components/home/LinkedGearPreview'
-import { prisma } from '@/lib/prisma'
+import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,12 +11,7 @@ export default async function HomePage() {
   // (or the default fallback banner, when none are configured) is present in
   // the very first render — avoiding a flash of the default background
   // before the client-side slideshow fetch would otherwise resolve.
-  const initialHeroSlides = await prisma.heroSlide
-    .findMany({
-      where: { scope: 'HOME', active: true },
-      orderBy: { sortOrder: 'asc' },
-    })
-    .catch(() => [])
+  const initialHeroSlides = await getHeroSlides('HOME')
 
   return (
     <HomePageClient initialHeroSlides={initialHeroSlides}>

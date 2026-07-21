@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 
 // GET /api/admin/feedback — list all submitted feedback (optionally filtered by status)
 export async function GET(req: NextRequest) {

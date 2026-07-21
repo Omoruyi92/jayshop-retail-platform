@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 import { rollupStatus } from '@/lib/inventory/status'
 import { getManyProductsAvailability, statusForTotal } from '@/lib/inventory/aggregate'

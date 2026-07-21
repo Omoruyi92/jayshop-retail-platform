@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { requireRole, AdminSession } from '@/lib/auth/authorize'
+import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
@@ -58,6 +59,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       req,
     })
 
+    revalidatePath('/shop-by-style')
+    revalidatePath(`/shop-by-style/${style.slug}`)
+
     return NextResponse.json({ productStyle }, { status: 201 })
   } catch (err) {
     return apiErrorResponse(err)
@@ -83,6 +87,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: 'Product is not assigned to this style' }, { status: 404 })
     }
 
+    const style = await prisma.styleCategory.findUnique({ where: { id: params.id } })
+
     await prisma.productStyle.delete({ where: { id: existing.id } })
 
     const admin = session.user as AdminSession['user']
@@ -97,6 +103,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       before: { productId },
       req,
     })
+
+    revalidatePath('/shop-by-style')
+    if (style) revalidatePath(`/shop-by-style/${style.slug}`)
 
     return NextResponse.json({ success: true })
   } catch (err) {

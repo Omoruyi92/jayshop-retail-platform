@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import { getOrCreateDevApiKey } from '@/lib/pos/devKey'
 
 export const dynamic = 'force-dynamic'

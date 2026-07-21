@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import { restock } from '@/lib/inventory/mutations'
 import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireRole, AdminSession } from '@/lib/auth/authorize'
+import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
@@ -167,6 +168,9 @@ export async function POST(req: Request) {
       after: { name, slug },
       req,
     })
+
+    revalidatePath('/shop-by-style')
+    revalidatePath(`/shop-by-style/${slug}`)
 
     return NextResponse.json({ style }, { status: 201 })
   } catch (err) {

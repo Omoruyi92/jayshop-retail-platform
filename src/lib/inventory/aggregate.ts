@@ -315,46 +315,58 @@ export async function getManyProductsAvailability(
     }),
   ])
 
-  const grouped = new Map<string, typeof rows>()
-  for (const row of rows) {
+  return buildManyAvailability(products, rows, mainStoreLocationId)
+}
+
+type ManyAvailabilityRow = InventoryRow & { productId: string }
+type ManyAvailabilityProduct = { id: string; quantity: number; heldQuantity: number; pickedQuantity: number }
+
+/**
+ * Same aggregation logic as `getManyProductsAvailability`, but operates on
+ * data the caller has already fetched (e.g. a route that already queried
+ * Product with a `sizeInventories` include) instead of re-querying
+ * SizeInventory + Product itself. Use this when the caller's own Prisma
+ * query already has everything `buildAvailability` needs per product.
+ */
+export function buildManyAvailability(
+  products: ManyAvailabilityProduct[],
+  sizeInventoryRows: ManyAvailabilityRow[],
+  mainStoreLocationId: string
+): Record<string, ProductAvailability> {
+  const grouped = new Map<string, ManyAvailabilityRow[]>()
+  for (const row of sizeInventoryRows) {
     const list = grouped.get(row.productId) ?? []
     list.push(row)
     grouped.set(row.productId, list)
   }
 
-  const productMap = new Map(products.map((p) => [p.id, p]))
-
   const result: Record<string, ProductAvailability> = {}
-  for (const id of productIds) {
-    const productRows = grouped.get(id)
+  for (const product of products) {
+    const productRows = grouped.get(product.id)
     const hasRealSizes = productRows && productRows.length > 0
     if (!hasRealSizes) {
-      const product = productMap.get(id)
-      result[id] = buildAvailability(
-        product
-          ? [
-              {
-                quantity: product.quantity,
-                heldQuantity: product.heldQuantity,
-                pickedQuantity: product.pickedQuantity,
-                size: ONE_SIZE,
-                location: {
-                  id: mainStoreLocationId,
-                  name: 'Main Store',
-                  section: null,
-                  gate: null,
-                  isMainStore: true,
-                  isPickupQueue: false,
-                  sortOrder: 0,
-                },
-              },
-            ]
-          : []
-      )
+      result[product.id] = buildAvailability([
+        {
+          quantity: product.quantity,
+          heldQuantity: product.heldQuantity,
+          pickedQuantity: product.pickedQuantity,
+          size: ONE_SIZE,
+          location: {
+            id: mainStoreLocationId,
+            name: 'Main Store',
+            section: null,
+            gate: null,
+            isMainStore: true,
+            isPickupQueue: false,
+            sortOrder: 0,
+          },
+        },
+      ])
     } else {
-      result[id] = buildAvailability(productRows!)
+      result[product.id] = buildAvailability(productRows!)
     }
   }
 
   return result
 }
+

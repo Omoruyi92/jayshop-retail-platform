@@ -271,9 +271,14 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
   return (
     <div
       ref={navRef}
-      className={`fixed left-0 right-0 z-30 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)] transition-transform duration-300 ${
-        visible ? 'translate-y-0' : '-translate-y-full'
-      }`}
+      className={`fixed left-0 right-0 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)] transition-transform duration-300 ${
+        // Elevate above the mobile BottomNav (z-40) only while the mobile
+        // category dropdown is open, so its expanded panel never renders
+        // underneath/gets visually collided with the fixed bottom nav bar.
+        // Otherwise keep the normal z-30 stacking (consistent with
+        // Footer/SubNavBar) so it stays below the site Header (z-40).
+        mobileOpen ? 'z-50' : 'z-30'
+      } ${visible ? 'translate-y-0' : '-translate-y-full'}`}
       style={{ top: 'calc(var(--header-height, 3.5rem))' }}
     >
       <div className="relative mx-auto flex w-full max-w-none items-center justify-center px-4 sm:px-6 lg:px-8">

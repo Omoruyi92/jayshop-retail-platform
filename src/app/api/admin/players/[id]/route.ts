@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
-import { requireRole, AdminSession } from '@/lib/auth/authorize'
+import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { parseFormData, parseJsonBody, apiErrorResponse, parseJsonField } from '@/lib/api/request'
@@ -140,6 +141,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       req,
     })
 
+    revalidatePath('/players')
+    revalidatePath(`/players/${existing.slug}`)
+
     return NextResponse.json({ player: refreshed })
   } catch (err) {
     return apiErrorResponse(err, 'Failed to update player')
@@ -175,6 +179,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       after: { status: 'ARCHIVED' },
       req,
     })
+
+    revalidatePath('/players')
+    revalidatePath(`/players/${existing.slug}`)
 
     return NextResponse.json({ success: true })
   } catch (err) {

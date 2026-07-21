@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireRole, type AdminSession } from '@/lib/auth/authorize'
+import { requireRole, type AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { nanoid } from 'nanoid'
 import { mkdir, writeFile } from 'fs/promises'

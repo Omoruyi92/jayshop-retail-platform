@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { join } from 'path'
 import { unlink } from 'fs/promises'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 
 export const dynamic = 'force-dynamic'
 

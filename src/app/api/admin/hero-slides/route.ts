@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { mkdir, writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
-import { requireRole } from '@/lib/auth/authorize'
+import { requireRole } from '@/lib/auth/authorize.server'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
@@ -13,6 +14,24 @@ const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif
 const VIDEO_TYPES = new Set(['video/mp4', 'video/webm'])
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024
+
+// Maps a HeroSlide scope to the public page(s) it feeds, so admin
+// create/update/delete actions can revalidate the exact customer-facing
+// route that renders that hero.
+function scopeToPaths(scope: string): string[] {
+  switch (scope) {
+    case 'HOME':
+      return ['/']
+    case 'SHOP':
+      return ['/shop']
+    case 'STYLE_LANDING':
+      return ['/shop-by-style']
+    case 'PLAYERS':
+      return ['/players']
+    default:
+      return []
+  }
+}
 
 function mediaType(mime: string): 'IMAGE' | 'VIDEO' {
   if (VIDEO_TYPES.has(mime)) return 'VIDEO'
@@ -105,6 +124,8 @@ export async function POST(req: Request) {
       },
     })
 
+    for (const path of scopeToPaths(scopeRaw)) revalidatePath(path)
+
     return NextResponse.json(slide, { status: 201 })
   } catch (err) {
     return apiErrorResponse(err, 'Upload failed')
@@ -129,6 +150,9 @@ export async function PATCH(req: Request) {
     if (typeof altText === 'string') data.altText = altText
 
     const slide = await prisma.heroSlide.update({ where: { id }, data })
+
+    for (const path of scopeToPaths(slide.scope)) revalidatePath(path)
+
     return NextResponse.json(slide)
   } catch (err) {
     return apiErrorResponse(err, 'Update failed')
@@ -151,6 +175,7 @@ export async function DELETE(req: Request) {
       await removeFile(slide.url)
       if (slide.mobileUrl) await removeFile(slide.mobileUrl)
       await prisma.heroSlide.delete({ where: { id } })
+      for (const path of scopeToPaths(slide.scope)) revalidatePath(path)
     }
     return NextResponse.json({ success: true })
   } catch (err) {

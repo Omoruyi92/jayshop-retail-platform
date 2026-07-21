@@ -2,20 +2,17 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
+import type { HeroScope, Slide } from '@/types/hero'
+import { useHeroMedia } from '@/hooks/useHeroMedia'
 
-export interface Slide {
-  id: string
-  scope: string
-  mediaType: 'IMAGE' | 'VIDEO'
-  url: string
-  mobileUrl: string | null
-  altText: string | null
-  sortOrder: number
-  active: boolean
-}
+// Re-exported for backward compatibility — existing call sites import
+// `Slide` from this module; the canonical definition now lives in
+// `@/types/hero` so both this client component and the server-side
+// `getHeroSlides` util share the same shape.
+export type { Slide } from '@/types/hero'
 
 interface HeroSlideshowProps {
-  scope: 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS'
+  scope: HeroScope
   interval?: number
   className?: string
   imagePosition?: 'center' | 'top' | 'bottom'
@@ -51,28 +48,8 @@ export default function HeroSlideshow({
   overlay = true,
   transition = 'fade',
 }: HeroSlideshowProps) {
-  const hasInitialSlides = Array.isArray(initialSlides)
-  const [slides, setSlides] = useState<Slide[]>(
-    hasInitialSlides ? [...initialSlides!].filter((s) => s.active).sort((a, b) => a.sortOrder - b.sortOrder) : []
-  )
+  const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
-  const [loaded, setLoaded] = useState(hasInitialSlides)
-
-  useEffect(() => {
-    // Slides were already provided synchronously (server-fetched) — skip the
-    // client-side fetch entirely so there is no loading gap/flash.
-    if (hasInitialSlides) return
-
-    fetch(`/api/hero-slides?scope=${scope}`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: Slide[]) => {
-        const active = Array.isArray(data) ? data.filter((s) => s.active) : []
-        setSlides(active.sort((a, b) => a.sortOrder - b.sortOrder))
-        setLoaded(true)
-      })
-      .catch(() => setLoaded(true))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, hasInitialSlides])
 
   useEffect(() => {
     if (slides.length <= 1) return

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import StylesHero from '@/components/styles/StylesHero'
 import StylesMasonryGrid from '@/components/styles/StylesMasonryGrid'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 export const revalidate = 60
 
@@ -17,12 +18,7 @@ export default async function ShopByStylePage() {
       orderBy: { sortOrder: 'asc' },
       include: { _count: { select: { products: true } } },
     }),
-    prisma.heroSlide
-      .findMany({
-        where: { scope: 'STYLE_LANDING', active: true },
-        orderBy: { sortOrder: 'asc' },
-      })
-      .catch(() => []),
+    getHeroSlides('STYLE_LANDING'),
   ])
 
   const styles = styleRows.map((s) => ({
