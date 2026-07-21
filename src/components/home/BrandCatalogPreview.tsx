@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { getBrandProductCounts } from '@/lib/brands'
+import Reveal from '@/components/ui/Reveal'
 
 const PREVIEW_COUNT = 8
 
@@ -29,7 +30,7 @@ export default async function BrandCatalogPreview() {
 
   return (
     <section className="bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-3 py-14 sm:px-5 sm:py-20 lg:px-6">
         <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-display font-bold uppercase tracking-[0.25em] text-jays-red">
@@ -54,21 +55,21 @@ export default async function BrandCatalogPreview() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 sm:gap-5 lg:grid-cols-8">
-          {brands.map((brand) => (
+        <div className="scrollbar-hide -mx-3 flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-8">
+          {brands.map((brand, index) => (
+            <Reveal key={brand.id} index={index} className="w-[30%] shrink-0 snap-start sm:w-auto">
             <Link
-              key={brand.id}
               href={`/brands/${brand.slug}`}
               className="group flex flex-col items-center text-center"
             >
-              <div className="mb-3 flex aspect-square w-full items-center justify-center rounded-2xl bg-jays-ice/60 p-4 ring-1 ring-black/[0.03] transition-all duration-300 group-hover:bg-white group-hover:shadow-md group-hover:ring-jays-navy/10">
+              <div className="mb-3 flex aspect-square w-full items-center justify-center rounded-2xl bg-white p-4 transition-transform duration-300 group-hover:scale-105">
                 {brand.imageUrl ? (
                   <Image
                     src={brand.imageUrl}
                     alt={brand.name}
                     width={80}
                     height={80}
-                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-contain"
                     sizes="(max-width: 640px) 33vw, 12vw"
                   />
                 ) : (
@@ -82,6 +83,7 @@ export default async function BrandCatalogPreview() {
                 {brand.productCount} product{brand.productCount === 1 ? '' : 's'}
               </span>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>

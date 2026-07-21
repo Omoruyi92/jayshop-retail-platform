@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import PlayerBadge from '@/components/players/PlayerBadge'
+import Reveal from '@/components/ui/Reveal'
 
 const PREVIEW_COUNT = 5
 
@@ -34,7 +35,7 @@ export default async function PlayerCatalogPreview() {
 
   return (
     <section className="bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-3 py-14 sm:px-5 sm:py-20 lg:px-6">
         <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-display font-bold uppercase tracking-[0.25em] text-jays-red">
@@ -59,21 +60,26 @@ export default async function PlayerCatalogPreview() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
-          {players.map((player) => (
+        <div className="scrollbar-hide -mx-3 flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
+          {players.map((player, index) => (
+            <Reveal key={player.id} index={index} className="w-[42%] shrink-0 snap-start sm:w-auto">
             <Link
-              key={player.id}
               href={`/players/${player.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-jays-ice/60 ring-1 ring-black/[0.03] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-jays-navy/10"
+              className="group relative block overflow-hidden rounded-2xl bg-white transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="relative aspect-square w-full overflow-hidden bg-jays-ice">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-white">
                 <Image
                   src={player.heroImageUrl}
                   alt={player.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="object-contain transition-transform duration-500 group-hover:scale-105"
                 />
+                {/* Bottom gradient keeps the name legible while placing it
+                    directly on the tile — a premium overlay treatment
+                    rather than a separate label strip below the image. */}
+                <div className="absolute inset-x-0 bottom-0 z-[1] h-20 bg-gradient-to-t from-black/70 to-transparent" />
+
                 <PlayerBadge
                   isFeatured={player.isFeatured}
                   isTrending={player.isTrending}
@@ -81,18 +87,20 @@ export default async function PlayerCatalogPreview() {
                   className="absolute left-2 top-2 z-10"
                 />
                 {player.jerseyNumber && (
-                  <span className="absolute bottom-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-jays-navy/90 font-display text-xs font-bold text-white shadow-md">
+                  <span className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-jays-navy/85 font-display text-xs font-bold text-white shadow-md backdrop-blur-sm">
                     {player.jerseyNumber}
                   </span>
                 )}
-              </div>
-              <div className="flex flex-col gap-0.5 p-3">
-                <h3 className="truncate font-display text-sm font-bold text-jays-navy">{player.name}</h3>
-                {player.position && (
-                  <p className="truncate text-xs uppercase tracking-wide text-jays-steel">{player.position}</p>
-                )}
+
+                <div className="absolute inset-x-0 bottom-0 z-10 p-3">
+                  <h3 className="truncate font-display text-sm font-bold text-white drop-shadow-sm">{player.name}</h3>
+                  {player.position && (
+                    <p className="truncate text-[11px] uppercase tracking-wide text-white/75">{player.position}</p>
+                  )}
+                </div>
               </div>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>

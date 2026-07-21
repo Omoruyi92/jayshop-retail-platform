@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { parseFormData, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
-    const formData = await req.formData()
+    const formData = await parseFormData(req)
     const name = formData.get('name') as string
     const jerseyNumber = (formData.get('jerseyNumber') as string) ?? ''
     const position = (formData.get('position') as string) ?? ''
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     const productLinksRaw = formData.get('productLinks') as string | null
 
     if (!name) {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+      return badRequest('name is required')
     }
 
     const uploadDir = join(process.cwd(), 'public', 'uploads')
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     }
 
     if (!finalHeroImageUrl) {
-      return NextResponse.json({ error: 'heroImageUrl or heroImageFile required' }, { status: 400 })
+      return badRequest('heroImageUrl or heroImageFile required')
     }
 
     const baseSlug = slugify(name)
@@ -98,21 +99,13 @@ export async function POST(req: Request) {
 
     let stats: unknown = null
     if (statsRaw) {
-      try {
-        stats = JSON.parse(statsRaw)
-      } catch {
-        stats = null
-      }
+      stats = parseJsonField(statsRaw, 'stats')
     }
 
     let productLinks: { productId: string; label?: string }[] = []
     if (productLinksRaw) {
-      try {
-        const parsed = JSON.parse(productLinksRaw)
-        if (Array.isArray(parsed)) productLinks = parsed
-      } catch {
-        productLinks = []
-      }
+      const parsed = parseJsonField<unknown>(productLinksRaw, 'productLinks')
+      if (Array.isArray(parsed)) productLinks = parsed
     }
 
     const defaultTenant = await prisma.tenant.findFirst({ where: { isDefault: true } })
@@ -169,7 +162,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ player }, { status: 201 })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }

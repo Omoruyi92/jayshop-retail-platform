@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 
 export interface Slide {
@@ -15,7 +15,7 @@ export interface Slide {
 }
 
 interface HeroSlideshowProps {
-  scope: 'HOME' | 'SHOP' | 'STYLE_LANDING'
+  scope: 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS'
   interval?: number
   className?: string
   imagePosition?: 'center' | 'top' | 'bottom'
@@ -33,6 +33,13 @@ interface HeroSlideshowProps {
    * uploaded media with no text on top, for a clean edge-to-edge look.
    */
   overlay?: boolean
+  /**
+   * Transition style between slides. 'fade' (default) is used for most hero
+   * sections for a smooth, understated crossfade. 'slide' produces a
+   * dynamic horizontal carousel motion — reserved for sections like Popular
+   * Players where a more energetic browsing feel is desired.
+   */
+  transition?: 'fade' | 'slide'
 }
 
 export default function HeroSlideshow({
@@ -42,6 +49,7 @@ export default function HeroSlideshow({
   imagePosition = 'center',
   initialSlides,
   overlay = true,
+  transition = 'fade',
 }: HeroSlideshowProps) {
   const hasInitialSlides = Array.isArray(initialSlides)
   const [slides, setSlides] = useState<Slide[]>(
@@ -78,36 +86,48 @@ export default function HeroSlideshow({
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
-      {slides.map((slide, i) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`}
-        >
-          {slide.mediaType === 'VIDEO' ? (
-            <video
-              src={slide.url}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="h-full w-full object-cover"
-              aria-label={slide.altText || `${scope} hero video`}
-            />
-          ) : (
-            <Image
-              src={slide.url}
-              alt={slide.altText || `${scope} hero image`}
-              fill
-              sizes="100vw"
-              quality={95}
-              priority={i === 0}
-              className={`h-full w-full object-cover object-${imagePosition}`}
-              unoptimized
-            />
-          )}
-          {overlay && <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />}
-        </div>
-      ))}
+      {slides.map((slide, i) => {
+        let style: CSSProperties
+        let cls: string
+        if (transition === 'slide') {
+          const total = slides.length
+          let rel = i - index
+          if (rel > total / 2) rel -= total
+          if (rel < -total / 2) rel += total
+          cls = 'absolute inset-0 transition-transform duration-700 ease-in-out will-change-transform'
+          style = { transform: `translateX(${rel * 100}%)`, zIndex: i === index ? 1 : 0 }
+        } else {
+          cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`
+          style = {}
+        }
+        return (
+          <div key={slide.id} className={cls} style={style}>
+            {slide.mediaType === 'VIDEO' ? (
+              <video
+                src={slide.url}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="h-full w-full object-cover"
+                aria-label={slide.altText || `${scope} hero video`}
+              />
+            ) : (
+              <Image
+                src={slide.url}
+                alt={slide.altText || `${scope} hero image`}
+                fill
+                sizes="100vw"
+                quality={95}
+                priority={i === 0}
+                className={`h-full w-full object-cover object-${imagePosition}`}
+                unoptimized
+              />
+            )}
+            {overlay && <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />}
+          </div>
+        )
+      })}
     </div>
   )
 }

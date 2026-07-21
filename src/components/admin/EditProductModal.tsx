@@ -349,7 +349,7 @@ export default function EditProductModal({ product, onClose, onSaved, hatStyleOp
               <datalist id="edit-hatstyle-suggestions">
                 {(hatStyleOptions ?? HAT_STYLES).map((s) => <option key={s} value={s} />)}
               </datalist>
-              <p className="mt-1 text-[10px] text-jays-steel">Not in the list? Just type a new style name — it'll be saved and available for future products.</p>
+              <p className="mt-1 text-[10px] text-jays-steel">Not in the list? Just type a new style name — it&apos;ll be saved and available for future products.</p>
             </div>
           )}
 

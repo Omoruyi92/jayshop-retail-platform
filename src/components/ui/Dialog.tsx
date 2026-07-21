@@ -1,6 +1,7 @@
 'use client'
-import { createContext, useContext, useEffect, useState, cloneElement, isValidElement } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, cloneElement, isValidElement } from 'react'
 import { createPortal } from 'react-dom'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
  * Lightweight, dependency-free modal primitives (API-compatible with the
@@ -93,12 +94,18 @@ export function DialogClose({
 export function DialogContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const { open, setOpen } = useDialogCtx('DialogContent')
   const [mounted, setMounted] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   useEffect(() => setMounted(true), [])
+  useFocusTrap(open, contentRef, () => setOpen(false))
   if (!mounted || !open) return null
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
       <div
+        ref={contentRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
         className={`fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none ${className}`}
       >
         {children}

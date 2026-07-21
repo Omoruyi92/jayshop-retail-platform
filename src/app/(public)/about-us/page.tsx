@@ -37,23 +37,18 @@ export default function AboutUsPage() {
           </p>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 60" fill="none" className="w-full h-8 sm:h-12">
-            <path d="M0 60L1440 60L1440 0C1200 50 240 50 0 0L0 60Z" fill="#f0f4f8" />
-          </svg>
-        </div>
       </section>
 
       {/* ── Our Story ──────────────────────────────────────────────── */}
-      <section className="bg-jays-ice">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
             <div>
-              <span className="inline-flex items-center gap-1.5 bg-jays-red/10 text-jays-red text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+              <p className="flex items-center gap-2 text-jays-red text-xs font-bold uppercase tracking-[0.3em] mb-5">
                 <Heart size={12} />
                 Our Story
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy leading-snug mb-4">
+              </p>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy leading-snug mb-5">
                 Born from a Love of <span className="text-jays-red">Blue Jays Baseball</span>
               </h2>
               <p className="text-jays-steel leading-relaxed mb-4">
@@ -88,13 +83,13 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── Our Values ─────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-jays-ice to-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 bg-jays-navy/5 text-jays-navy text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-3">
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+          <div className="text-center mb-10">
+            <p className="flex items-center justify-center gap-2 text-jays-navy/60 text-xs font-bold uppercase tracking-[0.3em] mb-3">
               <Star size={12} />
               What We Stand For
-            </span>
+            </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy">
               Our <span className="text-jays-red">Values</span>
             </h2>
@@ -144,10 +139,9 @@ export default function AboutUsPage() {
             ].map(({ icon: Icon, title, body, accent }) => (
               <div
                 key={title}
-                className="group relative bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                className="group relative p-5 transition-all duration-300"
               >
-                <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${accent} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                <div className={`w-10 h-10 bg-gradient-to-br ${accent} text-white rounded-lg flex items-center justify-center mb-3 shadow-sm`}>
+                <div className={`w-10 h-10 bg-gradient-to-br ${accent} text-white rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform`}>
                   <Icon size={20} />
                 </div>
                 <h3 className="font-display font-semibold text-jays-navy text-base mb-1">{title}</h3>
@@ -160,12 +154,12 @@ export default function AboutUsPage() {
 
       {/* ── Why Shop With Us ───────────────────────────────────────── */}
       <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 bg-jays-red/10 text-jays-red text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-3">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+          <div className="text-center mb-10">
+            <p className="flex items-center justify-center gap-2 text-jays-red text-xs font-bold uppercase tracking-[0.3em] mb-3">
               <ShoppingBag size={12} />
               Why Jays Shop
-            </span>
+            </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy">
               Why Shop <span className="text-jays-red">With Us?</span>
             </h2>
@@ -204,7 +198,7 @@ export default function AboutUsPage() {
                 body: 'Our team are fellow fans who genuinely care about your experience. We go the extra mile — every time.',
               },
             ].map(({ icon, title, body }) => (
-              <div key={title} className="flex gap-4 bg-jays-ice/50 rounded-xl p-5 border border-gray-100 hover:border-jays-navy/15 hover:shadow-sm transition-all">
+              <div key={title} className="flex gap-4 py-4 border-b border-gray-100">
                 <span className="text-2xl shrink-0 mt-0.5">{icon}</span>
                 <div>
                   <h3 className="font-display font-semibold text-jays-navy text-sm mb-1">{title}</h3>
@@ -217,13 +211,13 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── Jr. Jays Sunday ─────────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-white to-jays-ice">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
             <div>
-              <span className="inline-flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+              <p className="text-sky-600 text-xs font-bold uppercase tracking-[0.3em] mb-5">
                 🧢 Jr. Jays Sunday
-              </span>
+              </p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy leading-snug mb-4">
                 For Our <span className="text-jays-red">Youngest Fans</span>
               </h2>
@@ -259,15 +253,12 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── Pride & Inclusion ──────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-amber-400 via-green-500 via-blue-500 to-purple-600 opacity-[0.08]" />
-        <div className="relative bg-white/95 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-            <div className="text-center mb-8">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-3"
-                style={{ background: 'linear-gradient(90deg, #ff000015, #ff800015, #ffff0015, #00800015, #0000ff15, #80008015)', color: '#5b21b6' }}>
+      <section className="relative overflow-hidden bg-white">
+          <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] mb-3" style={{ color: '#5b21b6' }}>
                 🏳️‍🌈 Pride & Inclusion
-              </span>
+              </p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy">
                 Diversity Is Our <span className="text-jays-red">Strength</span>
               </h2>
@@ -276,7 +267,7 @@ export default function AboutUsPage() {
               </p>
             </div>
 
-            <div className="max-w-2xl mx-auto bg-gradient-to-br from-jays-ice to-white rounded-2xl border border-gray-100 p-6 sm:p-8">
+            <div className="max-w-2xl mx-auto p-0 sm:p-0">
               <p className="text-jays-steel leading-relaxed mb-4">
                 We proudly stand with the LGBTQ+ community and are committed to creating a space where
                 <span className="font-semibold text-jays-navy"> every fan feels welcome, respected, and celebrated</span>.
@@ -304,7 +295,6 @@ export default function AboutUsPage() {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* ── Trust & Commitment ─────────────────────────────────────── */}
@@ -334,8 +324,8 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────── */}
-      <section className="bg-jays-ice">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16 text-center">
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24 text-center">
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy mb-3">
             {a.ctaTitle}
           </h2>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
+import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,10 +12,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (error) return error
 
   try {
-    const body = await req.json()
+    const body = await parseJsonBody<{ productId?: string }>(req)
     const productId = body.productId as string
     if (!productId) {
-      return NextResponse.json({ error: 'productId is required' }, { status: 400 })
+      return badRequest('productId is required')
     }
 
     const style = await prisma.styleCategory.findUnique({ where: { id: params.id } })
@@ -59,8 +60,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     return NextResponse.json({ productStyle }, { status: 201 })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }
 
@@ -70,10 +70,10 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   if (error) return error
 
   try {
-    const body = await req.json()
+    const body = await parseJsonBody<{ productId?: string }>(req)
     const productId = body.productId as string
     if (!productId) {
-      return NextResponse.json({ error: 'productId is required' }, { status: 400 })
+      return badRequest('productId is required')
     }
 
     const existing = await prisma.productStyle.findUnique({
@@ -100,7 +100,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }

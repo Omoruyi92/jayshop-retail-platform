@@ -1,9 +1,10 @@
 'use client'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { useFetch } from '@/components/sync/hooks/useFetch'
 import { useMutation } from '@/components/sync/hooks/useMutation'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { X } from 'lucide-react'
 import type { StyleCategory } from '@/app/(admin)/admin/styles/page'
 
@@ -31,6 +32,8 @@ export default function StyleProductsModal({
   onClose: () => void
 }) {
   const [search, setSearch] = useState('')
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, modalRef, onClose)
 
   const fetchProducts = useCallback(async (): Promise<ProductOption[]> => {
     const data = await jsonFetch('/api/products?includeArchived=true')
@@ -89,7 +92,7 @@ export default function StyleProductsModal({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+      <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto focus:outline-none">
         <div className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold uppercase text-jays-navy text-lg">

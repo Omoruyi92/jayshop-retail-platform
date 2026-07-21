@@ -1,10 +1,11 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@prisma/client'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useCart } from '@/lib/store/CartContext'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface SizeAvailability {
   size: string
@@ -30,6 +31,8 @@ export default function HoldButton({
   const hb = t.holdButton
 
   const [open, setOpen] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(open, modalRef, () => setOpen(false))
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [selectedSize, setSelectedSize] = useState('')
@@ -209,7 +212,7 @@ export default function HoldButton({
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-0 sm:px-4">
-          <div className="flex w-full max-w-md flex-col overflow-x-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[85vh] sm:rounded-2xl max-h-[88vh]">
+          <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="flex w-full max-w-md flex-col overflow-x-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[85vh] sm:rounded-2xl max-h-[88vh] focus:outline-none">
             {/* Sticky header */}
             <div className="flex items-start justify-between gap-2 border-b border-gray-100 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
               <div className="min-w-0">

@@ -26,7 +26,7 @@ export default function PlayerCard({ player }: { player: PlayerCardData }) {
           alt={player.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          className="object-contain group-hover:scale-105 transition-transform duration-500"
         />
         <PlayerBadge
           isFeatured={player.isFeatured}

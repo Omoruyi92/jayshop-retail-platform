@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import ProductCard from '@/components/shop/ProductCard'
+import Reveal from '@/components/ui/Reveal'
 import ShopHero from '@/components/shop/ShopHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
@@ -526,7 +527,7 @@ export default function ShopPageClient({
 
       <CategoryBanner activeCategory={activeCategory} />
 
-      <div className="mx-auto w-full max-w-none bg-white px-3 pb-8 pt-6 sm:px-4 lg:px-8">
+      <div className="mx-auto w-full max-w-none bg-white px-2 pb-8 pt-6 sm:px-3 lg:px-5">
         {activeBrand !== 'All' && (
           <div className="mb-4 flex items-center gap-2.5">
             {activeBrandInfo?.imageUrl ? (
@@ -619,15 +620,16 @@ export default function ShopPageClient({
           />
         ) : (
           <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-            {sorted.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                remaining={product.remaining}
-                hasSizes={product.hasSizes}
-                allSizesOos={product.allSizesOos}
-                currentFilters={currentFilters}
-              />
+            {sorted.map((product, index) => (
+              <Reveal key={product.id} index={index % 12} step={40}>
+                <ProductCard
+                  product={product}
+                  remaining={product.remaining}
+                  hasSizes={product.hasSizes}
+                  allSizesOos={product.allSizesOos}
+                  currentFilters={currentFilters}
+                />
+              </Reveal>
             ))}
           </div>
         )}

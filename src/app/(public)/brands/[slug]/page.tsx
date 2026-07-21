@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shop/ProductCard'
+import Reveal from '@/components/ui/Reveal'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
 import { notFound } from 'next/navigation'
 import PaginationControls from '@/components/ui/PaginationControls'
@@ -85,12 +86,13 @@ export default async function BrandPage({
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {pageCards.map(({ product, availability }) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                remaining={availability.availableBalance}
-              />
+            {pageCards.map(({ product, availability }, index) => (
+              <Reveal key={product.id} index={index % 12} step={40}>
+                <ProductCard
+                  product={product}
+                  remaining={availability.availableBalance}
+                />
+              </Reveal>
             ))}
           </div>
           <PaginationControls

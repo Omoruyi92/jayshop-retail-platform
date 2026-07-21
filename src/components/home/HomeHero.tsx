@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 
@@ -49,6 +50,21 @@ export default function HomeHero({ isGameDayToday = false, initialSlides }: Home
         <h1 className="font-display text-xl font-bold uppercase leading-tight tracking-wide text-white drop-shadow-md sm:text-2xl lg:text-3xl">
           {h.heroTitle1} <span className="text-amber-300">{h.heroTitle2}</span>
         </h1>
+      </div>
+
+      {/* Browse CTA — a premium, unboxed pill floating in the opposite
+          corner from the headline so it complements the hero media rather
+          than competing with it. */}
+      <div className="absolute bottom-4 right-4 z-10 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8">
+        <Link
+          href="/shop"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 font-display text-xs font-semibold uppercase tracking-wider text-jays-navy shadow-lg shadow-black/10 backdrop-blur-sm transition-all hover:bg-jays-ice hover:shadow-xl active:scale-[0.97] sm:px-5 sm:py-3 sm:text-sm"
+        >
+          {h.browseShop}
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </section>
   )

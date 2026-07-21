@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useMutation } from '@/components/sync/hooks/useMutation'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Promotion } from '@/app/(admin)/admin/promotions/page'
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
@@ -22,14 +23,8 @@ export default function PromotionFormModal({
   const [status, setStatus] = useState<Promotion['status']>(promotion?.status ?? 'PENDING')
   const [startsAt, setStartsAt] = useState(promotion?.startsAt ? toLocalInput(promotion.startsAt) : '')
   const [expiresAt, setExpiresAt] = useState(promotion?.expiresAt ? toLocalInput(promotion.expiresAt) : '')
-
-  useEffect(() => {
-    function esc(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', esc)
-    return () => window.removeEventListener('keydown', esc)
-  }, [onClose])
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, modalRef, onClose)
 
   const saveMutation = useMutation(
     async () => {
@@ -72,7 +67,7 @@ export default function PromotionFormModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5">
+      <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 focus:outline-none">
         <h2 className="font-display text-xl font-bold uppercase text-jays-navy mb-4">
           {isEdit ? 'Edit Promotion' : 'Add Promotion'}
         </h2>

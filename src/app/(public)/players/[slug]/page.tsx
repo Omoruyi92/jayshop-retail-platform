@@ -160,7 +160,7 @@ export default function PlayerDetailPage() {
                     alt={g.product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-2">

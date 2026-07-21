@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import PlayerCard, { PlayerCardData } from '@/components/players/PlayerCard'
 import FeaturedPlayersCarousel from '@/components/players/FeaturedPlayersCarousel'
 import PlayerSearchFilter from '@/components/players/PlayerSearchFilter'
+import PlayersHero from '@/components/players/PlayersHero'
 import { EmptyState } from '@/components/ui/EmptyState'
+import Reveal from '@/components/ui/Reveal'
 
 export default function PopularPlayersPage() {
   const [players, setPlayers] = useState<PlayerCardData[]>([])
@@ -46,14 +48,27 @@ export default function PopularPlayersPage() {
   }, [players, search, position])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-6">
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-jays-navy uppercase tracking-tight">
-          Popular Players
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Shop official Blue Jays jerseys worn by your favorite players.
-        </p>
+    <div>
+      <PlayersHero />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-jays-navy uppercase tracking-tight">
+            Popular Players
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Shop official Blue Jays jerseys worn by your favorite players.
+          </p>
+        </div>
+        {!loading && players.length > 0 && (
+          <PlayerSearchFilter
+            search={search}
+            onSearchChange={setSearch}
+            position={position}
+            onPositionChange={setPosition}
+            positions={positions}
+          />
+        )}
       </div>
 
       {loading ? (
@@ -76,14 +91,6 @@ export default function PopularPlayersPage() {
         <>
           <FeaturedPlayersCarousel players={featured} />
 
-          <PlayerSearchFilter
-            search={search}
-            onSearchChange={setSearch}
-            position={position}
-            onPositionChange={setPosition}
-            positions={positions}
-          />
-
           {filtered.length === 0 ? (
             <EmptyState
               icon={
@@ -96,13 +103,16 @@ export default function PopularPlayersPage() {
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filtered.map((player) => (
-                <PlayerCard key={player.id} player={player} />
+              {filtered.map((player, index) => (
+                <Reveal key={player.id} index={index}>
+                  <PlayerCard player={player} />
+                </Reveal>
               ))}
             </div>
           )}
         </>
       )}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import ProductCard from '@/components/shop/ProductCard'
+import YouMayAlsoLikeCarousel from '@/components/shop/YouMayAlsoLikeCarousel'
 
 const MAX_ITEMS = 8
 
@@ -41,18 +41,7 @@ export default async function YouMayAlsoLike({
       >
         You May Also Like
       </h2>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-        {picks.map((product) => {
-          const remaining = Math.max(0, product.quantity - product.heldQuantity)
-          return (
-            <ProductCard
-              key={product.id}
-              product={product}
-              remaining={remaining}
-            />
-          )
-        })}
-      </div>
+      <YouMayAlsoLikeCarousel products={picks} />
     </section>
   )
 }

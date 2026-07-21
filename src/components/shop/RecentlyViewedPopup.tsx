@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 const SESSION_COUNT_KEY = 'jays-recently-viewed-popup-count'
 const DISPLAY_DELAY_MS = 3000
@@ -54,6 +55,8 @@ export default function RecentlyViewedPopup() {
   }, [isOpen])
 
   const handleClose = () => setIsOpen(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(isOpen, modalRef, handleClose)
 
   if (!isOpen) return null
 
@@ -72,11 +75,13 @@ export default function RecentlyViewedPopup() {
       aria-hidden="true"
     >
       <div
-        className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:w-80 max-w-md m-0 sm:m-4 animate-in slide-in-from-bottom-4 fade-in duration-200"
+        ref={modalRef}
+        className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:w-80 max-w-md m-0 sm:m-4 animate-in slide-in-from-bottom-4 fade-in duration-200 focus:outline-none"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="recently-viewed-title"
+        tabIndex={-1}
       >
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">

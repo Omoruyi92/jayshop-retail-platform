@@ -38,7 +38,7 @@ export default async function ShopByStylePage() {
     <div className="bg-white">
       <StylesHero initialSlides={initialHeroSlides} />
 
-      <div className="mx-auto w-full max-w-7xl bg-white px-1 py-1 sm:px-1.5 sm:py-1.5">
+      <div className="mx-auto w-full bg-white px-0 py-0">
         {styles.length === 0 ? (
           <EmptyState
             title="No styles available right now"

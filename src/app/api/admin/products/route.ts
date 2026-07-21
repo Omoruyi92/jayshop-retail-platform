@@ -9,6 +9,8 @@ import { getMainStoreLocationId } from '@/lib/store-locations'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
+import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
+import { parseFormData, apiErrorResponse, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
-    const formData = await req.formData()
+    const formData = await parseFormData(req)
     const name = formData.get('name') as string
     const description = formData.get('description') as string | null
     const priceCents = Number(formData.get('priceCents'))
@@ -98,12 +100,9 @@ export async function POST(req: Request) {
 
     let sizeQuantitiesMap: Record<string, number> | null = null
     if (sizeQuantitiesRaw) {
-      try {
-        const parsed = JSON.parse(sizeQuantitiesRaw) as Record<string, number>
-        if (typeof parsed === 'object' && parsed !== null) {
-          sizeQuantitiesMap = parsed
-        }
-      } catch {
+      const parsed = parseJsonField<Record<string, number>>(sizeQuantitiesRaw, 'sizeQuantities')
+      if (typeof parsed === 'object' && parsed !== null) {
+        sizeQuantitiesMap = parsed
       }
     }
 
@@ -132,7 +131,7 @@ export async function POST(req: Request) {
           imageUrl: finalImageUrl,
           imageUrl2: finalImageUrl2,
           imageUrl3: finalImageUrl3,
-          colors: colors ? JSON.parse(colors) : [],
+          colors: colors ? parseJsonField(colors, 'colors') : [],
           isFeatured,
           isSport,
           isLicensed,
@@ -175,6 +174,13 @@ export async function POST(req: Request) {
         })
       }
 
+      // Keep Product.quantity/heldQuantity/pickedQuantity in sync with the
+      // SizeInventory rows just created — matches the edit flow (inventory
+      // route.ts) which always re-syncs after mutating SizeInventory. Without
+      // this, an uneven sizeQuantities allocation can leave Product.quantity
+      // pointing at the pre-allocation total instead of the true sum.
+      await syncProductTotalsFromSizeInventory(tx, created.id)
+
       if (isNewArrival) {
         await tx.customerNotification.create({
           data: {
@@ -188,7 +194,7 @@ export async function POST(req: Request) {
         })
       }
 
-      return created
+      return tx.product.findUniqueOrThrow({ where: { id: created.id } })
     })
 
     revalidatePath('/brands')
@@ -196,7 +202,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ product }, { status: 201 })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }

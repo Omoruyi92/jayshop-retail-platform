@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
     let heroVideoUrl = ''
 
     if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData()
+      const formData = await parseFormData(req)
       name = ((formData.get('name') as string) || '').trim()
       description = (formData.get('description') as string) || ''
       heroOverlayText = (formData.get('heroOverlayText') as string) || ''
@@ -105,12 +106,12 @@ export async function POST(req: Request) {
       const heroVideoFile = formData.get('heroVideoFile') as File | null
       if (heroVideoFile && heroVideoFile.size > 0) {
         if (!VIDEO_TYPES.has(heroVideoFile.type)) {
-          return NextResponse.json({ error: 'Unsupported video format' }, { status: 400 })
+          return badRequest('Unsupported video format')
         }
         heroVideoUrl = await uploadVideo(heroVideoFile)
       }
     } else {
-      const body = await req.json()
+      const body = await parseJsonBody<Record<string, unknown>>(req)
       name = ((body.name as string) || '').trim()
       description = (body.description as string) || ''
       heroOverlayText = (body.heroOverlayText as string) || ''
@@ -123,10 +124,10 @@ export async function POST(req: Request) {
     }
 
     if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+      return badRequest('Name is required')
     }
     if (!coverImageUrl) {
-      return NextResponse.json({ error: 'coverImageUrl or coverImageFile is required' }, { status: 400 })
+      return badRequest('coverImageUrl or coverImageFile is required')
     }
 
     const baseSlug = slugify(name)
@@ -169,7 +170,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ style }, { status: 201 })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }

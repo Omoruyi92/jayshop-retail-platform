@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useState, type ReactNode } from 'react'
-import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import HomeHero from '@/components/home/HomeHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
@@ -90,36 +89,17 @@ export default function HomePageClient({
       <HomeHero isGameDayToday={isGameDayToday} initialSlides={initialHeroSlides} />
 
       {/* ── Orientation hub — a slim, unboxed inline row just below the
-          hero. No card/banner styling — buttons and stats sit directly on
-          the page background so they read as a natural continuation of the
-          layout rather than a distinct UI block. ─────────────────────── */}
+          hero. No card/banner styling — stats sit directly on the page
+          background so they read as a natural continuation of the layout
+          rather than a distinct UI block. The primary Browse CTA now lives
+          inside the hero itself (bottom-right corner). ────────────────── */}
       <section className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
-        <div className="flex flex-col gap-3 border-b border-jays-navy/[0.06] pb-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-jays-red px-4 py-2 font-display text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-red-600 active:scale-[0.98] sm:text-sm"
-            >
-              {h.browseShop}
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-            <Link
-              href="/my-holds"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 font-display text-xs font-semibold uppercase tracking-wider text-jays-navy transition-colors hover:bg-jays-navy/[0.04] sm:text-sm"
-            >
-              {h.viewMyHolds}
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-jays-steel sm:text-sm">
-            <span className="whitespace-nowrap">12 store locations</span>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-jays-navy/15" aria-hidden="true" />
-            <span className="whitespace-nowrap">3-hr express holds</span>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-jays-navy/15" aria-hidden="true" />
-            <span className="whitespace-nowrap">Free to reserve</span>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-jays-navy/[0.06] pb-5 text-xs text-jays-steel sm:justify-start sm:text-sm">
+          <span className="whitespace-nowrap">12 store locations</span>
+          <span className="h-1 w-1 shrink-0 rounded-full bg-jays-navy/15" aria-hidden="true" />
+          <span className="whitespace-nowrap">3-hr express holds</span>
+          <span className="h-1 w-1 shrink-0 rounded-full bg-jays-navy/15" aria-hidden="true" />
+          <span className="whitespace-nowrap">Free to reserve</span>
         </div>
       </section>
 

@@ -141,6 +141,9 @@ export default function AdminHeroMediaPage() {
         <button onClick={() => setScope('STYLE_LANDING')} className={`${TAB_CLS} ${scope === 'STYLE_LANDING' ? TAB_ACTIVE : TAB_INACTIVE}`}>
           Style Hero
         </button>
+        <button onClick={() => setScope('PLAYERS')} className={`${TAB_CLS} ${scope === 'PLAYERS' ? TAB_ACTIVE : TAB_INACTIVE}`}>
+          Players Hero
+        </button>
       </div>
 
       <TableWrapper>
@@ -159,7 +162,7 @@ export default function AdminHeroMediaPage() {
             {loading ? (
               <tr><td colSpan={6} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
             ) : slideList.length === 0 ? (
-              <tr><td colSpan={6}><EmptyState title="No slides yet" body={`Upload the first ${scope === 'HOME' ? 'home' : scope === 'SHOP' ? 'shop' : 'shop by style'} hero slide.`} /></td></tr>
+              <tr><td colSpan={6}><EmptyState title="No slides yet" body={`Upload the first ${scope === 'HOME' ? 'home' : scope === 'SHOP' ? 'shop' : scope === 'STYLE_LANDING' ? 'shop by style' : 'popular players'} hero slide.`} /></td></tr>
             ) : slideList.map((slide, idx) => (
               <tr key={slide.id} className="hover:bg-jays-ice/50 transition-colors">
                 <td className="px-2 py-1.5">

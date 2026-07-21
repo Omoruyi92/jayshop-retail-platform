@@ -1,6 +1,7 @@
 'use client'
 
 import StyleCard, { type StyleCardData } from './StyleCard'
+import Reveal from '@/components/ui/Reveal'
 
 /**
  * Bento/brick span pattern for the desktop masonry grid — cycles every 6
@@ -30,15 +31,20 @@ export default function StylesMasonryGrid({ styles }: { styles: StyleCardData[] 
 
   return (
     <div
-      className="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-1.5 lg:grid-flow-dense lg:auto-rows-[240px] lg:grid-cols-4 lg:gap-1.5 xl:auto-rows-[260px]"
+      className="grid grid-cols-1 gap-0.5 sm:grid-cols-2 sm:gap-0.5 lg:grid-flow-dense lg:auto-rows-[260px] lg:grid-cols-4 lg:gap-0.5 xl:auto-rows-[300px]"
     >
       {styles.map((style, index) => (
-        <StyleCard
+        <Reveal
           key={style.id}
-          style={style}
-          priority={index < 2}
-          className={`aspect-[4/5] sm:aspect-auto sm:h-[320px] lg:aspect-auto lg:h-auto ${tabletSpan(index)} ${SPAN_PATTERN[index % SPAN_PATTERN.length]}`}
-        />
+          index={index}
+          className={`${tabletSpan(index)} ${SPAN_PATTERN[index % SPAN_PATTERN.length]}`}
+        >
+          <StyleCard
+            style={style}
+            priority={index < 2}
+            className="aspect-[4/5] h-full w-full sm:aspect-auto sm:h-[320px] lg:aspect-auto lg:h-full"
+          />
+        </Reveal>
       ))}
     </div>
   )

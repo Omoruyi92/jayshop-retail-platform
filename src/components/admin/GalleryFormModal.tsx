@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { useMutation } from '@/components/sync/hooks/useMutation'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ImagePlus } from 'lucide-react'
 import type { GalleryImage } from '@/app/(admin)/admin/gallery/page'
 
@@ -39,6 +40,8 @@ export default function GalleryFormModal({
   })
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, modalRef, onClose)
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] || null
@@ -98,7 +101,7 @@ export default function GalleryFormModal({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto focus:outline-none">
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold uppercase text-jays-navy text-lg">

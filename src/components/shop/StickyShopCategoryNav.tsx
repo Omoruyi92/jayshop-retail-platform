@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent, type FocusEvent as ReactFocusEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
@@ -40,6 +40,8 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     brand: null,
   })
   const [hoveredAttr, setHoveredAttr] = useState<string | null>(null)
+  const [menuSide, setMenuSide] = useState<Record<string, 'left' | 'right'>>({})
+  const [subSide, setSubSide] = useState<Record<string, 'left' | 'right'>>({})
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, string | null>>({})
   const [visible, setVisible] = useState(true)
@@ -49,6 +51,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
 
   const categoryRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
   const lastFocusedCategory = useRef<string | null>(null)
+  const menuPanelRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
     function handleClick(e: MouseEvent | TouchEvent) {
@@ -116,16 +119,28 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
 
   const pills = allPills.filter((p) => p.value === 'All' || p.hasDropdown || p.children.length > 0)
 
-  function handleMouseEnter(category: string) {
+  function handleMouseEnter(category: string, e?: ReactMouseEvent<HTMLElement>) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setHovered({ category, sub: null, brand: null })
     setHoveredAttr(null)
+    if (e && typeof window !== 'undefined') {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const MENU_WIDTH = 288 // matches min-w-[18rem]
+      const overflowsRight = rect.left + MENU_WIDTH > window.innerWidth - 16
+      setMenuSide((prev) => ({ ...prev, [category]: overflowsRight ? 'right' : 'left' }))
+    }
   }
 
-  function handleSubMouseEnter(category: string, sub: string) {
+  function handleSubMouseEnter(category: string, sub: string, e?: ReactMouseEvent<HTMLElement>) {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setHovered({ category, sub, brand: null })
     setHoveredAttr(null)
+    if (e && typeof window !== 'undefined') {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const FLYOUT_WIDTH = 224 // matches min-w-[14rem]
+      const overflowsRight = rect.right + FLYOUT_WIDTH > window.innerWidth - 16
+      setSubSide((prev) => ({ ...prev, [`${category}:${sub}`]: overflowsRight ? 'right' : 'left' }))
+    }
   }
 
   function handleAttrMouseEnter(attr: string) {
@@ -133,11 +148,82 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     setHoveredAttr(attr)
   }
 
+  // Opens a category dropdown on focus (e.g. Tab into the trigger link),
+  // mirroring handleMouseEnter but without requiring a MouseEvent (position
+  // is measured from the focused element's own rect instead).
+  function handleCategoryFocus(category: string, e: ReactFocusEvent<HTMLElement>) {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    setHovered({ category, sub: null, brand: null })
+    setHoveredAttr(null)
+    if (typeof window !== 'undefined') {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const MENU_WIDTH = 288
+      const overflowsRight = rect.left + MENU_WIDTH > window.innerWidth - 16
+      setMenuSide((prev) => ({ ...prev, [category]: overflowsRight ? 'right' : 'left' }))
+    }
+  }
+
+  // Closes the open dropdown (Escape) and restores focus to the trigger
+  // that opened it, so keyboard users don't lose their place.
+  function closeDropdownAndRestoreFocus(category: string) {
+    setHovered({ category: null, sub: null, brand: null })
+    setHoveredAttr(null)
+    categoryRefs.current[category]?.focus()
+  }
+
+  // Escape closes the dropdown from anywhere inside the trigger or panel.
+  // ArrowDown from the trigger moves focus into the first item of the open
+  // panel so keyboard users can navigate the menu without a mouse.
+  function handleTriggerKeyDown(e: ReactKeyboardEvent<HTMLElement>, category: string, isOpen: boolean) {
+    if (e.key === 'Escape' && isOpen) {
+      e.preventDefault()
+      closeDropdownAndRestoreFocus(category)
+      return
+    }
+    if (e.key === 'ArrowDown' && isOpen) {
+      e.preventDefault()
+      const panel = menuPanelRefs.current[category]
+      const firstLink = panel?.querySelector<HTMLElement>('a, button')
+      firstLink?.focus()
+    }
+  }
+
+  // Within an open dropdown panel: Escape closes + restores focus to the
+  // trigger; ArrowUp/ArrowDown move between the panel's focusable items.
+  function handlePanelKeyDown(e: ReactKeyboardEvent<HTMLElement>, category: string) {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeDropdownAndRestoreFocus(category)
+      return
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const panel = menuPanelRefs.current[category]
+      if (!panel) return
+      const items = Array.from(panel.querySelectorAll<HTMLElement>('a, button'))
+      const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+      if (currentIndex === -1) return
+      e.preventDefault()
+      const nextIndex = e.key === 'ArrowDown'
+        ? Math.min(currentIndex + 1, items.length - 1)
+        : Math.max(currentIndex - 1, 0)
+      items[nextIndex]?.focus()
+    }
+  }
+
+  // Cancels the pending close timeout without recomputing menu/sub side.
+  // Used on the dropdown panels themselves so moving the mouse from the
+  // trigger into the open panel never re-measures position (that caused a
+  // visible horizontal jump since the panel's own rect differs from the
+  // trigger's rect).
+  function keepOpen() {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+  }
+
   function handleMouseLeave() {
     hoverTimeoutRef.current = setTimeout(() => {
       setHovered({ category: null, sub: null, brand: null })
       setHoveredAttr(null)
-    }, 150)
+    }, 300)
   }
 
   function apply(category: string, sub: string, brand: string, hatStyle: string) {
@@ -172,6 +258,16 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
     return brandsBySlug[category.toLowerCase()] ?? []
   }
 
+  // Closes the dropdown when focus moves outside the trigger+panel group
+  // entirely (e.g. Tab past the last item), but not when it's just moving
+  // between the trigger and its own panel.
+  function handleGroupBlur(e: ReactFocusEvent<HTMLDivElement>, category: string) {
+    const next = e.relatedTarget as Node | null
+    if (!next || !e.currentTarget.contains(next)) {
+      setHovered((prev) => (prev.category === category ? { category: null, sub: null, brand: null } : prev))
+    }
+  }
+
   return (
     <div
       ref={navRef}
@@ -186,7 +282,12 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
             const active = activeCategory?.toLowerCase() === value.toLowerCase()
             const isHovered = hovered.category === value
             return (
-              <div key={value} className="relative" onMouseEnter={() => handleMouseEnter(value)}>
+              <div
+                key={value}
+                className="relative"
+                onMouseEnter={(e) => handleMouseEnter(value, e)}
+                onBlur={(e) => handleGroupBlur(e, value)}
+              >
                 <Link
                   ref={(el) => { categoryRefs.current[value] = el }}
                   href={value === 'All' ? '/shop?category=All' : allLink(value)}
@@ -194,6 +295,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                     e.preventDefault()
                     navigate(value, 'All', 'All', 'All')
                   }}
+                  onFocus={hasDropdown ? (e) => handleCategoryFocus(value, e) : undefined}
+                  onKeyDown={hasDropdown ? (e) => handleTriggerKeyDown(e, value, isHovered) : undefined}
+                  aria-haspopup={hasDropdown ? 'true' : undefined}
+                  aria-expanded={hasDropdown ? isHovered : undefined}
                   className={`
                     inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-all
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40
@@ -212,7 +317,15 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                 </Link>
 
                 {hasDropdown && isHovered && (
-                  <div className="absolute left-0 top-full z-40 min-w-[18rem] pt-2" onMouseEnter={() => handleMouseEnter(value)}>
+                  <div
+                    ref={(el) => { menuPanelRefs.current[value] = el }}
+                    role="menu"
+                    className={`absolute top-full z-40 min-w-[18rem] pt-2 ${
+                      menuSide[value] === 'right' ? 'right-0' : 'left-0'
+                    }`}
+                    onMouseEnter={keepOpen}
+                    onKeyDown={(e) => handlePanelKeyDown(e, value)}
+                  >
                     <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                       <Link
                         href={allLink(value)}
@@ -231,7 +344,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                         const brands = availableBrands(value)
                         const isHatCategory = sub.toLowerCase() === 'hats' || sub.toLowerCase() === 'caps'
                         return (
-                          <div key={sub} className="relative" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
+                          <div key={sub} className="relative" onMouseEnter={(e) => handleSubMouseEnter(value, sub, e)}>
                             <Link
                               href={subLink(value, sub, 'All')}
                               onClick={(e) => {
@@ -250,7 +363,12 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                             </Link>
 
                             {subHovered && (
-                              <div className="absolute left-full top-0 z-50 ml-1 min-w-[14rem] pl-1" onMouseEnter={() => handleSubMouseEnter(value, sub)}>
+                              <div
+                                className={`absolute top-0 z-50 min-w-[14rem] ${
+                                  subSide[`${value}:${sub}`] === 'right' ? 'right-full pr-1' : 'left-full pl-1'
+                                }`}
+                                onMouseEnter={keepOpen}
+                              >
                                 <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                                   {audiences.length > 0 && (
                                     <>
@@ -293,7 +411,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                               <ChevronDown size={12} className="text-gray-400" />
                                             </button>
                                             {hoveredAttr === 'hatStyle' && (
-                                              <div className="absolute left-0 top-full z-50 mt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('hatStyle')}>
+                                              <div className="absolute left-0 top-full z-50 pt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('hatStyle')}>
                                                 <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                                                   {HAT_STYLES.map((style) => (
                                                     <Link
@@ -325,7 +443,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
                                               <ChevronDown size={12} className="text-gray-400" />
                                             </button>
                                             {hoveredAttr === 'brand' && (
-                                              <div className="absolute right-0 top-full z-50 mt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('brand')}>
+                                              <div className="absolute right-0 top-full z-50 pt-1 min-w-[10rem]" onMouseEnter={() => handleAttrMouseEnter('brand')}>
                                                 <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
                                                   {brands.map((brand) => (
                                                     <Link

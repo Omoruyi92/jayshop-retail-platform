@@ -1,11 +1,12 @@
 'use client'
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { formatCAD } from '@/lib/utils'
 import { toast } from 'sonner'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface Hold {
   id: string
@@ -35,6 +36,8 @@ function PickupModal({ hold, onClose, onConfirm, submitting }: PickupModalProps)
   const unitPrice = hold.product.priceCents
   const maxQty = hold.holdQuantity
   const [fulfilledQty, setFulfilledQty] = useState(maxQty)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, modalRef, onClose)
 
   const recalcTotal = unitPrice * fulfilledQty
   const isPartial = fulfilledQty < maxQty && fulfilledQty > 0
@@ -42,7 +45,7 @@ function PickupModal({ hold, onClose, onConfirm, submitting }: PickupModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-[env(safe-area-inset-bottom)]" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-6 pb-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-6 pb-8 max-h-[90vh] overflow-y-auto focus:outline-none" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-display text-lg font-bold uppercase text-jays-navy mb-1">Confirm Pick Up</h2>
         <p className="text-sm text-jays-steel mb-4">
           {hold.customer.fullName} · <span className="font-mono text-xs">{hold.reservationCode}</span>

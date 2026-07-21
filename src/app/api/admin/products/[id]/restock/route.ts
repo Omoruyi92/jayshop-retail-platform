@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth/authorize'
 import { restock } from '@/lib/inventory/mutations'
+import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,12 +20,17 @@ export async function POST(
     return authError ?? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json().catch(() => ({}))
+  let body: { addQuantity?: unknown; size?: unknown; note?: unknown }
+  try {
+    body = await parseJsonBody(req)
+  } catch (err) {
+    return apiErrorResponse(err)
+  }
   const addQty = Number(body.addQuantity)
   const size = typeof body.size === 'string' && body.size.trim() ? body.size.trim() : undefined
 
   if (!Number.isFinite(addQty) || addQty <= 0) {
-    return NextResponse.json({ error: 'addQuantity must be a positive number' }, { status: 400 })
+    return badRequest('addQuantity must be a positive number')
   }
 
   try {
@@ -35,7 +41,7 @@ export async function POST(
       size,
       actorId: user.adminId,
       actorEmail: user.email,
-      note: body.note,
+      note: body.note as string | undefined,
     })
 
     return NextResponse.json({ success: true, ...updated })
@@ -47,7 +53,6 @@ export async function POST(
     if (e.code === 'SIZE_NOT_FOUND') {
       return NextResponse.json({ error: 'Size variant not found for this product' }, { status: 404 })
     }
-    console.error('[restock] Failed:', e.message)
-    return NextResponse.json({ error: 'Failed to restock' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to restock')
   }
 }

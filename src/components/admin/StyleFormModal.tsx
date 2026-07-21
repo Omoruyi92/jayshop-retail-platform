@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { useMutation } from '@/components/sync/hooks/useMutation'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import type { StyleCategory } from '@/app/(admin)/admin/styles/page'
 
@@ -38,6 +39,8 @@ export default function StyleFormModal({
   // replacement file.
   const [removeExistingImage, setRemoveExistingImage] = useState(false)
   const [removeExistingVideo, setRemoveExistingVideo] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, modalRef, onClose)
 
   function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null
@@ -148,7 +151,7 @@ export default function StyleFormModal({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto focus:outline-none">
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold uppercase text-jays-navy text-lg">

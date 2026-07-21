@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X, Camera, Loader2, Instagram, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
  * Lightweight modal (no Radix). Radix's Dialog/Presence combo has a known
  * infinite-render bug on this React build ("Maximum update depth exceeded")
  * so this component renders its own fixed overlay via a portal instead.
+ * Focus trapping/restoration and Escape-to-close are handled by
+ * `useFocusTrap` to keep this keyboard/screen-reader accessible.
  */
 function SimpleModal({
   open,
@@ -22,12 +25,18 @@ function SimpleModal({
   children: React.ReactNode
 }) {
   const [mounted, setMounted] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   useEffect(() => setMounted(true), [])
+  useFocusTrap(open, contentRef, onClose)
   if (!mounted || !open) return null
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div
+        ref={contentRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
         className={`fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none ${className}`}
       >
         {children}

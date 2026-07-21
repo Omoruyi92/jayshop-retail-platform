@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import Reveal from '@/components/ui/Reveal'
 
 const PREVIEW_COUNT = 5
 
@@ -58,32 +59,32 @@ export default async function LinkedGearPreview() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
-          {links.map((link) => (
+        <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
+          {links.map((link, index) => (
+            <Reveal key={link.id} index={index} className="w-[42%] shrink-0 snap-start sm:w-auto">
             <Link
-              key={link.id}
               href={`/shop/${link.product.slug}`}
-              className="group flex flex-col overflow-hidden rounded-2xl bg-jays-ice/60 ring-1 ring-black/[0.03] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-jays-navy/10"
+              className="group flex flex-col bg-white transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="relative aspect-square w-full overflow-hidden bg-white">
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white">
                 <Image
                   src={link.product.imageUrl}
                   alt={link.product.name}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
+                  sizes="(max-width: 640px) 42vw, (max-width: 1024px) 33vw, 22vw"
                   className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
                 />
                 <span className="absolute left-2 top-2 z-10 inline-flex items-center rounded-full bg-jays-navy/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
                   {link.player.name}
                 </span>
               </div>
-              <div className="flex flex-col gap-0.5 p-3">
+              <div className="pt-2.5">
                 <p className="truncate text-sm font-semibold text-jays-navy" title={link.product.name}>
                   {link.label || link.product.name}
                 </p>
-                <p className="text-sm font-bold text-jays-red">${(link.product.priceCents / 100).toFixed(2)}</p>
               </div>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>

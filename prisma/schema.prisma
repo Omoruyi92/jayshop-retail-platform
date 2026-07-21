@@ -684,6 +684,7 @@ enum SlideScope {
   HOME
   SHOP
   STYLE_LANDING
+  PLAYERS
 }
 
 enum MediaType {

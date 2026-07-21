@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { parseFormData, parseJsonBody, apiErrorResponse, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     let body: Record<string, unknown> = {}
 
     if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData()
+      const formData = await parseFormData(req)
       body = {}
       for (const key of ['name', 'jerseyNumber', 'position', 'bio', 'heroImageUrl', 'imageUrls', 'status', 'sortOrder']) {
         const v = formData.get(key)
@@ -46,11 +47,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       }
       const statsRaw = formData.get('stats') as string | null
       if (statsRaw !== null) {
-        try { body.stats = statsRaw ? JSON.parse(statsRaw) : null } catch { body.stats = null }
+        body.stats = statsRaw ? parseJsonField(statsRaw, 'stats') : null
       }
       const productLinksRaw = formData.get('productLinks') as string | null
       if (productLinksRaw !== null) {
-        try { body.productLinks = JSON.parse(productLinksRaw) } catch { body.productLinks = [] }
+        body.productLinks = parseJsonField(productLinksRaw, 'productLinks')
       }
 
       const heroImageFile = formData.get('heroImageFile') as File | null
@@ -69,7 +70,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       }
       if (galleryUrls.length > 0) body.imageUrls = galleryUrls.join(',')
     } else {
-      body = await req.json()
+      body = await parseJsonBody<Record<string, unknown>>(req)
     }
 
     let stats: unknown | undefined = undefined
@@ -141,8 +142,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     return NextResponse.json({ player: refreshed })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to update player' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to update player')
   }
 }
 
@@ -178,7 +178,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to archive player' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to archive player')
   }
 }

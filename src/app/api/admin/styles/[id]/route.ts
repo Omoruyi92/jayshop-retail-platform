@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,7 +51,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const data: Record<string, unknown> = {}
 
     if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData()
+      const formData = await parseFormData(req)
 
       const name = formData.get('name')
       if (typeof name === 'string' && name.trim()) {
@@ -87,12 +88,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       const heroVideoFile = formData.get('heroVideoFile') as File | null
       if (heroVideoFile && heroVideoFile.size > 0) {
         if (!VIDEO_TYPES.has(heroVideoFile.type)) {
-          return NextResponse.json({ error: 'Unsupported video format' }, { status: 400 })
+          return badRequest('Unsupported video format')
         }
         data.heroVideoUrl = await uploadVideo(heroVideoFile)
       }
     } else {
-      const body = await req.json()
+      const body = await parseJsonBody<Record<string, unknown>>(req)
 
       // Move up/down: swap sortOrder with the adjacent sibling.
       if (body.move === 'up' || body.move === 'down') {
@@ -147,8 +148,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     return NextResponse.json({ style })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }
 
@@ -179,7 +179,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiErrorResponse(err)
   }
 }

@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/authorize'
 import { logInventoryTransaction, resolveActorFromSession } from '@/lib/inventory/logTransaction'
 import { aggregateAvailable, syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
+import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -110,28 +111,30 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const { session, error } = await requireRole(req, 'inventory:write')
   if (error) return error
 
-  const body = await req.json().catch(() => null)
+  let body: { inventoryByLocation?: unknown } | null
+  try {
+    body = await parseJsonBody<{ inventoryByLocation?: unknown }>(req)
+  } catch (err) {
+    return apiErrorResponse(err)
+  }
   if (!body || !Array.isArray(body.inventoryByLocation)) {
-    return NextResponse.json({ error: 'inventoryByLocation array is required' }, { status: 400 })
+    return badRequest('inventoryByLocation array is required')
   }
   const payload = body.inventoryByLocation as IncomingLocationEntry[]
 
   for (const entry of payload) {
     if (!entry || typeof entry.locationId !== 'string' || !entry.locationId) {
-      return NextResponse.json({ error: 'Each entry requires a valid locationId' }, { status: 400 })
+      return badRequest('Each entry requires a valid locationId')
     }
     if (!Array.isArray(entry.sizes)) {
-      return NextResponse.json({ error: 'Each entry requires a sizes array' }, { status: 400 })
+      return badRequest('Each entry requires a sizes array')
     }
     for (const s of entry.sizes) {
       if (typeof s.size !== 'string' || !s.size.trim()) {
-        return NextResponse.json({ error: 'Each size row requires a non-empty size label' }, { status: 400 })
+        return badRequest('Each size row requires a non-empty size label')
       }
       if (!Number.isInteger(s.quantity) || s.quantity < 0) {
-        return NextResponse.json(
-          { error: `Quantity for size "${s.size}" must be a non-negative integer` },
-          { status: 400 }
-        )
+        return badRequest(`Quantity for size "${s.size}" must be a non-negative integer`)
       }
     }
   }
@@ -320,8 +323,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
     })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to update inventory' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to update inventory')
   }
 
   // Return refreshed state, same shape as GET

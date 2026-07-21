@@ -25,7 +25,7 @@ export default function StyleCard({
   return (
     <Link
       href={`/shop-by-style/${style.slug}`}
-      className={`group relative block overflow-hidden bg-jays-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70 ${className}`}
+      className={`group relative block overflow-hidden bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-jays-navy/30 ${className}`}
     >
       {style.coverVideoUrl ? (
         <video
@@ -36,7 +36,7 @@ export default function StyleCard({
           muted
           playsInline
           preload="metadata"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-110"
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
         />
       ) : (
         <Image
@@ -45,16 +45,18 @@ export default function StyleCard({
           fill
           priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-110"
+          className="object-contain transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
         />
       )}
 
-      {/* Base gradient — keeps the name legible over any photo */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent transition-opacity duration-500 group-hover:from-black/85" />
+      {/* Base gradient — keeps the name legible without covering the full
+          photo (image no longer fills the tile edge-to-edge, so this only
+          needs to shade the bottom strip behind the label). */}
+      <div className="absolute inset-x-0 bottom-0 z-[1] h-24 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-500 group-hover:from-black/80 sm:h-28" />
 
       {/* Hover overlay reveal — subtle navy wash + border glow for premium feel */}
-      <div className="absolute inset-0 bg-jays-navy/0 transition-colors duration-500 group-hover:bg-jays-navy/10" />
-      <div className="pointer-events-none absolute inset-0 opacity-0 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.4)] transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-jays-navy/0 transition-colors duration-500 group-hover:bg-jays-navy/5" />
+      <div className="pointer-events-none absolute inset-0 opacity-0 shadow-[inset_0_0_0_2px_rgba(11,45,94,0.25)] transition-opacity duration-500 group-hover:opacity-100" />
 
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-3 p-4 sm:p-5 lg:p-6">
         <div className="min-w-0">

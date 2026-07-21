@@ -97,21 +97,15 @@ export default function AboutPage() {
         </div>
 
         {/* Curved bottom edge */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <div aria-hidden="true" className="absolute inset-x-0 bottom-[6px] h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent sm:bottom-[10px]" />
-          <svg viewBox="0 0 1440 60" fill="none" className="w-full h-8 sm:h-12">
-            <path d="M0 60L1440 60L1440 0C1200 50 240 50 0 0L0 60Z" fill="#f0f4f8" />
-          </svg>
-        </div>
       </section>
 
       {/* ── Logo Evolution & Heritage ─────────────────────────────── */}
-      <section className="bg-gradient-to-b from-jays-ice to-white">
-        <div className="max-w-5xl mx-auto px-4 py-12 sm:py-16">
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 bg-jays-navy/5 text-jays-navy text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-3">
-              ⚾ Our Heritage
-            </span>
+      <section className="bg-white">
+        <div className="max-w-5xl mx-auto px-4 py-16 sm:py-24">
+          <div className="text-center mb-10">
+            <p className="text-jays-navy/60 text-xs font-bold uppercase tracking-[0.3em] mb-3">
+              Our Heritage
+            </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy">
               The Evolution of a <span className="text-jays-red">Legacy</span>
             </h2>
@@ -120,81 +114,47 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
             {/* Logo Evolution timeline */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-br from-jays-navy/20 via-jays-red/10 to-jays-royal/20 rounded-3xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500">
-                <div className="bg-gradient-to-r from-jays-navy via-jays-royal to-jays-navy px-5 py-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-blue-200/70 font-medium">1977 — Present</p>
-                      <p className="text-sm font-display font-bold text-white uppercase tracking-wide">Logo Timeline</p>
-                    </div>
-                    <div className="flex gap-1">
-                      {['✦', '⋆', '✦'].map((s, i) => (
-                        <span key={i} className="text-yellow-300/50 text-[10px] animate-pulse" style={{ animationDelay: `${i * 0.4}s` }}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <Image
-                    src="/brand/logo-evolution.png"
-                    alt="Blue Jays Logo Evolution 1977-Present"
-                    width={600}
-                    height={750}
-                    className="w-full h-auto object-contain rounded-xl"
-                  />
-                </div>
-              </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-jays-navy/50 font-semibold mb-3">1977 — Present · Logo Timeline</p>
+              <Image
+                src="/brand/logo-evolution.png"
+                alt="Blue Jays Logo Evolution 1977-Present"
+                width={600}
+                height={750}
+                className="w-full h-auto object-contain"
+              />
             </div>
 
             {/* 50 Seasons & Milestones */}
-            <div className="space-y-5">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-br from-jays-royal/15 to-yellow-300/10 rounded-3xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-500">
-                  <div className="bg-gradient-to-r from-jays-royal to-jays-navy px-5 py-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-blue-200/70 font-medium">Celebrating</p>
-                        <p className="text-sm font-display font-bold text-white uppercase tracking-wide">Season Milestones</p>
-                      </div>
-                      <span className="text-yellow-300/60 text-xs animate-pulse">🏆</span>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <Image
-                      src="/brand/50-seasons.png"
-                      alt="Blue Jays 50 Seasons Anniversary Badges"
-                      width={500}
-                      height={500}
-                      className="w-full h-auto object-contain rounded-xl"
-                    />
-                  </div>
-                </div>
+            <div className="space-y-8">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-jays-navy/50 font-semibold mb-3">Celebrating · Season Milestones</p>
+                <Image
+                  src="/brand/50-seasons.png"
+                  alt="Blue Jays 50 Seasons Anniversary Badges"
+                  width={500}
+                  height={500}
+                  className="w-full h-auto object-contain"
+                />
               </div>
 
-              {/* Quick facts card */}
-              <div className="bg-gradient-to-br from-jays-navy to-jays-royal rounded-2xl p-5 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-                <div className="relative z-10 space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue-200/70">Heritage Highlights</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { num: '1977', label: 'Founded' },
-                      { num: '6', label: 'Iconic Logos' },
-                      { num: '1992–93', label: 'World Series' },
-                      { num: '2025', label: 'AL Champions' },
-                    ].map((stat) => (
-                      <div key={stat.label} className="bg-white/10 rounded-xl px-3 py-2.5 text-center hover:bg-white/15 transition-colors">
-                        <p className="text-lg font-display font-bold text-white">{stat.num}</p>
-                        <p className="text-[10px] text-blue-200/70 uppercase tracking-wider">{stat.label}</p>
-                      </div>
-                    ))}
-                  </div>
+              {/* Quick facts */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-jays-navy/50 mb-4">Heritage Highlights</p>
+                <div className="grid grid-cols-2 gap-6">
+                  {[
+                    { num: '1977', label: 'Founded' },
+                    { num: '6', label: 'Iconic Logos' },
+                    { num: '1992–93', label: 'World Series' },
+                    { num: '2025', label: 'AL Champions' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="border-l-2 border-jays-red/30 pl-3">
+                      <p className="text-2xl font-display font-bold text-jays-navy">{stat.num}</p>
+                      <p className="text-[10px] text-jays-steel uppercase tracking-wider">{stat.label}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -204,12 +164,12 @@ export default function AboutPage() {
 
       {/* ── Affiliated Brands ─────────────────────────────────────── */}
       <section className="bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-12 sm:py-16">
+        <div className="max-w-5xl mx-auto px-4 py-16 sm:py-24">
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-1.5 bg-jays-navy/5 text-jays-navy text-xs font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-3">
+            <p className="flex items-center justify-center gap-1.5 text-jays-navy/60 text-xs font-bold uppercase tracking-[0.3em] mb-3">
               <Handshake size={12} />
               {a.brandsBadge}
-            </span>
+            </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy">
               {a.brandsTitle} <span className="text-jays-red">{a.brandsTitleAccent}</span>
             </h2>
@@ -218,29 +178,26 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
             {BRAND_KEYS.map((brand) => (
               <div
                 key={brand.name}
-                className="group relative bg-gradient-to-br from-white to-jays-ice rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:border-jays-navy/20 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                className="flex items-center gap-4 py-3"
               >
-                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-jays-navy via-jays-red to-jays-navy opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-md transition-shadow">
-                    <Image
-                      src={brand.src}
-                      alt={brand.name}
-                      width={brand.landscape ? 48 : 32}
-                      height={32}
-                      className="object-contain max-h-8"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-jays-navy text-sm uppercase tracking-wide group-hover:text-jays-red transition-colors">
-                      {brand.name}
-                    </h3>
-                    <p className="text-jays-steel text-xs mt-0.5 leading-relaxed">{a[brand.descKey]}</p>
-                  </div>
+                <div className="w-14 h-14 flex items-center justify-center shrink-0">
+                  <Image
+                    src={brand.src}
+                    alt={brand.name}
+                    width={brand.landscape ? 48 : 32}
+                    height={32}
+                    className="object-contain max-h-8"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-jays-navy text-sm uppercase tracking-wide">
+                    {brand.name}
+                  </h3>
+                  <p className="text-jays-steel text-xs mt-0.5 leading-relaxed">{a[brand.descKey]}</p>
                 </div>
               </div>
             ))}
@@ -248,15 +205,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Timeline ───────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-b from-jays-ice to-white overflow-hidden">
-        {/* Subtle pattern */}
-        <div className="absolute inset-0 opacity-[0.02]" aria-hidden="true" style={{
-          backgroundImage: 'radial-gradient(circle, #134A8E 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }} />
 
-        <div className="relative max-w-4xl mx-auto px-4 py-12 sm:py-16">
+      {/* ── Timeline ───────────────────────────────────────────────── */}
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy text-center mb-2">
             {a.timelineTitle} <span className="text-jays-red">{a.timelineTitleAccent}</span>
           </h2>
@@ -264,27 +216,22 @@ export default function AboutPage() {
             {a.timelineSubtitle}
           </p>
 
-          {/* Banner-style timeline cards */}
+          {/* Timeline cards */}
           <div className="relative">
             {/* Horizontal connector line (desktop) */}
-            <div className="hidden sm:block absolute top-6 left-[5%] right-[5%] h-px bg-gradient-to-r from-jays-navy/20 via-jays-red/30 to-jays-navy/20 z-0" />
+            <div className="hidden sm:block absolute top-6 left-[5%] right-[5%] h-px bg-gray-200 z-0" />
 
             {/* Scrollable row on mobile, grid on desktop */}
             <div className="flex sm:grid sm:grid-cols-3 gap-3 overflow-x-auto pb-4 sm:pb-0 scrollbar-hide snap-x snap-mandatory">
               {MILESTONES.map((m) => (
                 <div
                   key={m.year}
-                  className={`group relative snap-start shrink-0 w-[75vw] sm:w-auto rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  className={`group relative snap-start shrink-0 w-[75vw] sm:w-auto transition-all duration-300 ${
                     m.trophy
-                      ? 'bg-gradient-to-br from-jays-navy to-jays-royal text-white shadow-md'
-                      : 'bg-white text-jays-navy border border-gray-100 shadow-sm'
+                      ? 'bg-jays-navy text-white rounded-2xl'
+                      : 'text-jays-navy border-t-2 border-jays-navy/10'
                   }`}
                 >
-                  {/* Top accent */}
-                  {m.trophy && (
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-jays-red via-amber-500 to-jays-red" />
-                  )}
-
                   <div className="px-4 py-4">
                     {/* Year + trophy */}
                     <div className="flex items-center justify-between mb-2">
@@ -294,11 +241,9 @@ export default function AboutPage() {
                         {m.year}
                       </span>
                       {m.trophy ? (
-                        <div className="w-8 h-8 bg-white/15 backdrop-blur-sm rounded-lg flex items-center justify-center ring-1 ring-white/20">
-                          <Trophy size={16} className="text-amber-400" />
-                        </div>
+                        <Trophy size={16} className="text-amber-400" />
                       ) : (
-                        <div className="w-2 h-2 rounded-full bg-jays-navy/20 group-hover:bg-jays-royal transition-colors" />
+                        <div className="w-2 h-2 rounded-full bg-jays-navy/20" />
                       )}
                     </div>
 
@@ -318,18 +263,17 @@ export default function AboutPage() {
 
       {/* ── City Connect Fridays & Championship Rings ───────────────── */}
       <section className="bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-12 sm:py-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="max-w-5xl mx-auto px-4 py-16 sm:py-24">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
             {/* City Connect Fridays */}
-            <div className="group relative bg-gradient-to-br from-jays-navy to-jays-royal rounded-2xl border border-gray-100 p-6 text-white overflow-hidden hover:shadow-xl transition-all duration-500">
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full" />
+            <div className="group relative bg-jays-navy rounded-2xl p-8 text-white overflow-hidden hover:shadow-xl transition-all duration-500">
               <div className="relative z-10 flex flex-col items-center text-center gap-4">
                 <Image
                   src="/brand/city-connect-fridays.png"
                   alt="City Connect Fridays"
                   width={140}
                   height={140}
-                  className="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-500"
+                  className="w-28 h-28 sm:w-32 sm:h-32 object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 <h3 className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide">
                   City Connect <span className="text-jays-red">Fridays</span>
@@ -347,14 +291,14 @@ export default function AboutPage() {
             </div>
 
             {/* World Series Championship Rings */}
-            <div className="group relative bg-gradient-to-br from-white to-jays-ice rounded-2xl border border-gray-100 p-6 overflow-hidden hover:shadow-xl transition-all duration-500">
+            <div className="group relative p-8 overflow-hidden">
               <div className="relative z-10 flex flex-col items-center text-center gap-4">
                 <Image
                   src="/brand/ws-rings.png"
                   alt="1992 & 1993 World Series Championship Rings"
                   width={200}
                   height={200}
-                  className="w-32 h-32 sm:w-36 sm:h-36 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-500"
+                  className="w-32 h-32 sm:w-36 sm:h-36 object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 <h3 className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-jays-navy">
                   Back-to-Back <span className="text-jays-red">Champions</span>
@@ -408,8 +352,8 @@ export default function AboutPage() {
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────── */}
-      <section className="bg-jays-ice">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16 text-center">
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24 text-center">
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-jays-navy mb-3">
             {a.ctaTitle}
           </h2>

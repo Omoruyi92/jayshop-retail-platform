@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const scope = searchParams.get('scope')?.toUpperCase()
 
     const where: any = { active: true }
-    if (scope && ['HOME', 'SHOP', 'STYLE_LANDING'].includes(scope)) where.scope = scope
+    if (scope && ['HOME', 'SHOP', 'STYLE_LANDING', 'PLAYERS'].includes(scope)) where.scope = scope
 
     const slides = await prisma.heroSlide.findMany({
       where,

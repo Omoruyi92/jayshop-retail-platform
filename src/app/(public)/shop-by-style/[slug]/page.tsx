@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shop/ProductCard'
+import Reveal from '@/components/ui/Reveal'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
 
 export const revalidate = 60
@@ -64,8 +65,10 @@ export default async function StyleDetailPage({ params }: { params: { slug: stri
         <div className="text-center py-12 text-jays-steel">No products found for {style.name} yet.</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {cards.map(({ product, availability }) => (
-            <ProductCard key={product.id} product={product} remaining={availability.availableBalance} />
+          {cards.map(({ product, availability }, index) => (
+            <Reveal key={product.id} index={index % 12} step={40}>
+              <ProductCard product={product} remaining={availability.availableBalance} />
+            </Reveal>
           ))}
         </div>
       )}

@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ function mediaType(mime: string): 'IMAGE' | 'VIDEO' {
   return 'IMAGE'
 }
 
-async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing') {
+async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing' | 'players') {
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
   const isImage = mediaType(file.type) === 'IMAGE'
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
   if (error) return error
 
   const { searchParams } = new URL(req.url)
-  const scope = searchParams.get('scope')?.toUpperCase() as 'HOME' | 'SHOP' | 'STYLE_LANDING' | null
+  const scope = searchParams.get('scope')?.toUpperCase() as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | null
 
   const where: any = {}
   if (scope) where.scope = scope
@@ -64,15 +65,15 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
-    const formData = await req.formData()
+    const formData = await parseFormData(req)
     const scopeRaw = (formData.get('scope') as string)?.toUpperCase()
     const altText = (formData.get('altText') as string | null) ?? ''
     const file = formData.get('file') as File | null
 
-    if (!['HOME', 'SHOP', 'STYLE_LANDING'].includes(scopeRaw)) {
-      return NextResponse.json({ error: 'Scope must be HOME, SHOP, or STYLE_LANDING' }, { status: 400 })
+    if (!['HOME', 'SHOP', 'STYLE_LANDING', 'PLAYERS'].includes(scopeRaw)) {
+      return NextResponse.json({ error: 'Scope must be HOME, SHOP, STYLE_LANDING, or PLAYERS' }, { status: 400 })
     }
-    const scope = scopeRaw.toLowerCase() as 'home' | 'shop' | 'style_landing'
+    const scope = scopeRaw.toLowerCase() as 'home' | 'shop' | 'style_landing' | 'players'
 
     if (!file || file.size === 0) {
       return NextResponse.json({ error: 'Slide file is required' }, { status: 400 })
@@ -90,12 +91,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unsupported video format' }, { status: 400 })
     }
 
-    const count = await prisma.heroSlide.count({ where: { scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' } })
+    const count = await prisma.heroSlide.count({ where: { scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' } })
     const url = await saveFile(file, scope)
 
     const slide = await prisma.heroSlide.create({
       data: {
-        scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING',
+        scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS',
         mediaType: type,
         url,
         altText,
@@ -105,9 +106,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(slide, { status: 201 })
-  } catch (err: any) {
-    console.error('hero slide create error:', err)
-    return NextResponse.json({ error: err.message || 'Upload failed' }, { status: 500 })
+  } catch (err) {
+    return apiErrorResponse(err, 'Upload failed')
   }
 }
 
@@ -116,11 +116,11 @@ export async function PATCH(req: Request) {
   if (error) return error
 
   try {
-    const body = await req.json()
+    const body = await parseJsonBody<{ id?: string; active?: boolean; sortOrder?: number; altText?: string }>(req)
     const { id, active, sortOrder, altText } = body
 
     if (!id) {
-      return NextResponse.json({ error: 'ID required' }, { status: 400 })
+      return badRequest('ID required')
     }
 
     const data: any = {}
@@ -130,9 +130,8 @@ export async function PATCH(req: Request) {
 
     const slide = await prisma.heroSlide.update({ where: { id }, data })
     return NextResponse.json(slide)
-  } catch (err: any) {
-    console.error('hero slide patch error:', err)
-    return NextResponse.json({ error: err.message || 'Update failed' }, { status: 500 })
+  } catch (err) {
+    return apiErrorResponse(err, 'Update failed')
   }
 }
 
@@ -154,8 +153,7 @@ export async function DELETE(req: Request) {
       await prisma.heroSlide.delete({ where: { id } })
     }
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    console.error('hero slide delete error:', err)
-    return NextResponse.json({ error: err.message || 'Delete failed' }, { status: 500 })
+  } catch (err) {
+    return apiErrorResponse(err, 'Delete failed')
   }
 }

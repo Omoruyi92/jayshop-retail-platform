@@ -12,6 +12,7 @@ import {
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
+import { parseFormData, parseJsonBody, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +46,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const contentType = req.headers.get('content-type') || ''
     if (contentType.includes('multipart/form-data')) {
       isFormData = true
-      const formData = await req.formData()
+      const formData = await parseFormData(req)
       
       const imageUrl = formData.get('imageUrl') as string | null
       const imageFile = formData.get('imageFile') as File | null
@@ -70,7 +71,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       body.imageUrl3 = await resolveImageSlot(imageFile3, imageUrl3, existing?.imageUrl3, formData.has('imageUrl3'))
 
       if (!body.imageUrl) {
-        return NextResponse.json({ error: 'At least one image is required' }, { status: 400 })
+        return badRequest('At least one image is required')
       }
       
       if (formData.has('name')) body.name = formData.get('name')
@@ -96,12 +97,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('isSport')) body.isSport = formData.get('isSport') === 'true'
       if (formData.has('isBlankJersey')) body.isBlankJersey = formData.get('isBlankJersey') === 'true'
       
-      if (formData.has('colors')) body.colors = JSON.parse(formData.get('colors') as string)
+      if (formData.has('colors')) body.colors = parseJsonField(formData.get('colors') as string, 'colors')
       // sizeInventories is intentionally ignored — Main Store size allocation is
       // read-only in the Edit modal and can only be changed via the Location
       // Inventory modal (which uses /api/admin/products/[id]/inventory).
     } else {
-      body = await req.json()
+      body = await parseJsonBody(req)
     }
 
     const oldImageUrl = existing?.imageUrl ?? null
@@ -185,8 +186,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       remaining: product.quantity - product.heldQuantity - product.pickedQuantity,
     })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to update product')
   }
 }
 
@@ -217,7 +217,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+    return apiErrorResponse(err, 'Failed to delete product')
   }
 }
