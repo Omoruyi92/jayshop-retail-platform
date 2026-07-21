@@ -16,10 +16,13 @@ export async function GET(request: Request) {
   const ageGroup = searchParams.get('ageGroup')
   const hatStyle = searchParams.get('hatStyle')
   const includeArchived = searchParams.get('includeArchived') === 'true'
+  const idsParam = searchParams.get('ids')
+  const ids = idsParam ? idsParam.split(',').map((s) => s.trim()).filter(Boolean) : null
 
   const products = await prisma.product.findMany({
     where: {
       ...(!includeArchived && { status: { not: 'ARCHIVED' } }),
+      ...(ids && { id: { in: ids } }),
       ...(category && category !== 'all' && { category }),
       ...(brand && { brand }),
       ...(subcategory && { subcategory }),

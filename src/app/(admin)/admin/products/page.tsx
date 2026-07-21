@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS, PRODUCT_TYPES } from '@/lib/constants'
+import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS, PRODUCT_TYPES, LOW_STOCK_THRESHOLD } from '@/lib/constants'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import EditProductModal from '@/components/admin/EditProductModal'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
@@ -52,8 +52,6 @@ interface Product {
   _count?: { holds: number; likes?: number }
   availability?: ProductAvailability
 }
-
-const LOW_STOCK_THRESHOLD = 10
 
 /**
  * Returns the centralized availability-driven stock badge status:
@@ -150,6 +148,11 @@ export default function AdminProductsPage() {
 
   const uniqueBrands = useMemo(
     () => Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort(),
+    [products]
+  )
+
+  const hatStyleOptions = useMemo(
+    () => Array.from(new Set([...HAT_STYLES, ...products.map((p) => p.hatStyle).filter(Boolean)])).sort(),
     [products]
   )
 
@@ -391,10 +394,17 @@ export default function AdminProductsPage() {
             {isHatProduct && (
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Hat Style</label>
-                <select value={form.hatStyle} onChange={(e) => setForm(f => ({ ...f, hatStyle: e.target.value }))} className={INPUT_CLS}>
-                  <option value="">Select style…</option>
-                  {HAT_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                <input
+                  list="hatstyle-suggestions"
+                  value={form.hatStyle}
+                  onChange={(e) => setForm(f => ({ ...f, hatStyle: e.target.value }))}
+                  placeholder="Select or type a new style…"
+                  className={INPUT_CLS}
+                />
+                <datalist id="hatstyle-suggestions">
+                  {hatStyleOptions.map(s => <option key={s} value={s} />)}
+                </datalist>
+                <p className="mt-1 text-[10px] text-jays-steel">Not in the list? Just type a new style name — it'll be saved and available for future products.</p>
               </div>
             )}
             <div>
@@ -764,6 +774,7 @@ export default function AdminProductsPage() {
       <EditProductModal
         key={editingProduct?.id ?? 'none'}
         product={editingProduct}
+        hatStyleOptions={hatStyleOptions}
         onClose={() => setEditingProduct(null)}
         onSaved={(updated) => {
           setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p))

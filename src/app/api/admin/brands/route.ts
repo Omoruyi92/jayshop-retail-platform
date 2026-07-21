@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { brandToSlug } from '@/lib/constants'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,8 +95,8 @@ export async function POST(req: Request) {
 async function uploadBrandLogo(file: File): Promise<string> {
   const uploadDir = join(process.cwd(), 'public', 'uploads', 'brands')
   const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-  const ext = file.name.split('.').pop() || 'png'
+  const rawExt = file.name.split('.').pop() || 'png'
+  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `brand-${nanoid(10)}.${ext}`
   await mkdir(uploadDir, { recursive: true })
   await writeFile(join(uploadDir, fileName), buffer)

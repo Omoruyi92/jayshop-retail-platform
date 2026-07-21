@@ -43,8 +43,22 @@ export async function GET(req: NextRequest) {
     },
   })
 
+  // Defense-in-depth: exclude notifications whose linked product was deleted
+  // or archived after the notification was created. Products are hard-deleted
+  // elsewhere (with matching notification cleanup), but this guards against
+  // any stale rows so a customer never sees/clicks a dead "New Arrival".
+  const productIds = Array.from(new Set(notifications.map((n) => n.productId).filter(Boolean))) as string[]
+  const liveProducts = productIds.length
+    ? await prisma.product.findMany({
+        where: { id: { in: productIds }, status: { not: 'ARCHIVED' } },
+        select: { id: true },
+      })
+    : []
+  const liveProductIds = new Set(liveProducts.map((p) => p.id))
+
   // Filter out notifications that have been opened and expired for this user
   const visibleNotifications = notifications.filter((n) => {
+    if (n.productId && !liveProductIds.has(n.productId)) return false
     const receipt = customerId ? n.receipts[0] : null
     if (receipt?.expiresAt) {
       return receipt.expiresAt > now

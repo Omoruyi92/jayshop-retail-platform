@@ -10,7 +10,21 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog'
 
-export default function FeedbackTab() {
+function ChatIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  )
+}
+
+interface FeedbackTabProps {
+  /** 'floating' renders the vertical edge tab (desktop). 'footer' renders an inline
+   * nav-style link matching the footer's other links (used on mobile footer). */
+  variant?: 'floating' | 'footer'
+}
+
+export default function FeedbackTab({ variant = 'floating' }: FeedbackTabProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
@@ -54,15 +68,26 @@ export default function FeedbackTab() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed right-0 top-1/2 z-30 -translate-y-1/2 rounded-l-lg bg-jays-red px-2 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg transition-transform hover:-translate-x-1"
-        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-        aria-label="Open feedback form"
-      >
-        Feedback
-      </button>
+      {variant === 'floating' ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="fixed right-0 top-1/2 z-30 hidden -translate-y-1/2 rounded-l-lg bg-jays-red px-2 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg transition-transform hover:-translate-x-1 sm:block"
+          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+          aria-label="Open feedback form"
+        >
+          Feedback
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-[5px] text-left text-sm text-blue-200 transition-all duration-150 hover:bg-white/10 hover:text-white group"
+        >
+          <ChatIcon className="w-4 h-4 shrink-0 text-blue-300/80 transition-colors group-hover:text-white" />
+          <span className="truncate">Feedback</span>
+        </button>
+      )}
 
       <DialogContent className="max-w-lg p-0 overflow-hidden">
         <div className="bg-gradient-to-r from-jays-navy via-jays-royal to-jays-navy px-6 py-5 text-white">

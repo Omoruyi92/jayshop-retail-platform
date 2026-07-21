@@ -17,10 +17,43 @@ export function useRecentlyViewed() {
   const [items, setItems] = useState<RecentlyViewedItem[]>([])
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setItems(JSON.parse(stored))
-    } catch { /* ignore */ }
+    let cancelled = false
+
+    async function loadAndValidate() {
+      let stored: RecentlyViewedItem[] = []
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        stored = raw ? JSON.parse(raw) : []
+      } catch {
+        stored = []
+      }
+      if (!stored.length) {
+        setItems([])
+        return
+      }
+
+      // Show cached items immediately, then prune any that no longer exist
+      // (deleted/archived products) so we never link to a dead page or show
+      // a placeholder image for a product that's gone.
+      setItems(stored)
+
+      try {
+        const ids = stored.map((i) => i.id).join(',')
+        const res = await fetch(`/api/products?ids=${encodeURIComponent(ids)}`)
+        if (!res.ok) return
+        const data = await res.json()
+        const liveIds = new Set((data.products ?? []).map((p: { id: string }) => p.id))
+        const valid = stored.filter((i) => liveIds.has(i.id))
+        if (cancelled) return
+        if (valid.length !== stored.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(valid))
+          setItems(valid)
+        }
+      } catch { /* ignore — keep cached items if validation fails */ }
+    }
+
+    loadAndValidate()
+    return () => { cancelled = true }
   }, [])
 
   const addItem = useCallback((product: Omit<RecentlyViewedItem, 'viewedAt'>) => {

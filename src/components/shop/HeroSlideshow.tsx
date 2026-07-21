@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
-interface Slide {
+export interface Slide {
   id: string
   scope: string
   mediaType: 'IMAGE' | 'VIDEO'
@@ -19,14 +19,35 @@ interface HeroSlideshowProps {
   interval?: number
   className?: string
   imagePosition?: 'center' | 'top' | 'bottom'
+  /**
+   * Slides already resolved on the server (or by a parent that fetched them
+   * ahead of time). When provided, the slideshow renders with this data
+   * immediately on first paint instead of waiting on a client-side fetch,
+   * which eliminates the brief flash of the default hero background before
+   * admin-configured media appears.
+   */
+  initialSlides?: Slide[]
 }
 
-export default function HeroSlideshow({ scope, interval = 6000, className = '', imagePosition = 'center' }: HeroSlideshowProps) {
-  const [slides, setSlides] = useState<Slide[]>([])
+export default function HeroSlideshow({
+  scope,
+  interval = 6000,
+  className = '',
+  imagePosition = 'center',
+  initialSlides,
+}: HeroSlideshowProps) {
+  const hasInitialSlides = Array.isArray(initialSlides)
+  const [slides, setSlides] = useState<Slide[]>(
+    hasInitialSlides ? [...initialSlides!].filter((s) => s.active).sort((a, b) => a.sortOrder - b.sortOrder) : []
+  )
   const [index, setIndex] = useState(0)
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(hasInitialSlides)
 
   useEffect(() => {
+    // Slides were already provided synchronously (server-fetched) — skip the
+    // client-side fetch entirely so there is no loading gap/flash.
+    if (hasInitialSlides) return
+
     fetch(`/api/hero-slides?scope=${scope}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Slide[]) => {
@@ -35,7 +56,8 @@ export default function HeroSlideshow({ scope, interval = 6000, className = '', 
         setLoaded(true)
       })
       .catch(() => setLoaded(true))
-  }, [scope])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, hasInitialSlides])
 
   useEffect(() => {
     if (slides.length <= 1) return
@@ -76,7 +98,7 @@ export default function HeroSlideshow({ scope, interval = 6000, className = '', 
               unoptimized
             />
           )}
-          <div className="absolute inset-0 bg-jays-navy/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />
         </div>
       ))}
     </div>

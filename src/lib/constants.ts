@@ -51,6 +51,11 @@ export const BRANDS_BY_CAT: Record<string, string[]> = {
   authentication: ['Fanatics', 'Majestic'],
 }
 
+// Inventory quantity at or below which a product/size is flagged as low stock
+// across admin UI and server-side aggregation. Keep this the single source of
+// truth — do not redeclare locally in other files.
+export const LOW_STOCK_THRESHOLD = 10
+
 // Product image upload validation (used by Add Product and Edit Product forms)
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif']
 export const MAX_IMAGE_SIZE_MB = 5

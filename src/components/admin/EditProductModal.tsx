@@ -46,6 +46,7 @@ interface EditProductModalProps {
   product: Product | null
   onClose: () => void
   onSaved: (updated: Product) => void
+  hatStyleOptions?: string[]
 }
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
@@ -80,7 +81,7 @@ function buildInitialForm(product: Product) {
   }
 }
 
-export default function EditProductModal({ product, onClose, onSaved }: EditProductModalProps) {
+export default function EditProductModal({ product, onClose, onSaved, hatStyleOptions }: EditProductModalProps) {
   const { mainCategories, subsByCat, labelsBySlug } = useCategoryTree()
   const [form, setForm] = useState(() => product ? buildInitialForm(product) : null)
   const [images, setImages] = useState<{ url: string; file: File | null }[]>(() => {
@@ -338,10 +339,17 @@ export default function EditProductModal({ product, onClose, onSaved }: EditProd
           {form.subcategory === 'hats' && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Hat Style</label>
-              <select value={form.hatStyle} onChange={(e) => setForm((f) => f ? ({ ...f, hatStyle: e.target.value }) : f)} className={INPUT_CLS}>
-                <option value="">Select style…</option>
-                {HAT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <input
+                list="edit-hatstyle-suggestions"
+                value={form.hatStyle}
+                onChange={(e) => setForm((f) => f ? ({ ...f, hatStyle: e.target.value }) : f)}
+                placeholder="Select or type a new style…"
+                className={INPUT_CLS}
+              />
+              <datalist id="edit-hatstyle-suggestions">
+                {(hatStyleOptions ?? HAT_STYLES).map((s) => <option key={s} value={s} />)}
+              </datalist>
+              <p className="mt-1 text-[10px] text-jays-steel">Not in the list? Just type a new style name — it'll be saved and available for future products.</p>
             </div>
           )}
 

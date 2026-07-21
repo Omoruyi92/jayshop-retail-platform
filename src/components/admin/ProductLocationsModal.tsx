@@ -4,8 +4,7 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import TransferModal from '@/components/admin/TransferModal'
-
-const LOW_STOCK_THRESHOLD = 10
+import { LOW_STOCK_THRESHOLD } from '@/lib/constants'
 
 interface SizeRow { size: string; quantity: number; heldQuantity: number; pickedQuantity: number }
 interface LocationRow {

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import MLBLogo from '@/components/ui/MLBLogo'
+import FeedbackTab from '@/components/feedback/FeedbackTab'
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
 function PolicyIcon({ className = 'w-4 h-4' }: { className?: string }) {
@@ -126,6 +127,12 @@ export default function Footer() {
                   <span className="truncate">{label}</span>
                 </Link>
               ))}
+              {/* Feedback lives in the floating edge tab on desktop; on mobile
+                  (where the floating tab is hidden) it moves here so it's
+                  reachable from the footer instead of overlapping content. */}
+              <div className="sm:hidden">
+                <FeedbackTab variant="footer" />
+              </div>
             </nav>
           </div>
 

@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { autoExpireOverdueHolds } from '@/lib/holds/autoExpireHolds'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 15
 
 type Status = 'in-stock' | 'low' | 'out'
 

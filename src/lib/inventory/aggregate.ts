@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client'
+import { LOW_STOCK_THRESHOLD } from '@/lib/constants'
 
 export type InventoryStatus = 'in-stock' | 'low-stock' | 'out-of-stock'
 
@@ -61,8 +62,6 @@ export type ProductAvailability = {
   lowStockDetails: StockAlertDetail[]
   outOfStockDetails: StockAlertDetail[]
 }
-
-const LOW_STOCK_THRESHOLD = 10
 
 const ONE_SIZE = 'ONE_SIZE'
 

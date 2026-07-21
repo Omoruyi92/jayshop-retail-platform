@@ -5,13 +5,14 @@ import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize'
 import { recordAudit } from '@/lib/audit'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
 async function writeUpload(file: File): Promise<string> {
   const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-  const ext = file.name.split('.').pop() || 'png'
+  const rawExt = file.name.split('.').pop() || 'png'
+  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `${nanoid(10)}.${ext}`
   const uploadDir = join(process.cwd(), 'public', 'uploads')
   await mkdir(uploadDir, { recursive: true })

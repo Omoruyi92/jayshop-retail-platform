@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid'
 import { requireRole } from '@/lib/auth/authorize'
 import { getDefaultTenantId } from '@/lib/tenant'
 import { getMainStoreLocationId } from '@/lib/store-locations'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,8 +17,8 @@ function slugify(str: string) {
 async function processImage(file: File | null, existingUrl: string) {
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const ext = file.name.split('.').pop() || 'png'
+    const rawExt = file.name.split('.').pop() || 'png'
+    const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
     const fileName = `${nanoid(10)}.${ext}`
     const uploadDir = join(process.cwd(), 'public', 'uploads')
     await mkdir(uploadDir, { recursive: true })

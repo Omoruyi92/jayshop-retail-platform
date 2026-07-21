@@ -6,23 +6,23 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import UpcomingMatchCard from '@/components/home/UpcomingMatchCard'
 import BrandWatermarks from '@/components/ui/BrandWatermarks'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
-import HeroSlideshow from '@/components/shop/HeroSlideshow'
+import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 
 interface HomeHeroProps {
   isGameDayToday?: boolean
+  initialSlides?: HeroSlide[]
 }
 
-export default function HomeHero({ isGameDayToday = false }: HomeHeroProps) {
+export default function HomeHero({ isGameDayToday = false, initialSlides }: HomeHeroProps) {
   const { t } = useLanguage()
   const h = t.home
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-      {/* Standard hero banner: fixed responsive container with edge-to-edge
-          background image using object-cover. Cropping is acceptable to keep
-          proportions and layout stable. */}
+      {/* Standard hero banner: edge-to-edge background image using object-cover
+          inside a fixed responsive height. */}
       <div className="relative max-h-[85vh] min-h-[460px] overflow-hidden rounded-3xl bg-gradient-to-br from-jays-navy via-jays-royal to-jays-navy text-white shadow-xl ring-1 ring-black/5 sm:min-h-[520px]">
-        <HeroSlideshow scope="HOME" />
+        <HeroSlideshow scope="HOME" initialSlides={initialSlides} />
 
         {/* subtle dotted texture */}
         <div

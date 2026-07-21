@@ -4,6 +4,7 @@ import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +20,11 @@ function mediaType(mime: string): 'IMAGE' | 'VIDEO' {
 
 async function saveFile(file: File, scope: 'home' | 'shop') {
   const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-  const ext = file.name.split('.').pop() || 'png'
+  const rawExt = file.name.split('.').pop() || 'png'
+  const isImage = mediaType(file.type) === 'IMAGE'
+  const { buffer, ext } = isImage
+    ? await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+    : { buffer: Buffer.from(bytes), ext: rawExt }
   const fileName = `${nanoid(12)}.${ext}`
   const uploadDir = join(process.cwd(), 'public', 'uploads', 'hero-slides', scope)
   await mkdir(uploadDir, { recursive: true })

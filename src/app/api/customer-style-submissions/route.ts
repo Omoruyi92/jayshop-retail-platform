@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,8 +12,8 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 async function saveImage(file: File) {
   const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-  const ext = file.name.split('.').pop() || 'png'
+  const rawExt = file.name.split('.').pop() || 'png'
+  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `${nanoid(12)}.${ext}`
   const uploadDir = join(process.cwd(), 'public', 'uploads', 'customer-style')
   await mkdir(uploadDir, { recursive: true })

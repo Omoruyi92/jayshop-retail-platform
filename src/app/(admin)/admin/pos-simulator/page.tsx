@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import AdminBackButton from '@/components/admin/AdminBackButton'
 import { Zap } from 'lucide-react'
 
-type Location = { id: string; code: string; name: string }
+type Location = { id: string; code: string; name: string; isMainStore?: boolean }
 type Product = { id: string; name: string }
 type InventoryByLocation = { locationId: string; assigned: boolean; sizes: { size: string; quantity: number }[] }
 
@@ -35,7 +35,9 @@ export default function PosSimulatorPage() {
       setAvailableSizes([])
       return
     }
-    const effectiveLocationId = locationId || locations.find((l) => l.code === 'SEC-110')?.id
+    // Returns with no location selected default to the main store, mirroring
+    // the server-side behavior in getMainStoreLocationId().
+    const effectiveLocationId = locationId || locations.find((l) => l.isMainStore)?.id
     fetch(`/api/admin/products/${productId}/inventory`)
       .then((r) => r.json())
       .then((d) => {
@@ -130,14 +132,14 @@ export default function PosSimulatorPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-500 mb-1">
-                Location {type === 'return' && '(defaults SEC-110 if empty)'}
+                Location {type === 'return' && '(defaults to main store if empty)'}
               </label>
               <select
                 value={locationId}
                 onChange={(e) => setLocationId(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy"
               >
-                <option value="">{type === 'sale' ? 'Select location…' : 'Default (SEC-110)'}</option>
+                <option value="">{type === 'sale' ? 'Select location…' : 'Default (main store)'}</option>
                 {locations.map((l) => (
                   <option key={l.id} value={l.id}>{l.code} — {l.name}</option>
                 ))}

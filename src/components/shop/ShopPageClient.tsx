@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/shop/ProductCard'
 import ShopHero from '@/components/shop/ShopHero'
+import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -188,7 +189,13 @@ function PillRow({
   )
 }
 
-export default function ShopPageClient({ activeCategory: initialCategory }: { activeCategory: string }) {
+export default function ShopPageClient({
+  activeCategory: initialCategory,
+  initialHeroSlides,
+}: {
+  activeCategory: string
+  initialHeroSlides?: HeroSlide[]
+}) {
   const { t } = useLanguage()
   const { subsByCat, subPriorityBySlug, productTypesBySlug, brandsBySlug } = useCategoryTree()
   const s = t.shop
@@ -491,6 +498,7 @@ export default function ShopPageClient({ activeCategory: initialCategory }: { ac
         onSearchChange={handleSearchChange}
         liveLabel={s.live}
         livePulse={livePulse}
+        initialSlides={initialHeroSlides}
       />
 
       <StickyShopCategoryNav activeCategory={activeCategory} onSelect={handleCategoryNavSelect} />

@@ -9,14 +9,15 @@ import {
   getImageReferences,
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
+import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 
 export const dynamic = 'force-dynamic'
 
 async function processImage(file: File | null, existingUrl: string | null) {
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const ext = file.name.split('.').pop() || 'png'
+    const rawExt = file.name.split('.').pop() || 'png'
+    const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
     const fileName = `${nanoid(10)}.${ext}`
     const uploadDir = join(process.cwd(), 'public', 'uploads')
     await mkdir(uploadDir, { recursive: true })
@@ -151,6 +152,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       })
     }
 
+    // Archiving a product hides it from all customer-facing sections (shop,
+    // PDP, search) just like a hard delete — so its notifications must be
+    // cleared too, otherwise a stale "New Arrival" entry can still link to a
+    // now-unreachable product page.
+    if (body.status === 'ARCHIVED') {
+      await prisma.customerNotification.deleteMany({ where: { productId: product.id } })
+    }
+
     // Clean up replaced/removed local upload files for all 3 image slots
     // (only if the value actually changed) — deleting or replacing one
     // image slot must not leave orphaned files on disk, and must not touch
@@ -186,6 +195,11 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     })
 
     await prisma.product.delete({ where: { id: params.id } })
+
+    // Deleted products must not linger in customer-facing notification feeds
+    // (New Arrivals bell, etc.) — remove any notifications referencing this
+    // product. Receipts cascade-delete automatically via the schema.
+    await prisma.customerNotification.deleteMany({ where: { productId: params.id } })
 
     if (existing?.imageUrl && isLocalUpload(existing.imageUrl)) {
       const refs = await getImageReferences(prisma, existing.imageUrl.replace(/^\/uploads\//, ''))

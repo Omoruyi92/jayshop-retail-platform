@@ -208,190 +208,211 @@ export default function HoldButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4 pb-[env(safe-area-inset-bottom)]">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="font-display text-xl font-bold uppercase text-jays-navy mb-1">
-              {hb.reserveTitle(product.name)}
-            </h2>
-            <p className="text-jays-steel text-sm mb-5">{hb.subtitle}</p>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-0 sm:px-4">
+          <div className="flex w-full max-w-md flex-col overflow-x-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[85vh] sm:rounded-2xl max-h-[88vh]">
+            {/* Sticky header */}
+            <div className="flex items-start justify-between gap-2 border-b border-gray-100 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
+              <div className="min-w-0">
+                <h2 className="line-clamp-2 font-display text-sm font-bold uppercase leading-snug text-jays-navy sm:text-lg">
+                  {hb.reserveTitle(product.name)}
+                </h2>
+                <p className="mt-0.5 text-[11px] text-jays-steel sm:text-xs">{hb.subtitle}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setFieldErrors({}) }}
+                aria-label={hb.cancel}
+                className="-mr-1 -mt-1 shrink-0 rounded-full p-1.5 text-jays-steel hover:bg-gray-100 hover:text-jays-navy transition-colors"
+              >
+                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-            {/* Hold type selector */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">{hb.holdTypeLabel}</label>
-              <div className="flex flex-col gap-2">
-                <label
-                  className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
-                    !isStadiumHold ? 'border-jays-navy bg-jays-ice' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="holdType"
-                    checked={!isStadiumHold}
-                    onChange={() => setIsStadiumHold(false)}
-                    className="mt-0.5 accent-jays-navy"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-jays-navy">{hb.standardHoldTitle}</p>
-                    <p className="text-xs text-jays-steel">
-                      {hb.standardHoldDesc(standardHoldHours ?? 3)}
-                    </p>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-3 divide-y divide-gray-100 sm:px-5 sm:py-4">
+              {/* Hold type selector */}
+              <div className="pb-3 sm:pb-4">
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:mb-2 sm:text-xs">{hb.holdTypeLabel}</label>
+                <div className="flex flex-col gap-1.5 sm:gap-2">
+                  <label
+                    className={`flex items-start gap-2.5 rounded-xl border p-2 cursor-pointer transition-colors sm:gap-3 sm:p-2.5 ${
+                      !isStadiumHold ? 'border-jays-navy bg-jays-ice' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="holdType"
+                      checked={!isStadiumHold}
+                      onChange={() => setIsStadiumHold(false)}
+                      className="mt-0.5 shrink-0 accent-jays-navy"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-jays-navy sm:text-sm">{hb.standardHoldTitle}</p>
+                      <p className="text-[11px] text-jays-steel sm:text-xs">
+                        {hb.standardHoldDesc(standardHoldHours ?? 3)}
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-2.5 rounded-xl border p-2 transition-colors sm:gap-3 sm:p-2.5 ${
+                      !stadiumAvailable
+                        ? 'opacity-40 cursor-not-allowed border-gray-200'
+                        : isStadiumHold
+                        ? 'border-jays-red bg-red-50 cursor-pointer'
+                        : 'border-gray-200 hover:border-gray-300 cursor-pointer'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="holdType"
+                      checked={isStadiumHold}
+                      disabled={!stadiumAvailable}
+                      onChange={() => stadiumAvailable && setIsStadiumHold(true)}
+                      className="mt-0.5 shrink-0 accent-jays-red"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-jays-navy sm:text-sm">{hb.stadiumHoldTitle}</p>
+                      <p className="text-[11px] text-jays-steel sm:text-xs">
+                        {hb.stadiumHoldDesc(stadiumHoldHours ?? 24)}
+                      </p>
+                      {!stadiumAvailable && (
+                        <p className="text-[11px] text-amber-700 mt-0.5 sm:text-xs">{hb.stadiumUnavailableNote}</p>
+                      )}
+                    </div>
+                  </label>
+                </div>
+
+                {isStadiumHold && (
+                  <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-2.5 py-2 text-amber-800 text-[11px] sm:px-3 sm:text-xs">
+                    <span className="mt-0.5">⚾</span>
+                    <div className="min-w-0">
+                      <p className="font-bold">{hb.stadiumHoldAlertTitle}</p>
+                      <p className="font-medium">{hb.stadiumHoldAlertBody}</p>
+                    </div>
                   </div>
-                </label>
+                )}
+              </div>
 
-                <label
-                  className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
-                    !stadiumAvailable
-                      ? 'opacity-40 cursor-not-allowed border-gray-200'
-                      : isStadiumHold
-                      ? 'border-jays-red bg-red-50 cursor-pointer'
-                      : 'border-gray-200 hover:border-gray-300 cursor-pointer'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="holdType"
-                    checked={isStadiumHold}
-                    disabled={!stadiumAvailable}
-                    onChange={() => stadiumAvailable && setIsStadiumHold(true)}
-                    className="mt-0.5 accent-jays-red"
-                  />
+              {/* Quantity + Size */}
+              <div className="grid grid-cols-1 gap-3 py-3 sm:gap-4 sm:py-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:mb-2 sm:text-xs">{hb.quantity}</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:border-jays-navy sm:h-10 sm:w-10"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center font-semibold text-jays-navy sm:w-8">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:border-jays-navy sm:h-10 sm:w-10"
+                    >
+                      +
+                    </button>
+                    <span className="text-[11px] text-jays-steel sm:ml-1 sm:text-xs">{maxQty} {hb.available}</span>
+                  </div>
+                </div>
+
+                {hasSizes && (
                   <div>
-                    <p className="text-sm font-semibold text-jays-navy">{hb.stadiumHoldTitle}</p>
-                    <p className="text-xs text-jays-steel">
-                      {hb.stadiumHoldDesc(stadiumHoldHours ?? 24)}
-                    </p>
-                    {!stadiumAvailable && (
-                      <p className="text-xs text-amber-700 mt-0.5">{hb.stadiumUnavailableNote}</p>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:mb-2 sm:text-xs">{hb.selectSize}</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {sizes.map((size) => {
+                        const oos = isSizeOos(size)
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            disabled={oos}
+                            onClick={() => {
+                              if (!oos) setSelectedSize(size)
+                            }}
+                            className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors sm:px-3 sm:py-2 sm:text-xs ${
+                              oos
+                                ? 'opacity-40 cursor-not-allowed line-through bg-gray-100 border-gray-200 text-gray-400'
+                                : selectedSize === size
+                                ? 'bg-jays-navy text-white border-jays-navy'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-jays-navy'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {hasAnyOos && (
+                      <p className="mt-1.5 text-[11px] text-gray-400 sm:mt-2 sm:text-xs">{hb.sizeOosLegend}</p>
+                    )}
+                    {fieldErrors.size && (
+                      <p className="mt-1.5 text-[11px] text-red-500 sm:text-xs" role="alert">{fieldErrors.size}</p>
                     )}
                   </div>
-                </label>
+                )}
               </div>
 
-              {isStadiumHold && (
-                <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-amber-800 text-xs">
-                  <span className="mt-0.5">⚾</span>
-                  <div>
-                    <p className="font-bold">{hb.stadiumHoldAlertTitle}</p>
-                    <p className="font-medium">{hb.stadiumHoldAlertBody}</p>
-                  </div>
+              {/* Contact info */}
+              <div className="grid grid-cols-1 gap-2.5 py-3 sm:gap-3 sm:py-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs">{hb.fullName}</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => { setFullName(e.target.value); setFieldErrors((prev) => ({ ...prev, fullName: undefined })) }}
+                    placeholder={hb.fullNamePlaceholder}
+                    aria-invalid={!!fieldErrors.fullName}
+                    className={`w-full min-w-0 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy sm:px-3.5 sm:py-2.5 ${fieldErrors.fullName ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                  />
+                  {fieldErrors.fullName && (
+                    <p className="mt-1.5 text-[11px] text-red-500 sm:text-xs" role="alert">{fieldErrors.fullName}</p>
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* Quantity selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">{hb.quantity}</label>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-11 h-11 rounded-xl border border-gray-200 text-gray-700 hover:border-jays-navy flex items-center justify-center"
-                >
-                  −
-                </button>
-                <span className="w-12 text-center font-semibold text-jays-navy">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                  className="w-11 h-11 rounded-xl border border-gray-200 text-gray-700 hover:border-jays-navy flex items-center justify-center"
-                >
-                  +
-                </button>
-                <span className="text-xs text-jays-steel ml-1">{maxQty} {hb.available}</span>
-              </div>
-            </div>
-
-            {/* Size selector */}
-            {hasSizes && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">{hb.selectSize}</label>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => {
-                    const oos = isSizeOos(size)
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        disabled={oos}
-                        onClick={() => {
-                          if (!oos) setSelectedSize(size)
-                        }}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                          oos
-                            ? 'opacity-40 cursor-not-allowed line-through bg-gray-100 border-gray-200 text-gray-400'
-                            : selectedSize === size
-                            ? 'bg-jays-navy text-white border-jays-navy'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-jays-navy'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    )
-                  })}
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs">{hb.phoneNumber}</label>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
+                    value={phone}
+                    onChange={(e) => {
+                      const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
+                      setPhone(digitsOnly)
+                      setFieldErrors((prev) => ({ ...prev, phone: undefined }))
+                    }}
+                    placeholder={hb.phonePlaceholder}
+                    aria-invalid={!!fieldErrors.phone}
+                    className={`w-full min-w-0 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy sm:px-3.5 sm:py-2.5 ${fieldErrors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                  />
+                  {fieldErrors.phone && (
+                    <p className="mt-1.5 text-[11px] text-red-500 sm:text-xs" role="alert">{fieldErrors.phone}</p>
+                  )}
                 </div>
-                {hasAnyOos && (
-                  <p className="mt-2 text-xs text-gray-400">{hb.sizeOosLegend}</p>
-                )}
-                {fieldErrors.size && (
-                  <p className="mt-1.5 text-xs text-red-500" role="alert">{fieldErrors.size}</p>
-                )}
               </div>
-            )}
 
-            <div className="space-y-3 mb-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{hb.fullName}</label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => { setFullName(e.target.value); setFieldErrors((prev) => ({ ...prev, fullName: undefined })) }}
-                  placeholder={hb.fullNamePlaceholder}
-                  aria-invalid={!!fieldErrors.fullName}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy ${fieldErrors.fullName ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
-                />
-                {fieldErrors.fullName && (
-                  <p className="mt-1.5 text-xs text-red-500" role="alert">{fieldErrors.fullName}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{hb.phoneNumber}</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={10}
-                  value={phone}
-                  onChange={(e) => {
-                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
-                    setPhone(digitsOnly)
-                    setFieldErrors((prev) => ({ ...prev, phone: undefined }))
-                  }}
-                  placeholder={hb.phonePlaceholder}
-                  aria-invalid={!!fieldErrors.phone}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy ${fieldErrors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
-                />
-                {fieldErrors.phone && (
-                  <p className="mt-1.5 text-xs text-red-500" role="alert">{fieldErrors.phone}</p>
-                )}
-              </div>
+              <p className="pt-3 text-[11px] text-jays-steel sm:pt-4 sm:text-xs">
+                {hb.privacyNote}
+              </p>
             </div>
 
-            <p className="text-xs text-jays-steel mb-4">
-              {hb.privacyNote}
-            </p>
-
-            <div className="flex gap-3">
+            {/* Sticky footer */}
+            <div className="flex gap-2.5 border-t border-gray-100 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:gap-3 sm:px-5 sm:py-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <button
                 onClick={() => { setOpen(false); setFieldErrors({}) }}
-                className="flex-1 border border-gray-200 text-jays-steel rounded-xl py-3 font-medium text-sm hover:bg-gray-50"
+                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-jays-steel hover:bg-gray-50 sm:py-3"
               >
                 {hb.cancel}
               </button>
               <button
                 onClick={submitHold}
                 disabled={loading}
-                className="flex-1 bg-jays-red text-white rounded-xl py-3 font-semibold text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="flex-1 rounded-xl bg-jays-red py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50 sm:py-3"
               >
                 {loading ? hb.placingHold : hb.confirmHold}
               </button>
