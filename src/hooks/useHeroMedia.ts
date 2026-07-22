@@ -14,15 +14,16 @@ interface UseHeroMediaResult {
 
 /**
  * Shared hero-slide data hook used by every hero section (Home, Shop, Shop
- * by Style, Players). Centralizes the "use server-provided slides when
+ * by Style, Players — all of which now fetch slides server-side and pass
+ * `initialSlides` down). Centralizes the "use server-provided slides when
  * available, otherwise fetch client-side" logic and the active/sortOrder
- * filtering that was previously duplicated between `HeroSlideshow` (internal
- * fetch fallback) and `PlayersHero` (manual fetch + state).
+ * filtering, used internally by `HeroSlideshow` as a fallback for any
+ * future hero that doesn't fetch server-side.
  *
  * When `initialSlides` is provided (server-rendered pages), no client fetch
  * happens and the data is available on first render — avoiding a flash of
- * default/fallback content. When omitted (e.g. a fully client-rendered page
- * like Popular Players), it fetches `/api/hero-slides?scope=<scope>` once.
+ * default/fallback content. When omitted, it fetches
+ * `/api/hero-slides?scope=<scope>` once as a fallback.
  */
 export function useHeroMedia(scope: HeroScope, initialSlides?: Slide[]): UseHeroMediaResult {
   const hasInitialSlides = Array.isArray(initialSlides)

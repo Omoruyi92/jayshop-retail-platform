@@ -1,7 +1,4 @@
-'use client'
-
-import HeroSlideshow from '@/components/shop/HeroSlideshow'
-import { useHeroMedia } from '@/hooks/useHeroMedia'
+import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 
 /**
  * Premium, full-bleed hero for the "Popular Players" landing page.
@@ -15,15 +12,21 @@ import { useHeroMedia } from '@/hooks/useHeroMedia'
  *
  * Uses the same "fade" crossfade transition as the Home/Shop/Shop-by-Style
  * heroes for a consistent, understated browsing feel across the site.
+ *
+ * `initialSlides` is fetched server-side (see `players/page.tsx`) and
+ * passed straight through — matching Home/Shop/Shop-by-Style — so the
+ * hero is present on the very first paint with no client fetch delay,
+ * flash, or reveal animation. The hero intentionally never participates
+ * in the page's content-card reveal animation (see `Reveal`).
  */
-export default function PlayersHero() {
-  const { slides, hasSlides } = useHeroMedia('PLAYERS')
+export default function PlayersHero({ initialSlides }: { initialSlides: HeroSlide[] }) {
+  const hasSlides = initialSlides.some((s) => s.active)
 
   if (!hasSlides) return null
 
   return (
     <section className="relative h-[38vh] max-h-[380px] min-h-[220px] w-full overflow-hidden bg-jays-navy sm:h-[46vh] sm:max-h-[440px] lg:h-[52vh] lg:max-h-[500px]">
-      <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={slides} transition="fade" />
+      <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={initialSlides} transition="fade" />
     </section>
   )
 }
