@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import YouMayAlsoLikeCarousel from '@/components/shop/YouMayAlsoLikeCarousel'
+import ProductCarousel from '@/components/shop/ProductCarousel'
 
 const MAX_ITEMS = 8
 
@@ -41,7 +41,7 @@ export default async function YouMayAlsoLike({
       >
         You May Also Like
       </h2>
-      <YouMayAlsoLikeCarousel products={picks} />
+      <ProductCarousel products={picks} />
     </section>
   )
 }

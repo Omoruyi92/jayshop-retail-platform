@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import ProductCard from '@/components/shop/ProductCard'
+import ProductCarousel from '@/components/shop/ProductCarousel'
 import Reveal from '@/components/ui/Reveal'
 import ShopHero from '@/components/shop/ShopHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
@@ -11,10 +13,18 @@ import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { HAT_STYLES, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
+import { titleCase } from '@/lib/text'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+
+// Max products shown per category-grouped carousel row on the default,
+// unfiltered Shop browsing view (see `isGroupedView` below) — mirrors the
+// homepage preview sections (PlayerCatalogPreview/BrandCatalogPreview use
+// 5-8), but a bit larger since each row here is the customer's primary way
+// to browse a whole product type. "View All" surfaces the complete set.
+const CAROUSEL_PREVIEW_COUNT = 10
 
 interface Product {
   id: string
@@ -234,10 +244,13 @@ export default function ShopPageClient({
     const urlHatStyle = searchParams?.get('hatStyle')?.trim()
     if (urlCategory === 'All') {
       // Explicit reset request from the "All" pill — always show the full
-      // catalog and discard any previously saved filter state.
+      // catalog and discard any previously saved filter state. A "View All
+      // [Type]" link from a category-grouped carousel row (e.g. "View All
+      // Jerseys") still passes category=All (full catalog) alongside an
+      // explicit sub, so that one filter is preserved instead of reset.
       clearShopState()
       setActiveCategory('All')
-      setActiveSub('All')
+      setActiveSub(urlSub || 'All')
       setActiveAudience('All')
       setActiveAgeGroup('All')
       setActiveBrand('All')
@@ -279,7 +292,7 @@ export default function ShopPageClient({
     const urlHatStyle = searchParams?.get('hatStyle')?.trim()
     if (urlCategory === 'All') {
       setActiveCategory('All')
-      setActiveSub('All')
+      setActiveSub(urlSub || 'All')
       setActiveAudience('All')
       setActiveAgeGroup('All')
       setActiveBrand('All')
@@ -473,6 +486,52 @@ export default function ShopPageClient({
     activePriceRange !== 'All' ||
     inStockOnly
 
+  // Category-organized browsing view: group products by their Type
+  // (Jerseys, Hats, Fleece, ...) into separate labeled carousel rows,
+  // rather than one flat interleaved grid. This is the default view for
+  // "All" and for a top-level category (e.g. Men) with no further
+  // filters/search applied — matching the merchandising priority order
+  // already used for the flat catalog sort (subPriorityBySlug). As soon as
+  // a customer narrows with a Type/brand/audience/price/stock filter or a
+  // search term, that specific slice is better shown as a flat grid (more
+  // predictable for browsability/scanning), so grouping is disabled then.
+  const isGroupedView =
+    !isSearching &&
+    activeSub === 'All' &&
+    activeAudience === 'All' &&
+    activeAgeGroup === 'All' &&
+    activeHatStyle === 'All' &&
+    activeBrand === 'All' &&
+    activePriceRange === 'All' &&
+    !inStockOnly &&
+    sortBy === 'default'
+
+  const groupedSections = useMemo(() => {
+    if (!isGroupedView) return []
+    const FALLBACK_PRIORITY = 999
+    const buckets = new Map<string, { label: string; products: Product[] }>()
+    for (const product of filtered) {
+      const key = normalizeProductType(product) || 'other'
+      // productType is already properly cased (e.g. "T-Shirts") in the data;
+      // only titleCase the subcategory fallback, which is a lowercase slug.
+      const rawLabel = product.productType || titleCase(product.subcategory || '') || 'Other'
+      const existing = buckets.get(key)
+      if (existing) {
+        existing.products.push(product)
+      } else {
+        buckets.set(key, { label: rawLabel, products: [product] })
+      }
+    }
+    return Array.from(buckets.entries())
+      .map(([key, group]) => ({ key, ...group }))
+      .sort((a, b) => {
+        const priorityA = subPriorityBySlug[a.key] ?? FALLBACK_PRIORITY
+        const priorityB = subPriorityBySlug[b.key] ?? FALLBACK_PRIORITY
+        if (priorityA !== priorityB) return priorityA - priorityB
+        return a.label.localeCompare(b.label)
+      })
+  }, [isGroupedView, filtered, subPriorityBySlug])
+
   const currentFilters = {
     category: activeCategory,
     sub: activeSub,
@@ -500,6 +559,14 @@ export default function ShopPageClient({
     // so a fresh category selection starts unfiltered.
     setActiveAudience('All')
     setActiveAgeGroup('All')
+  }
+
+  // "View All {Type}" link on a category-grouped carousel row header —
+  // narrows the current browsing view down to just that product Type,
+  // switching from the grouped-rows layout to the flat filterable grid
+  // (same behavior as picking a Type pill/dropdown option manually).
+  function viewAllType(typeLabel: string) {
+    setActiveSub(typeLabel)
   }
 
   // Persist the exact filtered/sorted product sequence the customer is
@@ -618,6 +685,40 @@ export default function ShopPageClient({
             title={isSearching ? 'No results found' : s.noProducts}
             body={isSearching ? `No products matched "${searchQuery}". Try a different search term.` : s.noProductsBody}
           />
+        ) : isGroupedView ? (
+          <div className="mb-12 space-y-10">
+            {groupedSections.map((group) => (
+              <section key={group.key} aria-labelledby={`shop-group-${group.key}`}>
+                <div className="mb-4 flex items-end justify-between gap-3">
+                  <h2
+                    id={`shop-group-${group.key}`}
+                    className="font-display text-lg font-bold uppercase tracking-wide text-jays-navy sm:text-xl"
+                  >
+                    {group.label}
+                    <span className="ml-2 text-xs font-medium normal-case tracking-normal text-jays-steel/70">
+                      {group.products.length} {group.products.length === 1 ? 'item' : 'items'}
+                    </span>
+                  </h2>
+                  {group.products.length > CAROUSEL_PREVIEW_COUNT && (
+                    <button
+                      type="button"
+                      onClick={() => viewAllType(group.label)}
+                      className="group inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-jays-navy transition-colors hover:text-jays-red"
+                    >
+                      View All
+                      <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <ProductCarousel
+                  products={group.products.slice(0, CAROUSEL_PREVIEW_COUNT)}
+                  currentFilters={currentFilters}
+                />
+              </section>
+            ))}
+          </div>
         ) : (
           <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {sorted.map((product, index) => (
