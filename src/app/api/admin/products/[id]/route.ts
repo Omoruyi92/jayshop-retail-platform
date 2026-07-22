@@ -81,6 +81,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('status')) body.status = formData.get('status')
       if (formData.has('category')) body.category = formData.get('category')
       if (formData.has('subcategory')) body.subcategory = formData.get('subcategory')
+      if (formData.has('productType')) body.productType = formData.get('productType')
       if (formData.has('hatStyle')) body.hatStyle = formData.get('hatStyle')
       if (formData.has('quantity')) body.quantity = Number(formData.get('quantity'))
       if (formData.has('brand')) body.brand = formData.get('brand')
@@ -123,6 +124,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.status       !== undefined && { status: body.status }),
         ...(body.category     !== undefined && { category: body.category }),
         ...(body.subcategory  !== undefined && { subcategory: body.subcategory }),
+        ...(body.productType  !== undefined && { productType: body.productType }),
         ...(body.hatStyle     !== undefined && { hatStyle: body.hatStyle }),
         ...(body.quantity     !== undefined && { quantity: Number(body.quantity) }),
         ...(body.brand        !== undefined && { brand: body.brand }),
@@ -180,6 +182,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     revalidatePath('/brands')
     if (existing?.brand) revalidatePath(`/brands/${brandToSlug(existing.brand)}`)
     if (body.brand && body.brand !== existing?.brand) revalidatePath(`/brands/${brandToSlug(body.brand)}`)
+    revalidatePath(`/shop/${product.slug}`)
+    revalidatePath('/shop')
 
     return NextResponse.json({
       ...product,
@@ -197,7 +201,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     const existing = await prisma.product.findUnique({
       where: { id: params.id },
-      select: { imageUrl: true, brand: true },
+      select: { imageUrl: true, brand: true, slug: true },
     })
 
     await prisma.product.delete({ where: { id: params.id } })
@@ -209,6 +213,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     revalidatePath('/brands')
     if (existing?.brand) revalidatePath(`/brands/${brandToSlug(existing.brand)}`)
+    if (existing?.slug) revalidatePath(`/shop/${existing.slug}`)
+    revalidatePath('/shop')
 
     if (existing?.imageUrl && isLocalUpload(existing.imageUrl)) {
       const refs = await getImageReferences(prisma, existing.imageUrl.replace(/^\/uploads\//, ''))

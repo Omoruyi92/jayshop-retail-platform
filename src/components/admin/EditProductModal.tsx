@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import ColorPickerModal from '@/components/admin/ColorPickerModal'
 import { SIZELESS_SUBS, getDefaultSizes, POPULAR_BRANDS, colorToSwatch, HAT_STYLES, ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '@/lib/constants'
+import { titleCase } from '@/lib/text'
 import { useCategoryTree } from '@/hooks/useCategoryTree'
 
 interface Product {
@@ -20,6 +21,7 @@ interface Product {
   imageUrl3: string
   category: string
   subcategory: string
+  productType?: string | null
   hatStyle: string
   quantity: number
   heldQuantity: number
@@ -61,6 +63,7 @@ function buildInitialForm(product: Product) {
     sizes:       product.sizes,
     category:    product.category,
     subcategory: product.subcategory,
+    productType: product.productType || '',
     hatStyle:    product.hatStyle || '',
     brand:       product.brand,
     status:      product.status,
@@ -126,11 +129,11 @@ export default function EditProductModal({ product, onClose, onSaved, hatStyleOp
 
   function handleCategoryChange(cat: string) {
     const firstSub = subsByCat[cat]?.[0] ?? ''
-    setForm((f) => f ? ({ ...f, category: cat, subcategory: firstSub, sizes: getDefaultSizes(firstSub) }) : f)
+    setForm((f) => f ? ({ ...f, category: cat, subcategory: firstSub, productType: labelsBySlug[firstSub] ?? titleCase(firstSub), sizes: getDefaultSizes(firstSub) }) : f)
   }
 
   function handleSubcategoryChange(sub: string) {
-    setForm((f) => f ? ({ ...f, subcategory: sub, sizes: getDefaultSizes(sub), hatStyle: sub === 'hats' ? f.hatStyle : '' }) : f)
+    setForm((f) => f ? ({ ...f, subcategory: sub, productType: labelsBySlug[sub] ?? titleCase(sub), sizes: getDefaultSizes(sub), hatStyle: sub === 'hats' ? f.hatStyle : '' }) : f)
   }
 
   function handleSizesChange(val: string) {
@@ -215,6 +218,7 @@ export default function EditProductModal({ product, onClose, onSaved, hatStyleOp
     formData.append('salePriceCents', salePriceCents.toString())
     formData.append('category', form.category)
     formData.append('subcategory', form.subcategory)
+    formData.append('productType', form.productType)
     formData.append('hatStyle', form.subcategory === 'hats' ? form.hatStyle : '')
     formData.append('brand', form.brand)
     formData.append('status', form.status)
