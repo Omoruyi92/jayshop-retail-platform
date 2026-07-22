@@ -772,7 +772,7 @@ export default function AdminProductsPage() {
       </TableWrapper>
 
       <EditProductModal
-        key={editingProduct?.id ?? 'none'}
+        key={editingProduct?.id ?? 'edit-none'}
         product={editingProduct}
         hatStyleOptions={hatStyleOptions}
         onClose={() => setEditingProduct(null)}
@@ -783,7 +783,7 @@ export default function AdminProductsPage() {
       />
 
       <ProductLocationsModal
-        key={locationsProduct?.id ?? 'none'}
+        key={locationsProduct?.id ?? 'locations-none'}
         productId={locationsProduct?.id ?? null}
         productName={locationsProduct?.name ?? ''}
         sizes={locationsProduct?.sizes ?? ''}
