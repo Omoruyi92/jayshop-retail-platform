@@ -51,3 +51,8 @@ public/uploads/.orphan-backup/
 *.db-journal
 prisma/dev.db
 prisma/*.db
+
+# session/token dumps (never commit leaked credentials)
+cookies*.txt
+headers*.txt
+login_headers.txt
