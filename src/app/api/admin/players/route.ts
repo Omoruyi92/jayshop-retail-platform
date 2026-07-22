@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
@@ -163,6 +163,7 @@ export async function POST(req: Request) {
 
     revalidatePath('/players')
     revalidatePath(`/players/${slug}`)
+    revalidateTag('players')
 
     return NextResponse.json({ player }, { status: 201 })
   } catch (err) {

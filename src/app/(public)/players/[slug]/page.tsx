@@ -1,94 +1,63 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 import PlayerBadge from '@/components/players/PlayerBadge'
 import ProductImageGallery from '@/components/shop/ProductImageGallery'
 
-type GearProduct = {
-  id: string
-  name: string
-  slug: string
-  imageUrl: string
-  priceCents: number
-  color: string
-  isFeatured: boolean
+// ISR: same 60s TTL as GET /api/players/[slug] and /players — busted
+// on-demand via revalidatePath('/players/[slug]') from the admin players
+// mutation routes, so admin edits still show up promptly.
+export const revalidate = 60
+
+async function getPlayer(slug: string) {
+  const player = await prisma.player.findFirst({
+    where: { slug, status: 'ACTIVE' },
+    include: {
+      products: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          // Only select the fields actually rendered on the gear cards
+          // (image, name, price, slug, id, featured flag) instead of the
+          // full ~20-column Product row.
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              imageUrl: true,
+              priceCents: true,
+              status: true,
+              isFeatured: true,
+            },
+          },
+        },
+      },
+    },
+  })
+
+  return player
 }
 
-type GearLink = {
-  linkId: string
-  label: string
-  product: GearProduct
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const player = await getPlayer(params.slug)
+  if (!player) return { title: 'Player Not Found' }
+  return { title: player.name }
 }
 
-type PlayerDetail = {
-  id: string
-  name: string
-  slug: string
-  jerseyNumber: string
-  position: string
-  bio: string
-  heroImageUrl: string
-  imageUrls: string
-  isFeatured: boolean
-  isTrending: boolean
-  isNewArrival: boolean
-  stats: Record<string, string | number> | null
-}
+export default async function PlayerDetailPage({ params }: { params: { slug: string } }) {
+  const player = await getPlayer(params.slug)
 
-export default function PlayerDetailPage() {
-  const params = useParams<{ slug: string }>()
-  const [player, setPlayer] = useState<PlayerDetail | null>(null)
-  const [gear, setGear] = useState<GearLink[]>([])
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  if (!player) notFound()
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    fetch(`/api/players/${params.slug}`)
-      .then(async (res) => {
-        if (res.status === 404) {
-          if (!cancelled) setNotFound(true)
-          return
-        }
-        const data = await res.json()
-        if (!cancelled) {
-          setPlayer(data.player)
-          setGear(data.gear ?? [])
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [params.slug])
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse">
-        <div className="aspect-[4/3] rounded-2xl bg-jays-ice mb-6" />
-        <div className="h-6 w-1/2 bg-jays-ice rounded mb-3" />
-        <div className="h-4 w-full bg-jays-ice rounded mb-2" />
-        <div className="h-4 w-2/3 bg-jays-ice rounded" />
-      </div>
-    )
-  }
-
-  if (notFound || !player) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-lg font-semibold text-jays-navy">Player not found</p>
-        <Link href="/players" className="text-jays-royal underline text-sm mt-2 inline-block">
-          Back to Popular Players
-        </Link>
-      </div>
-    )
-  }
+  const gear = player.products
+    .filter((link) => link.product.status !== 'ARCHIVED')
+    .map((link) => ({
+      linkId: link.id,
+      label: link.label,
+      product: link.product,
+    }))
 
   const bundleIds = gear.map((g) => g.product.id).join(',')
   const featuredGearIds = gear.filter((g) => g.product.isFeatured).map((g) => g.product.id).join(',')
@@ -96,6 +65,8 @@ export default function PlayerDetailPage() {
     player.heroImageUrl,
     ...(player.imageUrls ? player.imageUrls.split(',').map((s) => s.trim()).filter(Boolean) : []),
   ].filter((url, i, arr) => Boolean(url) && arr.indexOf(url) === i)
+
+  const stats = player.stats as Record<string, string | number> | null
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-36 sm:pb-10">
@@ -133,9 +104,9 @@ export default function PlayerDetailPage() {
 
       {player.bio && <p className="text-sm text-gray-700 leading-relaxed mt-3">{player.bio}</p>}
 
-      {player.stats && Object.keys(player.stats).length > 0 && (
+      {stats && Object.keys(stats).length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-6">
-          {Object.entries(player.stats).map(([key, value]) => (
+          {Object.entries(stats).map(([key, value]) => (
             <div key={key} className="bg-jays-ice rounded-xl p-3 text-center">
               <p className="text-lg font-display font-bold text-jays-navy">{String(value)}</p>
               <p className="text-[10px] uppercase tracking-wide text-gray-500">{key}</p>
@@ -148,7 +119,7 @@ export default function PlayerDetailPage() {
         <div className="mt-8">
           <h2 className="font-display font-bold text-jays-navy text-lg mb-3">Featured Gear</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {gear.map((g) => (
+            {gear.map((g, index) => (
               <Link
                 key={g.linkId}
                 href={`/shop/${g.product.slug}`}
@@ -161,6 +132,7 @@ export default function PlayerDetailPage() {
                     fill
                     sizes="(max-width: 640px) 50vw, 33vw"
                     className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                    priority={index === 0}
                   />
                 </div>
                 <div className="p-2">

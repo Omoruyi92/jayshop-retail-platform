@@ -2,18 +2,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
-
-interface Promotion {
-  id: string
-  text: string
-  link: string | null
-  priority: number
-}
+import { usePromotions } from '@/lib/promotions/PromotionsContext'
 
 const DISMISS_KEY = 'jays-shop-promo-dismissed'
 
 export default function PromotionBanner() {
-  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const promotions = usePromotions()
   const [dismissed, setDismissed] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
@@ -27,15 +21,9 @@ export default function PromotionBanner() {
       setDismissed(raw ? JSON.parse(raw) : [])
     } catch {
       setDismissed([])
+    } finally {
+      setLoaded(true)
     }
-
-    fetch('/api/promotions')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data.promotions)) setPromotions(data.promotions)
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true))
   }, [])
 
   const visible = promotions.filter((p) => !dismissed.includes(p.id))

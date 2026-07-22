@@ -9,9 +9,9 @@ export default function FeaturedPlayersCarousel({ players }: { players: PlayerCa
     <div className="mb-8">
       <h2 className="font-display font-bold text-jays-navy text-lg mb-3 px-1">Featured Players</h2>
       <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 scrollbar-thin">
-        {players.map((player) => (
+        {players.map((player, index) => (
           <div key={player.id} className="snap-start shrink-0 w-40 sm:w-48">
-            <PlayerCard player={player} />
+            <PlayerCard player={player} priority={index === 0} />
           </div>
         ))}
       </div>

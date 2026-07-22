@@ -72,7 +72,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => scrollByCard(-1)}
           aria-label="Scroll left"
-          className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 -translate-x-4 rounded-full bg-white p-2 text-jays-navy shadow-lg shadow-black/10 ring-1 ring-black/5 transition-transform hover:scale-105 sm:flex"
+          className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 -translate-x-2 rounded-full bg-white p-2 text-jays-navy shadow-lg shadow-black/10 ring-1 ring-black/5 transition-transform hover:scale-105 sm:flex"
         >
           <ChevronLeft size={18} />
         </button>
@@ -82,7 +82,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => scrollByCard(1)}
           aria-label="Scroll right"
-          className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 translate-x-4 rounded-full bg-white p-2 text-jays-navy shadow-lg shadow-black/10 ring-1 ring-black/5 transition-transform hover:scale-105 sm:flex"
+          className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 translate-x-2 rounded-full bg-white p-2 text-jays-navy shadow-lg shadow-black/10 ring-1 ring-black/5 transition-transform hover:scale-105 sm:flex"
         >
           <ChevronRight size={18} />
         </button>

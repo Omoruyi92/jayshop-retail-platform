@@ -2,6 +2,7 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { usePromotions } from '@/lib/promotions/PromotionsContext'
 
 const OPEN_HOUR = 10
 const CLOSE_HOUR = 17
@@ -61,18 +62,7 @@ interface Promotion {
   link: string | null
 }
 
-export function usePromotions() {
-  const [promotions, setPromotions] = useState<Promotion[]>([])
-
-  useEffect(() => {
-    fetch('/api/promotions')
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d.promotions)) setPromotions(d.promotions) })
-      .catch(() => {})
-  }, [])
-
-  return promotions
-}
+export { usePromotions }
 
 /* Duplicated promo set for seamless marquee loop */
 function PromoStrip({ promotions }: { promotions: Promotion[] }) {

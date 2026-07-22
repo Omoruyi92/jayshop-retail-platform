@@ -5,8 +5,12 @@
 // (via /api/brands) used by the Top Brands preview and the /brands listing
 // page, so any brand added/edited in the admin panel is reflected here
 // automatically — single source of truth across all three surfaces.
+//
+// Brands are passed in as a prop (fetched server-side by the parent page)
+// rather than fetched client-side here — this used to do its own
+// `fetch('/api/brands')` on mount, duplicating the brand query the
+// homepage's BrandCatalogPreview Server Component already runs.
 'use client'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -76,16 +80,7 @@ function LogoRow({ brands }: { brands: Brand[] }) {
   )
 }
 
-export default function PartnerLogoMarquee() {
-  const [brands, setBrands] = useState<Brand[]>([])
-
-  useEffect(() => {
-    fetch('/api/brands')
-      .then((r) => (r.ok ? r.json() : { brands: [] }))
-      .then((d) => { if (Array.isArray(d.brands)) setBrands(d.brands) })
-      .catch(() => {})
-  }, [])
-
+export default function PartnerLogoMarquee({ brands }: { brands: Brand[] }) {
   if (brands.length === 0) return null
 
   return (

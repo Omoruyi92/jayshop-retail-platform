@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
@@ -74,6 +75,8 @@ export async function PATCH(
       req,
     })
 
+    revalidatePath('/gallery')
+
     return NextResponse.json({ image: updated })
   } catch (e) {
     console.error('Gallery update error:', e)
@@ -112,6 +115,8 @@ export async function DELETE(
     after: { status: 'ARCHIVED' },
     req,
   })
+
+  revalidatePath('/gallery')
 
   return NextResponse.json({ success: true })
 }

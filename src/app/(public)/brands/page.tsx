@@ -37,7 +37,7 @@ export default async function BrandsIndexPage() {
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-        {brands.map((brand) => (
+        {brands.map((brand, index) => (
           <Link
             key={brand.id}
             href={`/brands/${brand.slug}`}
@@ -49,6 +49,7 @@ export default async function BrandsIndexPage() {
                   src={brand.imageUrl}
                   alt={brand.name}
                   fill
+                  priority={index < 5}
                   className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 640px) 50vw, 25vw"
                 />

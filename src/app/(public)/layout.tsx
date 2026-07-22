@@ -9,6 +9,7 @@ import FeedbackTab from '@/components/feedback/FeedbackTab'
 import PromotionBanner from '@/components/layout/PromotionBanner'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
+import { PromotionsProvider } from '@/lib/promotions/PromotionsContext'
 
 export const metadata: Metadata = {
   title: {
@@ -22,17 +23,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <LanguageProvider>
       <FavoritesProvider>
         <CartProvider>
-          <div className="min-h-screen flex flex-col">
-            <PromotionBanner />
-            <Header />
-            <SubNavBar />
-            <main className="flex-1 pb-24 sm:pb-0">{children}</main>
-            <Footer />
-            <BottomNav />
-            <ChatFAB />
-            <FeedbackTab />
-            <RecentlyViewedPopup />
-          </div>
+          <PromotionsProvider>
+            <div className="min-h-screen flex flex-col">
+              <PromotionBanner />
+              <Header />
+              <SubNavBar />
+              <main className="flex-1 pb-24 sm:pb-0">{children}</main>
+              <Footer />
+              <BottomNav />
+              <ChatFAB />
+              <FeedbackTab />
+              <RecentlyViewedPopup />
+            </div>
+          </PromotionsProvider>
         </CartProvider>
       </FavoritesProvider>
     </LanguageProvider>

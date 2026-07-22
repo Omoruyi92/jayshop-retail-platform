@@ -93,6 +93,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       req,
     })
 
+    revalidatePath('/')
     revalidatePath('/brands')
     revalidatePath(`/brands/${brand.slug}`)
     if (updated.slug !== brand.slug) revalidatePath(`/brands/${updated.slug}`)
@@ -136,6 +137,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       req,
     })
 
+    revalidatePath('/')
     revalidatePath('/brands')
     revalidatePath(`/brands/${brand.slug}`)
 

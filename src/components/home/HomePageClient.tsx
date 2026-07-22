@@ -7,11 +7,19 @@ import FanTestimonials from '@/components/home/FanTestimonials'
 import PartnerLogoMarquee from '@/components/ui/PartnerLogoMarquee'
 import LetsGoJaysWatermark from '@/components/ui/LetsGoJaysWatermark'
 
+interface MarqueeBrand {
+  name: string
+  slug: string
+  imageUrl: string
+}
+
 export default function HomePageClient({
   initialHeroSlides,
+  brands,
   children,
 }: {
   initialHeroSlides?: HeroSlide[]
+  brands: MarqueeBrand[]
   children?: ReactNode
 }) {
   const { t } = useLanguage()
@@ -166,7 +174,7 @@ export default function HomePageClient({
 
         {/* ── Partner Marquee ─────────────────────────────────────── */}
         <div className="mt-12">
-          <PartnerLogoMarquee />
+          <PartnerLogoMarquee brands={brands} />
         </div>
       </section>
 

@@ -14,7 +14,7 @@ export type PlayerCardData = {
   isNewArrival: boolean
 }
 
-export default function PlayerCard({ player }: { player: PlayerCardData }) {
+export default function PlayerCard({ player, priority = false }: { player: PlayerCardData; priority?: boolean }) {
   return (
     <Link
       href={`/players/${player.slug}`}
@@ -27,6 +27,7 @@ export default function PlayerCard({ player }: { player: PlayerCardData }) {
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-contain group-hover:scale-105 transition-transform duration-500"
+          priority={priority}
         />
         <PlayerBadge
           isFeatured={player.isFeatured}

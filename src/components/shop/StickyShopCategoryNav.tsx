@@ -282,7 +282,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect }: Stic
       style={{ top: 'calc(var(--header-height, 3.5rem))' }}
     >
       <div className="relative mx-auto flex w-full max-w-none items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="hidden items-center justify-center gap-1 py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
+        <div className="hidden max-w-full items-center justify-center gap-1 overflow-x-auto py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
           {pills.map(({ label, value, hasDropdown, children }) => {
             const active = activeCategory?.toLowerCase() === value.toLowerCase()
             const isHovered = hovered.category === value

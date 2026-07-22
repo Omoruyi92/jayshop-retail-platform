@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
@@ -83,6 +84,8 @@ export async function POST(req: Request) {
       after: { title, category, imageUrl, sortOrder },
       req,
     })
+
+    revalidatePath('/gallery')
 
     return NextResponse.json({ image }, { status: 201 })
   } catch (e) {

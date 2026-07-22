@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
@@ -143,6 +143,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     revalidatePath('/players')
     revalidatePath(`/players/${existing.slug}`)
+    revalidateTag('players')
 
     return NextResponse.json({ player: refreshed })
   } catch (err) {
@@ -182,6 +183,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     revalidatePath('/players')
     revalidatePath(`/players/${existing.slug}`)
+    revalidateTag('players')
 
     return NextResponse.json({ success: true })
   } catch (err) {

@@ -130,7 +130,7 @@ export default async function BrandPage({
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
           {brand.imageUrl ? (
             <div className="relative w-28 h-28 sm:w-36 sm:h-36 bg-white rounded-2xl p-3 shrink-0 flex items-center justify-center">
-              <Image src={brand.imageUrl} alt={brand.name} fill className="object-contain p-3" sizes="144px" />
+              <Image src={brand.imageUrl} alt={brand.name} fill priority className="object-contain p-3" sizes="144px" />
             </div>
           ) : (
             <div className="w-28 h-28 sm:w-36 sm:h-36 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold shrink-0">

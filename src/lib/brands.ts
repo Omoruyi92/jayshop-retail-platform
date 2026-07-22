@@ -17,5 +17,20 @@ export async function getBrandProductCount(brandName: string): Promise<number> {
 }
 
 export async function getBrandProductCounts(brandNames: string[]): Promise<number[]> {
-  return Promise.all(brandNames.map((name) => getBrandProductCount(name)))
+  // Single query instead of one COUNT per brand (was N+1 — e.g. the
+  // homepage's Top Brands preview and /brands index each triggered a
+  // separate DB round trip per brand). Product.brand is free-text so we
+  // still need case-insensitive matching, which Prisma's `groupBy` can't
+  // do directly — instead pull all non-archived brand values once and
+  // tally matches in memory.
+  const rows = await prisma.product.findMany({
+    where: { status: { not: 'ARCHIVED' } },
+    select: { brand: true },
+  })
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    const key = row.brand.trim().toLowerCase()
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return brandNames.map((name) => counts.get(name.trim().toLowerCase()) ?? 0)
 }

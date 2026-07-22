@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shop/ProductCard'
 import Reveal from '@/components/ui/Reveal'
-import { getProductAvailability } from '@/lib/inventory/aggregate'
+import { buildManyAvailability } from '@/lib/inventory/aggregate'
+import { getMainStoreLocationId } from '@/lib/store-locations'
 
 export const revalidate = 60
 
@@ -22,16 +23,46 @@ export default async function StyleDetailPage({ params }: { params: { slug: stri
   const links = await prisma.productStyle.findMany({
     where: { styleCategoryId: style.id },
     orderBy: { sortOrder: 'asc' },
-    include: { product: true },
+    include: {
+      product: {
+        include: {
+          sizeInventories: {
+            select: {
+              size: true,
+              quantity: true,
+              heldQuantity: true,
+              pickedQuantity: true,
+              location: {
+                select: {
+                  id: true,
+                  name: true,
+                  section: true,
+                  gate: true,
+                  isMainStore: true,
+                  isPickupQueue: true,
+                  sortOrder: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   const products = links.map((l) => l.product).filter((p) => p.status !== 'ARCHIVED')
 
-  const cards = await Promise.all(
-    products.map(async (product) => {
-      const availability = await getProductAvailability(product.id)
-      return { product, availability }
-    })
+  // Batch-compute availability for every product in one pass (same approach
+  // as /brands/[slug]) instead of the previous N+1 `getProductAvailability`
+  // call per product (2 DB queries per product).
+  const mainStoreLocationId = await getMainStoreLocationId()
+  const sizeInventoryRows = products.flatMap((p) =>
+    p.sizeInventories.map((s) => ({ ...s, productId: p.id }))
   )
+  const availabilityMap = buildManyAvailability(products, sizeInventoryRows, mainStoreLocationId)
+  const cards = products.map((product) => ({
+    product,
+    availability: availabilityMap[product.id],
+  }))
 
   return (
     <div className="min-h-screen bg-white">

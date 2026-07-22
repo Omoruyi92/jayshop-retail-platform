@@ -85,6 +85,7 @@ export async function POST(req: Request) {
       req,
     })
 
+    revalidatePath('/')
     revalidatePath('/brands')
     revalidatePath(`/brands/${slug}`)
 
