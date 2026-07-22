@@ -3,10 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { requireRole, type AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { nanoid } from 'nanoid'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { brandToSlug } from '@/lib/constants'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 import { getBrandProductCounts } from '@/lib/brands'
 import { revalidatePath } from 'next/cache'
 
@@ -97,12 +96,9 @@ export async function POST(req: Request) {
 }
 
 async function uploadBrandLogo(file: File): Promise<string> {
-  const uploadDir = join(process.cwd(), 'public', 'uploads', 'brands')
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
-  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+  const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `brand-${nanoid(10)}.${ext}`
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(join(uploadDir, fileName), buffer)
-  return `/uploads/brands/${fileName}`
+  return saveUploadedFile(buffer, fileName, contentType, 'brands')
 }

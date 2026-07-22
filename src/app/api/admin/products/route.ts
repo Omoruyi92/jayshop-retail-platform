@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireRole } from '@/lib/auth/authorize.server'
 import { getDefaultTenantId } from '@/lib/tenant'
 import { getMainStoreLocationId } from '@/lib/store-locations'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
@@ -22,12 +21,9 @@ async function processImage(file: File | null, existingUrl: string) {
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
     const rawExt = file.name.split('.').pop() || 'png'
-    const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+    const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
     const fileName = `${nanoid(10)}.${ext}`
-    const uploadDir = join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadDir, { recursive: true })
-    await writeFile(join(uploadDir, fileName), buffer)
-    return `/uploads/${fileName}`
+    return saveUploadedFile(buffer, fileName, contentType)
   }
   return existingUrl
 }

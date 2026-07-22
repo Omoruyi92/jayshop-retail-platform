@@ -34,6 +34,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'media.istockphoto.com' },
       { protocol: 'https', hostname: 'www.cardboardmemories.ca' },
+      // Vercel Blob storage — hostname is <store-id>.public.blob.vercel-storage.com
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
     ],
   },
 }

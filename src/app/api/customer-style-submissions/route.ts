@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,12 +12,9 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 async function saveImage(file: File) {
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
-  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+  const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `${nanoid(12)}.${ext}`
-  const uploadDir = join(process.cwd(), 'public', 'uploads', 'customer-style')
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(join(uploadDir, fileName), buffer)
-  return `/uploads/customer-style/${fileName}`
+  return saveUploadedFile(buffer, fileName, contentType, 'customer-style')
 }
 
 export async function POST(req: Request) {

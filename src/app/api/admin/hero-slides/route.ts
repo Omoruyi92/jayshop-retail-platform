@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { mkdir, writeFile, unlink } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize.server'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/media/upload'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
@@ -42,23 +41,15 @@ async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing' | '
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
   const isImage = mediaType(file.type) === 'IMAGE'
-  const { buffer, ext } = isImage
+  const { buffer, ext, contentType } = isImage
     ? await optimizeImageBuffer(Buffer.from(bytes), rawExt)
-    : { buffer: Buffer.from(bytes), ext: rawExt }
+    : { buffer: Buffer.from(bytes), ext: rawExt, contentType: file.type }
   const fileName = `${nanoid(12)}.${ext}`
-  const uploadDir = join(process.cwd(), 'public', 'uploads', 'hero-slides', scope)
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(join(uploadDir, fileName), buffer)
-  return `/uploads/hero-slides/${scope}/${fileName}`
+  return saveUploadedFile(buffer, fileName, contentType, `hero-slides/${scope}`)
 }
 
 async function removeFile(url: string) {
-  try {
-    const filePath = join(process.cwd(), 'public', url)
-    await unlink(filePath)
-  } catch {
-    // ignore
-  }
+  await deleteUploadedFile(url)
 }
 
 export async function GET(req: Request) {

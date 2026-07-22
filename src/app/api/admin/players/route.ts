@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 import { parseFormData, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'
@@ -59,16 +58,13 @@ export async function POST(req: Request) {
       return badRequest('name is required')
     }
 
-    const uploadDir = join(process.cwd(), 'public', 'uploads')
     const handleUpload = async (file: File | null): Promise<string> => {
       if (!file || file.size === 0) return ''
       const bytes = await file.arrayBuffer()
       const rawExt = file.name.split('.').pop() || 'png'
-      const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+      const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
       const fileName = `${nanoid(10)}.${ext}`
-      await mkdir(uploadDir, { recursive: true })
-      await writeFile(join(uploadDir, fileName), buffer)
-      return `/uploads/${fileName}`
+      return saveUploadedFile(buffer, fileName, contentType)
     }
 
     let finalHeroImageUrl = heroImageUrl || ''

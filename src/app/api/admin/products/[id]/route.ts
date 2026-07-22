@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireRole } from '@/lib/auth/authorize.server'
 import {
   isLocalUpload,
+  isBlobUpload,
   getImageReferences,
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'
@@ -20,12 +20,9 @@ async function processImage(file: File | null, existingUrl: string | null) {
   if (file && file.size > 0) {
     const bytes = await file.arrayBuffer()
     const rawExt = file.name.split('.').pop() || 'png'
-    const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+    const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
     const fileName = `${nanoid(10)}.${ext}`
-    const uploadDir = join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadDir, { recursive: true })
-    await writeFile(join(uploadDir, fileName), buffer)
-    return `/uploads/${fileName}`
+    return saveUploadedFile(buffer, fileName, contentType)
   }
   return existingUrl
 }
@@ -165,13 +162,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       await prisma.customerNotification.deleteMany({ where: { productId: product.id } })
     }
 
-    // Clean up replaced/removed local upload files for all 3 image slots
-    // (only if the value actually changed) — deleting or replacing one
-    // image slot must not leave orphaned files on disk, and must not touch
-    // files still referenced by the other two slots.
+    // Clean up replaced/removed uploaded files for all 3 image slots (local
+    // filesystem or Vercel Blob — only if the value actually changed) —
+    // deleting or replacing one image slot must not leave orphaned files,
+    // and must not touch files still referenced by the other two slots.
     const cleanupIfChanged = async (oldUrl: string | null, newUrl: string | undefined) => {
-      if (oldUrl && newUrl !== undefined && newUrl !== oldUrl && isLocalUpload(oldUrl)) {
-        const refs = await getImageReferences(prisma, oldUrl.replace(/^\/uploads\//, ''))
+      if (oldUrl && newUrl !== undefined && newUrl !== oldUrl && (isLocalUpload(oldUrl) || isBlobUpload(oldUrl))) {
+        const refs = await getImageReferences(prisma, oldUrl)
         if (refs === 0) await safeUnlinkUpload(oldUrl)
       }
     }
@@ -216,8 +213,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     if (existing?.slug) revalidatePath(`/shop/${existing.slug}`)
     revalidatePath('/shop')
 
-    if (existing?.imageUrl && isLocalUpload(existing.imageUrl)) {
-      const refs = await getImageReferences(prisma, existing.imageUrl.replace(/^\/uploads\//, ''))
+    if (existing?.imageUrl && (isLocalUpload(existing.imageUrl) || isBlobUpload(existing.imageUrl))) {
+      const refs = await getImageReferences(prisma, existing.imageUrl)
       if (refs === 0) await safeUnlinkUpload(existing.imageUrl)
     }
 

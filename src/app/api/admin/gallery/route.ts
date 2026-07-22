@@ -1,24 +1,20 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
+import { saveUploadedFile } from '@/lib/media/upload'
 
 export const dynamic = 'force-dynamic'
 
 async function writeUpload(file: File): Promise<string> {
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
-  const { buffer, ext } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
+  const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `${nanoid(10)}.${ext}`
-  const uploadDir = join(process.cwd(), 'public', 'uploads')
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(join(uploadDir, fileName), buffer)
-  return `/uploads/${fileName}`
+  return saveUploadedFile(buffer, fileName, contentType)
 }
 
 export async function GET(req: Request) {

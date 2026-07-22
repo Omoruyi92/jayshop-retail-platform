@@ -56,3 +56,4 @@ prisma/*.db
 cookies*.txt
 headers*.txt
 login_headers.txt
+.env*
