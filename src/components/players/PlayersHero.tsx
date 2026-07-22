@@ -13,9 +13,8 @@ import { useHeroMedia } from '@/hooks/useHeroMedia'
  * been configured yet, so the page falls back cleanly to the existing
  * text header below without showing an empty banner block.
  *
- * Uses a "slide" (carousel) transition — distinct from the "fade"
- * crossfade used by the Home/Shop/Shop-by-Style heroes — for a more
- * energetic browsing feel on this page.
+ * Uses the same "fade" crossfade transition as the Home/Shop/Shop-by-Style
+ * heroes for a consistent, understated browsing feel across the site.
  */
 export default function PlayersHero() {
   const { slides, hasSlides } = useHeroMedia('PLAYERS')
@@ -24,7 +23,7 @@ export default function PlayersHero() {
 
   return (
     <section className="relative h-[38vh] max-h-[380px] min-h-[220px] w-full overflow-hidden bg-jays-navy sm:h-[46vh] sm:max-h-[440px] lg:h-[52vh] lg:max-h-[500px]">
-      <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={slides} transition="slide" />
+      <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={slides} transition="fade" />
     </section>
   )
 }
