@@ -201,7 +201,33 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       select: { imageUrl: true, brand: true, slug: true },
     })
 
-    await prisma.product.delete({ where: { id: params.id } })
+    // Hold.product is a non-cascading (RESTRICT) relation — any Hold row
+    // referencing this product, even one that's already RELEASED/EXPIRED/
+    // PICKED_UP, will cause the delete below to fail with a Prisma P2003
+    // foreign-key violation. A genuinely ACTIVE hold means a customer still
+    // has stock reserved, so deletion must be refused with a clear reason.
+    // Resolved holds have no reason to keep blocking deletion — their
+    // permanent record already lives in HoldHistory (which has no FK to
+    // Product), so it's safe to clear the working Hold rows here.
+    const activeHoldCount = await prisma.hold.count({
+      where: { productId: params.id, status: 'ACTIVE' },
+    })
+    if (activeHoldCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete: ${activeHoldCount} active hold${activeHoldCount === 1 ? '' : 's'} still reference this product. Resolve or release the hold${activeHoldCount === 1 ? '' : 's'} first.`,
+        },
+        { status: 409 }
+      )
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Clear any resolved (RELEASED/EXPIRED/PICKED_UP) hold rows so they
+      // don't block the FK-restricted delete below. Their history already
+      // survives in HoldHistory.
+      await tx.hold.deleteMany({ where: { productId: params.id } })
+      await tx.product.delete({ where: { id: params.id } })
+    })
 
     // Deleted products must not linger in customer-facing notification feeds
     // (New Arrivals bell, etc.) — remove any notifications referencing this
