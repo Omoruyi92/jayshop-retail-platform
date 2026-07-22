@@ -126,7 +126,11 @@ export default function AdminProductsPage() {
 
   const [showArchived, setShowArchived] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [locationsProduct, setLocationsProduct] = useState<Product | null>(null)
+  // Only the fields ProductLocationsModal actually needs — kept as a
+  // narrower type than `Product` so it can also be populated straight from
+  // the Add Product API response (which doesn't include every list-view
+  // field like `remaining`/`_count`).
+  const [locationsProduct, setLocationsProduct] = useState<{ id: string; name: string; sizes: string } | null>(null)
 
   const [search, setSearch]           = useState('')
   const [catFilter, setCatFilter]     = useState('all')
@@ -296,11 +300,18 @@ export default function AdminProductsPage() {
     const res = await fetch('/api/admin/products', { method: 'POST', body })
     setSaving(false)
     if (res.ok) {
+      const { product: created } = await res.json()
       toast.success('Product added')
       setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
+      // Immediately offer location assignment for the newly created product
+      // so admins don't have to find it in the list first — same UI/flow as
+      // the "Inventory" button on existing products.
+      if (created?.id) {
+        setLocationsProduct({ id: created.id, name: created.name, sizes: created.sizes ?? '' })
+      }
     } else {
       const d = await res.json()
       toast.error(d.error ?? 'Failed to add product')

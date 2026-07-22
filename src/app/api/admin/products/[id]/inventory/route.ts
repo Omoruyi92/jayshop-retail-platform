@@ -5,6 +5,7 @@ import { logInventoryTransaction, resolveActorFromSession } from '@/lib/inventor
 import { aggregateAvailable, syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
 import { parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
+import { ensureAllStoreLocations } from '@/lib/store-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   if (!product) {
     return NextResponse.json({ error: 'Product not found' }, { status: 404 })
   }
+
+  // Self-heal: make sure all 12 predefined locations exist/are active before
+  // listing them, so a partially-seeded production DB doesn't silently hide
+  // locations from this modal (idempotent, never deletes existing rows).
+  await ensureAllStoreLocations()
 
   const [allLocations, sizeRows] = await Promise.all([
     prisma.storeLocation.findMany({

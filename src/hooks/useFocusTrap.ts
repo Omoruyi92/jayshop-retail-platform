@@ -23,6 +23,16 @@ export function useFocusTrap(
   onClose: () => void
 ) {
   const previouslyFocused = useRef<HTMLElement | null>(null)
+  // Keep the latest onClose in a ref instead of the effect's dependency
+  // array. Callers (e.g. DialogContent) typically pass a fresh inline
+  // arrow function on every render, which would otherwise cause this
+  // effect to tear down and re-run on every parent re-render (e.g. every
+  // keystroke in a controlled input) — stealing focus away from whatever
+  // the user is typing into and back to the first focusable element.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
   useEffect(() => {
     if (!active) return
@@ -42,7 +52,7 @@ export function useFocusTrap(
       if (e.key === 'Escape') {
         e.preventDefault()
         e.stopPropagation()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab') return
@@ -76,5 +86,6 @@ export function useFocusTrap(
       document.removeEventListener('keydown', handleKeyDown, true)
       previouslyFocused.current?.focus?.()
     }
-  }, [active, containerRef, onClose])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, containerRef])
 }

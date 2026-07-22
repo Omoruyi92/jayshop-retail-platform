@@ -170,12 +170,12 @@ export default function ProductLocationsModal({ productId, productName, sizes, o
                 return (
                   <div key={loc.locationId} className={`rounded-xl border p-3 ${isAssigned ? 'border-jays-navy/30 bg-jays-ice/40' : 'border-border'}`}>
                     <div className="flex items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                      <label className={`flex items-center gap-2 text-sm select-none ${loc.isMainStore ? 'cursor-default' : 'cursor-pointer'}`}>
                         <input
                           type="checkbox"
                           checked={isAssigned}
-                          disabled={loc.isMainStore}
-                          onChange={() => toggleLocation(loc.locationId)}
+                          onChange={() => { if (!loc.isMainStore) toggleLocation(loc.locationId) }}
+                          onClick={(e) => { if (loc.isMainStore) e.preventDefault() }}
                           className="w-4 h-4 rounded border-gray-300 accent-jays-navy"
                         />
                         <span className="font-semibold text-jays-navy">{loc.code} — {loc.name}</span>
