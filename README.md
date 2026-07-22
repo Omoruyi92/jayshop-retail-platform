@@ -12,14 +12,14 @@ Customers browse the catalog, place a free 48-hour hold, and show a QR code when
 | Framework | Next.js 14 App Router + TypeScript |
 | Styling | Tailwind CSS + shadcn/ui |
 | PWA | next-pwa (Workbox) |
-| Database | Supabase PostgreSQL + Prisma ORM |
+| Database | Self-hosted PostgreSQL (Docker) + Prisma ORM |
 | Auth | Phone-based identity (name + phone, no OTP in v1) |
-| Real-time | Supabase Realtime |
+| Real-time | Server-Sent Events via Postgres LISTEN/NOTIFY |
 | Notifications | Slack Block Kit (incoming webhook) |
-| Image uploads | Cloudinary |
+| Image uploads | Local filesystem + `sharp` optimization |
 | QR codes | qrcode.react (client-side) |
-| AI chat | OpenAI gpt-4o-mini (Birdie assistant) |
-| Hosting | Vercel (Hobby) + Supabase |
+| AI chat | OpenAI gpt-4o-mini (Birdie assistant, optional) |
+| Hosting | Vercel |
 | Cron | Vercel Cron — 48h hold expiry (every 15 min) |
 
 ---
@@ -36,7 +36,7 @@ npm install
 
 ```bash
 cp .env.example .env.local
-# Fill in your Supabase URL, anon key, DATABASE_URL, and other values
+# Fill in DATABASE_URL and other values — see inline comments in .env.example
 ```
 
 ### 3. Push the database schema
@@ -152,5 +152,5 @@ See [`docs/PLAN.md`](docs/PLAN.md) for the full architecture and build plan.
 1. Push repo to GitHub
 2. Import to [Vercel](https://vercel.com) — auto-detects Next.js
 3. Add all env vars from `.env.example` in Vercel project settings
-4. Set up Supabase production project, run `npm run db:push` against prod DB
+4. Point `DATABASE_URL` at your production Postgres instance, run `npm run db:push`
 5. Verify PWA installs on Chrome Android + iOS Safari
