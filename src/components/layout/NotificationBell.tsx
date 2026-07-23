@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { createPortal } from 'react-dom'
 import { Bell, X, Sparkles } from 'lucide-react'
+import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
 interface Notification {
   id: string
@@ -49,7 +51,8 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const ref = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   async function fetchNotifications() {
     try {
@@ -70,7 +73,11 @@ export default function NotificationBell() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        triggerRef.current && !triggerRef.current.contains(target) &&
+        panelRef.current && !panelRef.current.contains(target)
+      ) {
         setOpen(false)
       }
     }
@@ -111,9 +118,12 @@ export default function NotificationBell() {
     } catch { /* ignore */ }
   }
 
+  const style = useDropdownPosition(open, triggerRef, panelRef)
+
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative">
       <button
+        ref={triggerRef}
         onClick={() => {
           setOpen((p) => !p)
         }}
@@ -128,8 +138,11 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+      {open && createPortal(
+        <div
+          ref={panelRef}
+          style={style}
+          className="w-80 sm:w-96 max-w-[calc(100vw-16px)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-jays-navy">
             <div className="flex items-center gap-2">
@@ -223,7 +236,8 @@ export default function NotificationBell() {
               View all new arrivals
             </Link>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

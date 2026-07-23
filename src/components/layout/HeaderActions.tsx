@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useCart } from '@/lib/store/CartContext'
 import { useFavorites } from '@/lib/store/FavoritesContext'
 import { formatCAD } from '@/lib/utils'
 import { Heart, ShoppingBag, X, Minus, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 import NotificationBell from './NotificationBell'
 
 export default function HeaderActions() {
@@ -15,15 +17,24 @@ export default function HeaderActions() {
   const { count: favoritesCount, favorites, remove } = useFavorites()
   const [cartOpen, setCartOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
-  const cartRef = useRef<HTMLDivElement>(null)
-  const favRef = useRef<HTMLDivElement>(null)
+  const cartTriggerRef = useRef<HTMLButtonElement>(null)
+  const cartPanelRef = useRef<HTMLDivElement>(null)
+  const favTriggerRef = useRef<HTMLButtonElement>(null)
+  const favPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (cartRef.current && !cartRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        cartTriggerRef.current && !cartTriggerRef.current.contains(target) &&
+        cartPanelRef.current && !cartPanelRef.current.contains(target)
+      ) {
         setCartOpen(false)
       }
-      if (favRef.current && !favRef.current.contains(e.target as Node)) {
+      if (
+        favTriggerRef.current && !favTriggerRef.current.contains(target) &&
+        favPanelRef.current && !favPanelRef.current.contains(target)
+      ) {
         setFavoritesOpen(false)
       }
     }
@@ -39,8 +50,9 @@ export default function HeaderActions() {
       <NotificationBell />
 
       {/* Favorites */}
-      <div className="relative" ref={favRef}>
+      <div className="relative">
         <button
+          ref={favTriggerRef}
           onClick={() => { setFavoritesOpen((p) => !p); setCartOpen(false) }}
           aria-label={`Favorites (${favoritesCount})`}
           className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
@@ -56,12 +68,21 @@ export default function HeaderActions() {
           )}
         </button>
 
-        {favoritesOpen && <FavoritesDropdown favorites={favorites} remove={remove} close={() => setFavoritesOpen(false)} />}
+        {favoritesOpen && (
+          <FavoritesDropdown
+            favorites={favorites}
+            remove={remove}
+            close={() => setFavoritesOpen(false)}
+            triggerRef={favTriggerRef}
+            panelRef={favPanelRef}
+          />
+        )}
       </div>
 
       {/* Cart */}
-      <div className="relative" ref={cartRef}>
+      <div className="relative">
         <button
+          ref={cartTriggerRef}
           onClick={() => { setCartOpen((p) => !p); setFavoritesOpen(false) }}
           aria-label={`Cart (${cartCount})`}
           className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
@@ -81,6 +102,8 @@ export default function HeaderActions() {
             remove={removeItem}
             update={updateQuantity}
             close={() => setCartOpen(false)}
+            triggerRef={cartTriggerRef}
+            panelRef={cartPanelRef}
           />
         )}
       </div>
@@ -92,13 +115,22 @@ function FavoritesDropdown({
   favorites,
   remove,
   close,
+  triggerRef,
+  panelRef,
 }: {
   favorites: ReturnType<typeof useFavorites>['favorites']
   remove: (id: string) => void
   close: () => void
+  triggerRef: React.RefObject<HTMLButtonElement>
+  panelRef: React.RefObject<HTMLDivElement>
 }) {
-  return (
-    <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+  const style = useDropdownPosition(true, triggerRef, panelRef)
+  return createPortal(
+    <div
+      ref={panelRef}
+      style={style}
+      className="w-80 sm:w-96 max-w-[calc(100vw-16px)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
           <h3 className="font-bold text-jays-navy">Your Favorites</h3>
@@ -147,7 +179,8 @@ function FavoritesDropdown({
           Continue Shopping
         </Link>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -157,15 +190,24 @@ function CartDropdown({
   remove,
   update,
   close,
+  triggerRef,
+  panelRef,
 }: {
   items: ReturnType<typeof useCart>['items']
   totalCents: number
   remove: (productId: string, size?: string) => void
   update: (productId: string, quantity: number, size?: string) => void
   close: () => void
+  triggerRef: React.RefObject<HTMLButtonElement>
+  panelRef: React.RefObject<HTMLDivElement>
 }) {
-  return (
-    <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+  const style = useDropdownPosition(true, triggerRef, panelRef)
+  return createPortal(
+    <div
+      ref={panelRef}
+      style={style}
+      className="w-80 sm:w-96 max-w-[calc(100vw-16px)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
           <h3 className="font-bold text-jays-navy">Your Cart</h3>
@@ -252,6 +294,7 @@ function CartDropdown({
           <p className="text-[10px] text-center text-jays-steel">Eligible items can be converted to in-store holds from the cart page.</p>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   )
 }
