@@ -50,6 +50,14 @@ export default function HeroSlideshow({
 }: HeroSlideshowProps) {
   const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
+  // Tracks which slides have finished decoding/loading their media. Until a
+  // given slide's own image/video signals ready, it stays invisible (opacity
+  // 0) rather than painting the browser's partial/progressive decode — this
+  // is what previously caused a glitchy top-down "reveal" of the raw image
+  // over the solid hero background instead of a single clean appearance.
+  const [readyIds, setReadyIds] = useState<Set<string>>(new Set())
+  const markReady = (id: string) =>
+    setReadyIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
 
   useEffect(() => {
     if (slides.length <= 1) return
@@ -77,6 +85,12 @@ export default function HeroSlideshow({
           cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`
           style = {}
         }
+        // Media only fades to visible once its own load event fires — before
+        // that it stays fully transparent so the section's solid background
+        // shows through cleanly instead of a partially-decoded/streaming
+        // frame (the source of the reported flash/flicker on slow loads).
+        const isReady = readyIds.has(slide.id)
+        const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${isReady ? 'opacity-100' : 'opacity-0'}`
         return (
           <div key={slide.id} className={cls} style={style}>
             {slide.mediaType === 'VIDEO' ? (
@@ -86,8 +100,9 @@ export default function HeroSlideshow({
                 muted
                 loop
                 playsInline
-                className="h-full w-full object-cover"
+                className={mediaCls}
                 aria-label={slide.altText || `${scope} hero video`}
+                onLoadedData={() => markReady(slide.id)}
               />
             ) : (
               <Image
@@ -97,8 +112,9 @@ export default function HeroSlideshow({
                 sizes="100vw"
                 quality={95}
                 priority={i === 0}
-                className={`h-full w-full object-cover object-${imagePosition}`}
+                className={mediaCls}
                 unoptimized
+                onLoad={() => markReady(slide.id)}
               />
             )}
             {overlay && <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />}
