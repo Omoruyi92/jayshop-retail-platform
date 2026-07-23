@@ -576,6 +576,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                     {children.map((sub) => {
                       const subKey = `${value}:${sub}`
                       const expandedSub = mobileExpanded.sub === subKey
+                      const audiences = audienceOptions(value)
                       const brands = availableBrands(value)
                       const isHatCategory = sub.toLowerCase() === 'hats' || sub.toLowerCase() === 'caps'
                       return (
@@ -592,7 +593,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                             >
                               {labelsBySlug[sub.toLowerCase()] ?? titleCase(sub)}
                             </Link>
-                            {(brands.length > 0 || isHatCategory) && (
+                            {(audiences.length > 0 || brands.length > 0 || isHatCategory) && (
                               <button
                                 type="button"
                                 onClick={() =>
@@ -609,8 +610,34 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                           </div>
                           {expandedSub && (
                             <div className="pb-1 pl-3">
+                              {audiences.length > 0 && (
+                                <>
+                                  <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                                    {value.toLowerCase() === 'kids' ? 'Age Group' : 'Audience'}
+                                  </p>
+                                  {audiences.map((aud) => (
+                                    <Link
+                                      key={aud}
+                                      href={`/shop?category=${encodeURIComponent(value)}&sub=${encodeURIComponent(sub)}&${value.toLowerCase() === 'kids' ? 'ageGroup' : 'audience'}=${encodeURIComponent(aud)}`}
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        setMobileOpen(false)
+                                        if (value.toLowerCase() === 'kids') {
+                                          navigate(value, sub, 'All', 'All', undefined, aud)
+                                        } else {
+                                          navigate(value, sub, 'All', 'All', aud)
+                                        }
+                                      }}
+                                      className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
+                                    >
+                                      {aud}
+                                    </Link>
+                                  ))}
+                                </>
+                              )}
                               {isHatCategory && (
                                 <>
+                                  {audiences.length > 0 && <div className="my-1 h-px bg-gray-100" />}
                                   <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Hat Styles</p>
                                   {HAT_STYLES.map((style) => (
                                     <Link
@@ -630,6 +657,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                               )}
                               {brands.length > 0 && (
                                 <>
+                                  {(audiences.length > 0 || isHatCategory) && <div className="my-1 h-px bg-gray-100" />}
                                   <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Brands</p>
                                   {brands.map((brand) => (
                                     <Link
