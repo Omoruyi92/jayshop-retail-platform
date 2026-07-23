@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { loadProductListContext, type ProductListContextItem } from '@/lib/shop/shopState'
@@ -11,11 +11,17 @@ import { loadProductListContext, type ProductListContextItem } from '@/lib/shop/
  * list context ShopPageClient persists to sessionStorage — renders nothing
  * if the customer arrived via a direct link (no saved context) or is at the
  * edge of a single-item list.
+ *
+ * Uses useLayoutEffect (not useEffect) so sessionStorage is read and the
+ * pill is inserted into the DOM synchronously before the browser paints —
+ * otherwise the initial "null" render paints first, then the pill pops in
+ * a frame later and shoves the product gallery below it down, a visible
+ * layout shift on every PDP load/refresh.
  */
 export default function ProductCategoryNav({ currentSlug }: { currentSlug: string }) {
   const [list, setList] = useState<ProductListContextItem[] | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setList(loadProductListContext())
   }, [currentSlug])
 

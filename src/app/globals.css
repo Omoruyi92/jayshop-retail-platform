@@ -28,9 +28,21 @@
 
   /* Sticky-nav stacking heights, kept in sync at runtime by Header.tsx and
      SubNavBar.tsx (ResizeObserver). Fallbacks below match the xl-breakpoint
-     header (no partner-marquee strip) so the very first paint stays close. */
+     header (no partner-marquee strip) so the very first paint stays close.
+     Below xl, Header renders an extra secondary strip (location badge +
+     promo marquee), making it taller — see the media query below, which
+     keeps the *very first* (pre-hydration) paint already correct so
+     SubNavBar/StickyShopCategoryNav never visibly jump when the JS
+     ResizeObserver corrects the var a moment later. */
   --header-height: 3.5rem;
   --subnav-height: 2.75rem;
+}
+
+@media (max-width: 1279.98px) {
+  :root {
+    /* h-14 main row (3.5rem) + secondary location/promo strip (~5.625rem) */
+    --header-height: 5.625rem;
+  }
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
