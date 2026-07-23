@@ -12,14 +12,27 @@ export interface Promotion {
 const PromotionsContext = createContext<Promotion[]>([])
 
 /**
- * Fetches /api/promotions exactly once per page load and shares the result
- * via context. Previously `PromotionBanner`, `Header`, and `PartnerLogosBar`
- * each called their own `usePromotions()`/fetch independently, firing the
- * same request up to 5x per page. Mounted once in the public layout so every
- * consumer reads from the same in-memory state instead of re-fetching.
+ * Seeded from a server-side Prisma fetch (see `(public)/layout.tsx`) so the
+ * correct promotion set — and therefore PromotionBanner/Header's correct
+ * final height — is already known on first paint, eliminating the
+ * client-only fetch-then-pop-in that was the site's single largest CLS
+ * contributor. The client-side fetch below only *refreshes* the list after
+ * mount (keeps long-lived sessions in sync with newly published/expired
+ * promotions) — it no longer gates the initial render.
+ *
+ * Previously `PromotionBanner`, `Header`, and `PartnerLogosBar` each called
+ * their own `usePromotions()`/fetch independently, firing the same request
+ * up to 5x per page. Mounted once in the public layout so every consumer
+ * reads from the same in-memory state instead of re-fetching.
  */
-export function PromotionsProvider({ children }: { children: ReactNode }) {
-  const [promotions, setPromotions] = useState<Promotion[]>([])
+export function PromotionsProvider({
+  children,
+  initialPromotions = [],
+}: {
+  children: ReactNode
+  initialPromotions?: Promotion[]
+}) {
+  const [promotions, setPromotions] = useState<Promotion[]>(initialPromotions)
 
   useEffect(() => {
     let cancelled = false

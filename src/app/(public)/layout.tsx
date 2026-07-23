@@ -9,7 +9,9 @@ import FeedbackTab from '@/components/feedback/FeedbackTab'
 import PromotionBanner from '@/components/layout/PromotionBanner'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
-import { PromotionsProvider } from '@/lib/promotions/PromotionsContext'
+import { PromotionsProvider, type Promotion } from '@/lib/promotions/PromotionsContext'
+import { prisma } from '@/lib/prisma'
+import { isDbConnectionError } from '@/lib/db-error'
 
 export const metadata: Metadata = {
   title: {
@@ -18,12 +20,38 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+/**
+ * Fetches the same active-promotions set as `/api/promotions`, but directly
+ * in the server component so `PromotionsProvider` can be seeded before first
+ * paint (see PromotionBanner CLS fix). Falls back to `[]` on DB hiccups —
+ * identical to the API route's own fallback — rather than failing the page.
+ */
+async function getActivePromotions(): Promise<Promotion[]> {
+  try {
+    const now = new Date()
+    return await prisma.promotionMessage.findMany({
+      where: {
+        status: 'APPROVED',
+        OR: [{ startsAt: null }, { startsAt: { lte: now } }],
+        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] }],
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+      select: { id: true, text: true, link: true, priority: true },
+    })
+  } catch (err) {
+    if (!isDbConnectionError(err)) console.error('getActivePromotions', err)
+    return []
+  }
+}
+
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const initialPromotions = await getActivePromotions()
+
   return (
     <LanguageProvider>
       <FavoritesProvider>
         <CartProvider>
-          <PromotionsProvider>
+          <PromotionsProvider initialPromotions={initialPromotions}>
             <div className="min-h-screen flex flex-col">
               <PromotionBanner />
               <Header />

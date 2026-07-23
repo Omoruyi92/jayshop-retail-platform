@@ -26,9 +26,16 @@ export default function PromotionBanner() {
     }
   }, [])
 
-  const visible = promotions.filter((p) => !dismissed.includes(p.id))
+  // `promotions` is seeded server-side (see PromotionsProvider), so it's
+  // already correct on first paint. `dismissed` starts as `[]` on both
+  // server and initial client render (identical — no hydration mismatch),
+  // and only narrows the list after the localStorage read completes in the
+  // effect above. This means the banner renders at its real, final height
+  // immediately instead of popping in after an async fetch, which was the
+  // single largest site-wide CLS contributor.
+  const visible = loaded ? promotions.filter((p) => !dismissed.includes(p.id)) : promotions
 
-  if (!loaded || visible.length === 0) return null
+  if (visible.length === 0) return null
 
   function handleDismiss(id: string) {
     const next = [...dismissed, id]
