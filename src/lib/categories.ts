@@ -1,4 +1,50 @@
 import { prisma } from '@/lib/prisma'
+import type { CategoryNode } from '@/hooks/useCategoryTree'
+
+/**
+ * Server-side fetch of the same category tree shape returned by
+ * `/api/categories`, used by server components (e.g. the Shop page) so the
+ * correct, final category pill list is known on first paint — avoiding the
+ * client-only loading state in `useCategoryTree` (full static fallback list
+ * shown, then narrowed once the client fetch resolves) that previously
+ * caused a layout shift in `StickyShopCategoryNav`. Swallows errors and
+ * returns an empty array so a failed query never breaks the page itself
+ * (the hook falls back to its static constants in that case, same as
+ * before this SSR path existed).
+ */
+export async function getCategoryTree(): Promise<CategoryNode[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      where: { parentId: null, isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        children: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+        },
+        productTypes: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+        },
+        categoryBrands: {
+          orderBy: { sortOrder: 'asc' },
+          include: { brand: true },
+        },
+      },
+    })
+
+    return categories.map((c) => ({
+      ...c,
+      children: c.children.map((sub) => ({ ...sub, children: [] })),
+      productTypes: c.productTypes.map((pt) => ({ name: pt.name, slug: pt.slug })),
+      brands: c.categoryBrands
+        .filter((cb) => cb.brand.status === 'ACTIVE')
+        .map((cb) => ({ name: cb.brand.name, slug: cb.brand.slug, imageUrl: cb.brand.imageUrl })),
+    }))
+  } catch {
+    return []
+  }
+}
 
 /**
  * Server-side equivalent of the merchandising priority map computed by

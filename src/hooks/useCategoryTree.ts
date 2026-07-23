@@ -7,6 +7,16 @@ import {
   BRANDS_BY_CAT as STATIC_BRANDS,
 } from '@/lib/constants'
 
+export interface CategoryChild {
+  id: string
+  name: string
+  slug: string
+  parentId: string | null
+  isActive: boolean
+  sortOrder: number
+  sortPriority: number | null
+}
+
 export interface CategoryNode {
   id: string
   name: string
@@ -14,7 +24,7 @@ export interface CategoryNode {
   isActive: boolean
   sortOrder: number
   sortPriority: number | null
-  children: CategoryNode[]
+  children: CategoryChild[]
   productTypes?: { name: string; slug: string }[]
   brands?: { name: string; slug: string; imageUrl: string }[]
 }
@@ -25,17 +35,30 @@ export interface CategoryNode {
  * whatever an admin has configured at /admin/categories. Falls back to
  * the static constants while loading or if the request fails, so the UI
  * never renders empty dropdowns.
+ *
+ * Accepts an optional `initialCategories` (e.g. fetched server-side via
+ * `getCategoryTree` and passed down as a prop) to seed state so the hook
+ * starts in the "loaded" state on first render instead of `null` —
+ * eliminating the client-only loading window entirely for callers that can
+ * provide it (see `ShopPageClient`/`StickyShopCategoryNav`). A background
+ * fetch still runs afterward so data stays fresh if it changes admin-side
+ * after the page was rendered/cached. Callers with no SSR data available
+ * (e.g. `EditProductModal`) simply omit the argument and get the previous,
+ * client-only-fetch behavior unchanged.
  */
-export function useCategoryTree() {
-  const [categories, setCategories] = useState<CategoryNode[] | null>(null)
+export function useCategoryTree(initialCategories?: CategoryNode[]) {
+  const [categories, setCategories] = useState<CategoryNode[] | null>(
+    initialCategories && initialCategories.length ? initialCategories : null
+  )
 
   useEffect(() => {
     let active = true
     fetch('/api/categories')
       .then((res) => res.json())
       .then((data) => { if (active) setCategories(data.categories ?? []) })
-      .catch(() => { if (active) setCategories(null) })
+      .catch(() => { if (active) setCategories((prev) => prev ?? null) })
     return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const mainCategories: string[] = useMemo(

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent, type F
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
-import { useCategoryTree } from '@/hooks/useCategoryTree'
+import { useCategoryTree, type CategoryNode } from '@/hooks/useCategoryTree'
 import { SUBS_BY_CAT, HAT_STYLES, AUDIENCES, KIDS_AGE_GROUPS, displayCategoryName } from '@/lib/constants'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -29,11 +29,12 @@ function titleCase(s: string) {
 interface StickyShopCategoryNavProps {
   activeCategory?: string
   onSelect?: (category: string, sub: string, brand: string, hatStyle: string) => void
+  initialCategories?: CategoryNode[]
 }
 
-export default function StickyShopCategoryNav({ activeCategory, onSelect }: StickyShopCategoryNavProps) {
+export default function StickyShopCategoryNav({ activeCategory, onSelect, initialCategories }: StickyShopCategoryNavProps) {
   const router = useRouter()
-  const { categories, labelsBySlug, loading, productTypesBySlug, brandsBySlug } = useCategoryTree()
+  const { categories, labelsBySlug, loading, productTypesBySlug, brandsBySlug } = useCategoryTree(initialCategories)
   const [hovered, setHovered] = useState<{ category: string | null; sub: string | null; brand: string | null }>({
     category: null,
     sub: null,

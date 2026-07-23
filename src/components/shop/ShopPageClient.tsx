@@ -14,7 +14,7 @@ import CategoryBanner from '@/components/shop/CategoryBanner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { HAT_STYLES, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
 import { titleCase } from '@/lib/text'
-import { useCategoryTree } from '@/hooks/useCategoryTree'
+import { useCategoryTree, type CategoryNode } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
@@ -204,12 +204,14 @@ function PillRow({
 export default function ShopPageClient({
   activeCategory: initialCategory,
   initialHeroSlides,
+  initialCategories,
 }: {
   activeCategory: string
   initialHeroSlides?: HeroSlide[]
+  initialCategories?: CategoryNode[]
 }) {
   const { t } = useLanguage()
-  const { subsByCat, subPriorityBySlug, productTypesBySlug, brandsBySlug } = useCategoryTree()
+  const { subsByCat, subPriorityBySlug, productTypesBySlug, brandsBySlug } = useCategoryTree(initialCategories)
   const s = t.shop
   const searchParams = useSearchParams()
 
@@ -590,7 +592,11 @@ export default function ShopPageClient({
         initialSlides={initialHeroSlides}
       />
 
-      <StickyShopCategoryNav activeCategory={activeCategory} onSelect={handleCategoryNavSelect} />
+      <StickyShopCategoryNav
+        activeCategory={activeCategory}
+        onSelect={handleCategoryNavSelect}
+        initialCategories={initialCategories}
+      />
 
       <CategoryBanner activeCategory={activeCategory} />
 

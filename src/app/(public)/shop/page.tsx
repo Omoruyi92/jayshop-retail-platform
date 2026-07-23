@@ -1,5 +1,6 @@
 import ShopPageClient from '@/components/shop/ShopPageClient'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
+import { getCategoryTree } from '@/lib/categories'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,18 @@ export default async function ShopPage({
   // before the client-side slideshow fetch would otherwise resolve.
   const initialHeroSlides = await getHeroSlides('SHOP')
 
+  // Fetch the category tree on the server too, so StickyShopCategoryNav's
+  // final pill list/width is known on first paint instead of rendering the
+  // full static fallback list and shrinking once the client-side
+  // /api/categories fetch resolves (was a CLS source, see root cause D in
+  // cls-audit-findings.md).
+  const initialCategories = await getCategoryTree()
+
   return (
-    <ShopPageClient activeCategory={activeCategory} initialHeroSlides={initialHeroSlides} />
+    <ShopPageClient
+      activeCategory={activeCategory}
+      initialHeroSlides={initialHeroSlides}
+      initialCategories={initialCategories}
+    />
   )
 }
