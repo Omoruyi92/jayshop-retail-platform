@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { prisma, withDbRetry } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import ProductDetails from '@/components/shop/ProductDetails'
 import ProductCategoryNav from '@/components/shop/ProductCategoryNav'
@@ -27,31 +27,30 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  // These two queries have no reasonable in-page fallback (there is no
-  // product page without a product), so a transient connection-pool blip
-  // must not be allowed to crash the whole render on the first hiccup —
-  // retry with backoff before giving up. See withDbRetry in lib/prisma.ts.
-  const product = await withDbRetry(() =>
-    prisma.product.findUnique({
-      where: { slug: params.slug },
-    })
-  )
+  // The core product lookup has no reasonable in-page fallback (there is no
+  // product page without a product) — but a transient connection blip no
+  // longer needs an explicit retry wrapper here: every query through the
+  // shared `prisma` client already retries automatically on connection
+  // errors (see the `$extends` in lib/prisma.ts), so a plain `await` gets
+  // that resilience for free and a genuine failure still surfaces to
+  // `notFound()`/the route's error boundary as before.
+  const product = await prisma.product.findUnique({
+    where: { slug: params.slug },
+  })
 
   if (!product || product.status === 'ARCHIVED') notFound()
 
   // Fetch per-size availability if SizeInventory rows exist
-  const sizeRows = await withDbRetry(() =>
-    prisma.sizeInventory.findMany({
-      where: { productId: product.id },
-      select: {
-        size: true,
-        quantity: true,
-        heldQuantity: true,
-        pickedQuantity: true,
-        location: { select: { id: true, name: true, code: true, isMainStore: true } }
-      },
-    })
-  )
+  const sizeRows = await prisma.sizeInventory.findMany({
+    where: { productId: product.id },
+    select: {
+      size: true,
+      quantity: true,
+      heldQuantity: true,
+      pickedQuantity: true,
+      location: { select: { id: true, name: true, code: true, isMainStore: true } }
+    },
+  })
 
   const hasSizes = sizeRows.length > 0
 
