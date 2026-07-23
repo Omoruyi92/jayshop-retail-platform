@@ -13,22 +13,37 @@ export default async function YouMayAlsoLike({
   // Prioritize other products in the same category, then top up with
   // featured products so the "You May Also Like" rail always has content
   // even for categories with few items.
-  const sameCategory = await prisma.product.findMany({
-    where: { id: { not: productId }, status: { not: 'ARCHIVED' }, category },
-    orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-    take: MAX_ITEMS,
-  })
+  //
+  // The whole fetch is wrapped in try/catch: this is an async Server
+  // Component rendered directly in the PDP tree with no Suspense/error
+  // boundary of its own, so an unhandled throw here (e.g. a transient DB
+  // connection-pool hiccup under concurrent cold starts) previously
+  // crashed the *entire* PDP RSC render, surfacing as the intermittent
+  // "Application error: a server-side exception has occurred" on refresh.
+  // "You May Also Like" is a supplementary rail, not core PDP content, so
+  // on failure we just render nothing instead of taking down the page.
+  let picks: Awaited<ReturnType<typeof prisma.product.findMany>> = []
 
-  let picks = sameCategory
-
-  if (picks.length < MAX_ITEMS) {
-    const excludeIds = [productId, ...picks.map((p) => p.id)]
-    const featured = await prisma.product.findMany({
-      where: { id: { notIn: excludeIds }, status: { not: 'ARCHIVED' }, isFeatured: true },
-      orderBy: { createdAt: 'desc' },
-      take: MAX_ITEMS - picks.length,
+  try {
+    const sameCategory = await prisma.product.findMany({
+      where: { id: { not: productId }, status: { not: 'ARCHIVED' }, category },
+      orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+      take: MAX_ITEMS,
     })
-    picks = [...picks, ...featured]
+
+    picks = sameCategory
+
+    if (picks.length < MAX_ITEMS) {
+      const excludeIds = [productId, ...picks.map((p) => p.id)]
+      const featured = await prisma.product.findMany({
+        where: { id: { notIn: excludeIds }, status: { not: 'ARCHIVED' }, isFeatured: true },
+        orderBy: { createdAt: 'desc' },
+        take: MAX_ITEMS - picks.length,
+      })
+      picks = [...picks, ...featured]
+    }
+  } catch {
+    return null
   }
 
   if (picks.length === 0) return null

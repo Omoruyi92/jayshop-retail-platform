@@ -9,7 +9,13 @@ import RecentlyViewed from '@/components/shop/RecentlyViewed'
 import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
 import YouMayAlsoLike from '@/components/shop/YouMayAlsoLike'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
-import { getProductAvailability } from '@/lib/inventory/aggregate'
+import {
+  getProductAvailability,
+  statusForTotal,
+  labelForStatus,
+  displayTextFor,
+  type ProductAvailability,
+} from '@/lib/inventory/aggregate'
 import { getCategoryTree } from '@/lib/categories'
 
 export const revalidate = 30
@@ -91,7 +97,38 @@ export default async function ProductPage({ params }: { params: { slug: string }
   }
 
 
-  const availability = await getProductAvailability(product.id)
+  // `getProductAvailability` does its own additional DB round-trips
+  // (SizeInventory + Product lookups, plus a dynamic import of the main
+  // store location on cold start). Under connection-pool pressure this can
+  // throw; previously that unhandled throw crashed the entire PDP RSC
+  // render ("Application error: a server-side exception has occurred" on
+  // refresh — see YouMayAlsoLike.tsx for the sibling fix of the same class
+  // of bug). We already have `remaining`/`isSoldOut` computed above from
+  // `sizeRows`, which succeeded, so on failure we degrade to a minimal
+  // availability object derived from that known-good data instead of
+  // crashing the page.
+  let availability: ProductAvailability
+  try {
+    availability = await getProductAvailability(product.id)
+  } catch {
+    const status = statusForTotal(remaining)
+    const statusLabel = labelForStatus(status)
+    availability = {
+      totalAvailable: remaining,
+      status,
+      statusLabel,
+      displayText: displayTextFor(remaining, statusLabel),
+      locationBreakdown: [],
+      totalQuantity: remaining,
+      reservedQuantity: 0,
+      soldQuantity: 0,
+      availableBalance: remaining,
+      worstStatus: status,
+      worstStatusLabel: statusLabel,
+      lowStockDetails: [],
+      outOfStockDetails: [],
+    }
+  }
 
   // Fetch the category tree, initial reviews, and initial style submissions
   // concurrently (they're independent of each other and of `availability`
