@@ -11,6 +11,7 @@ import ShopHero from '@/components/shop/ShopHero'
 import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
+import Dropdown from '@/components/ui/Dropdown'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { HAT_STYLES, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
 import { titleCase } from '@/lib/text'
@@ -128,40 +129,6 @@ function hatStyleMatches(product: Product, activeHatStyle: string): boolean {
 function brandMatches(product: Product, activeBrand: string): boolean {
   if (activeBrand === 'All') return true
   return product.brand.toLowerCase() === activeBrand.toLowerCase()
-}
-
-function FilterSelect({
-  label,
-  options,
-  active,
-  onSelect,
-  formatLabel,
-}: {
-  label: string
-  options: string[]
-  active: string
-  onSelect: (value: string) => void
-  formatLabel?: (value: string) => string
-}) {
-  if (options.length === 0) return null
-  return (
-    <div className="min-w-0">
-      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-jays-steel/70">
-        {label}
-      </label>
-      <select
-        value={options.find((o) => o.toLowerCase() === active.toLowerCase()) ?? active}
-        onChange={(e) => onSelect(e.target.value)}
-        className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-display font-semibold uppercase tracking-wide text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {formatLabel ? formatLabel(option) : option}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
 }
 
 function PillRow({
@@ -663,21 +630,17 @@ export default function ShopPageClient({
           </div>
 
           <div className="flex items-center gap-2">
-            <label htmlFor="shop-sort" className="text-xs font-semibold uppercase tracking-wide text-jays-steel">
+            <span id="shop-sort-label" className="text-xs font-semibold uppercase tracking-wide text-jays-steel">
               Sort by
-            </label>
-            <select
+            </span>
+            <Dropdown
               id="shop-sort"
+              ariaLabel="Sort products"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-jays-navy shadow-sm focus:border-jays-navy/40 focus:outline-none focus:ring-2 focus:ring-jays-navy/20"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setSortBy(v as SortOption)}
+              options={SORT_OPTIONS}
+              panelClassName="w-64"
+            />
           </div>
         </div>
 
