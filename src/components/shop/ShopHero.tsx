@@ -19,7 +19,7 @@ export default function ShopHero({
 }) {
   return (
     <section
-      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[64vh] lg:max-h-[620px]"
+      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {/* Full-bleed hero image/slideshow. object-cover + object-top keeps the
