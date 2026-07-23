@@ -264,8 +264,21 @@ export default function ShopPageClient({
       hasRestoredRef.current = true
       return
     }
-    if (saved) {
-      setActiveCategory(urlCategory || saved.category)
+    // `initialCategory` was computed server-side from the exact same URL
+    // (see (public)/shop/page.tsx) and is what was already painted on first
+    // render — StickyShopCategoryNav's active pill and the mobile label are
+    // rendered from it before this effect ever runs. Restoring `saved.category`
+    // here when it differs would silently swap the active category away from
+    // what the user is already looking at (e.g. a plain `/shop` reload with
+    // no category param, but a "women" filter left over from a previous
+    // session) — an incorrect-state flash that never self-corrects. Saved
+    // state is only for resuming sub-filters/scroll position within the SAME
+    // category the URL/SSR already resolved to; a genuinely different saved
+    // category is discarded rather than applied.
+    const resolvedCategory = urlCategory || initialCategory || 'All'
+    const canUseSaved = !!saved && saved.category.toLowerCase() === resolvedCategory.toLowerCase()
+    if (canUseSaved && saved) {
+      setActiveCategory(resolvedCategory)
       setActiveSub(urlSub || saved.sub)
       setActiveAudience(urlAudience || saved.audience || 'All')
       setActiveAgeGroup(urlAgeGroup || saved.ageGroup || 'All')
@@ -275,7 +288,7 @@ export default function ShopPageClient({
       setSearchQuery(saved.search)
       pendingScrollRef.current = saved.scrollY
     } else {
-      if (urlCategory) setActiveCategory(urlCategory)
+      setActiveCategory(resolvedCategory)
       if (urlSub) setActiveSub(urlSub)
       if (urlAudience) setActiveAudience(urlAudience)
       if (urlAgeGroup) setActiveAgeGroup(urlAgeGroup)
@@ -283,7 +296,7 @@ export default function ShopPageClient({
       if (urlHatStyle) setActiveHatStyle(urlHatStyle)
     }
     hasRestoredRef.current = true
-  }, [searchParams])
+  }, [searchParams, initialCategory])
 
   useEffect(() => {
     const urlCategory = searchParams?.get('category')?.trim()
