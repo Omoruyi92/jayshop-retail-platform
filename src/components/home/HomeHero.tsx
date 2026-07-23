@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
+import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 
 interface HomeHeroProps {
   isGameDayToday?: boolean
@@ -23,7 +24,10 @@ export default function HomeHero({ isGameDayToday = false, initialSlides }: Home
   const h = t.home
 
   return (
-    <section className="relative isolate h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[62vh] lg:max-h-[620px]">
+    <section
+      className="relative isolate h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[62vh] lg:max-h-[620px]"
+      style={heroFallbackStyle(initialSlides)}
+    >
       {/* Full-bleed hero media, primary visual focus */}
       <HeroSlideshow scope="HOME" imagePosition="top" initialSlides={initialSlides} />
 

@@ -1,4 +1,5 @@
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
+import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 
 /**
  * Premium, full-bleed hero for the "Popular Players" landing page.
@@ -25,7 +26,10 @@ export default function PlayersHero({ initialSlides }: { initialSlides: HeroSlid
   if (!hasSlides) return null
 
   return (
-    <section className="relative h-[38vh] max-h-[380px] min-h-[220px] w-full overflow-hidden bg-jays-navy sm:h-[46vh] sm:max-h-[440px] lg:h-[52vh] lg:max-h-[500px]">
+    <section
+      className="relative h-[38vh] max-h-[380px] min-h-[220px] w-full overflow-hidden bg-jays-navy sm:h-[46vh] sm:max-h-[440px] lg:h-[52vh] lg:max-h-[500px]"
+      style={heroFallbackStyle(initialSlides)}
+    >
       <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={initialSlides} transition="fade" />
     </section>
   )

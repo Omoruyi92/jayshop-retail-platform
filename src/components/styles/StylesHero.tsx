@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
+import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 
 /**
  * Premium, full-bleed hero for the "Shop by Style" landing page.
@@ -14,7 +15,10 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
   const hasSlides = Array.isArray(initialSlides) && initialSlides.some((s) => s.active)
 
   return (
-    <section className="relative h-[46vh] max-h-[440px] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[52vh] sm:max-h-[480px] lg:h-[58vh] lg:max-h-[540px]">
+    <section
+      className="relative h-[46vh] max-h-[440px] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[52vh] sm:max-h-[480px] lg:h-[58vh] lg:max-h-[540px]"
+      style={heroFallbackStyle(initialSlides)}
+    >
       {hasSlides ? (
         <HeroSlideshow scope="STYLE_LANDING" imagePosition="center" initialSlides={initialSlides} />
       ) : (

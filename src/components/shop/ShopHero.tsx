@@ -2,6 +2,7 @@
 
 import SearchBar from '@/components/shop/SearchBar'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
+import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 
 export default function ShopHero({
   searchValue,
@@ -17,7 +18,10 @@ export default function ShopHero({
   initialSlides?: HeroSlide[]
 }) {
   return (
-    <section className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[64vh] lg:max-h-[620px]">
+    <section
+      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[64vh] lg:max-h-[620px]"
+      style={heroFallbackStyle(initialSlides)}
+    >
       {/* Full-bleed hero image/slideshow. object-cover + object-top keeps the
           player's face/torso in frame across every breakpoint; the gradient
           overlay (applied inside HeroSlideshow) keeps overlaid text readable
