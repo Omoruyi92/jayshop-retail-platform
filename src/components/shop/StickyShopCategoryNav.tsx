@@ -576,9 +576,8 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                     {children.map((sub) => {
                       const subKey = `${value}:${sub}`
                       const expandedSub = mobileExpanded.sub === subKey
-                      const productTypes = productTypeOptions(value)
                       const brands = availableBrands(value)
-                      const isHatCategory = productTypes.some((p) => p.toLowerCase() === 'hats' || p.toLowerCase() === 'caps')
+                      const isHatCategory = sub.toLowerCase() === 'hats' || sub.toLowerCase() === 'caps'
                       return (
                         <div key={sub} className="border-b border-gray-50 last:border-0">
                           <div className="flex items-center justify-between py-1.5">
@@ -610,20 +609,6 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                           </div>
                           {expandedSub && (
                             <div className="pb-1 pl-3">
-                              {productTypes.map((pt) => (
-                                <Link
-                                  key={pt}
-                                  href={subLink(value, sub, 'All')}
-                                  onClick={(e) => {
-                                    e.preventDefault()
-                                    setMobileOpen(false)
-                                    navigate(value, sub, 'All', 'All')
-                                  }}
-                                  className="block py-1 text-sm text-gray-600 hover:text-jays-navy"
-                                >
-                                  {pt}
-                                </Link>
-                              ))}
                               {isHatCategory && (
                                 <>
                                   <p className="py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Hat Styles</p>
