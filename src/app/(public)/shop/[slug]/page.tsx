@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-white pt-[var(--subnav-height,2.75rem)]">
+    <div className="min-h-screen bg-white">
       <StickyShopCategoryNav activeCategory={product.category} initialCategories={initialCategories} />
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <TrackRecentlyViewed
