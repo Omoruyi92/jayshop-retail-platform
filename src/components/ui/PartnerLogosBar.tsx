@@ -6,29 +6,68 @@ import { usePromotions } from '@/lib/promotions/PromotionsContext'
 
 const OPEN_HOUR = 10
 const CLOSE_HOUR = 17
+const STORE_TIMEZONE = 'America/Toronto'
 
-function useStoreStatus() {
-  const [now, setNow] = useState(() => new Date())
+/* Reads the current hour (0-23) in the store's timezone, regardless of the
+ * runtime's ambient timezone (server runs in UTC on Vercel, browsers run in
+ * the visitor's local timezone). This must be used identically on both
+ * server and client so the two never disagree on the same instant. */
+function getStoreHour(date: Date): number {
+  const hourString = new Intl.DateTimeFormat('en-US', {
+    timeZone: STORE_TIMEZONE,
+    hour: 'numeric',
+    hour12: false,
+  }).format(date)
+  // 'en-US' with hour12:false can format midnight as "24"; normalize to 0-23.
+  return parseInt(hourString, 10) % 24
+}
 
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
-
-  const hour = now.getHours()
+function computeStoreStatus(hour: number) {
   const isOpen = hour >= OPEN_HOUR && hour < CLOSE_HOUR
-
   const statusLabel = isOpen ? 'Open' : 'Closed'
   const nextChange = isOpen
     ? `Closes at ${CLOSE_HOUR > 12 ? CLOSE_HOUR - 12 : CLOSE_HOUR}:00 PM`
     : `Opens at ${OPEN_HOUR}:00 AM`
-
   return { isOpen, statusLabel, nextChange }
+}
+
+/* On first paint (SSR + initial client render, before hydration), we
+ * deliberately do NOT compute a time-derived value — that value can differ
+ * between the server's render instant and the client's hydration instant
+ * (widened further by ISR staleness), which is exactly what causes React
+ * hydration mismatches. Instead we render a stable, neutral "pending" state
+ * on both sides, then compute the real, timezone-aware status inside a
+ * useEffect after mount — the standard React-recommended pattern for any
+ * value that legitimately differs between server and client render time. */
+function useStoreStatus() {
+  const [status, setStatus] = useState<{
+    isOpen: boolean
+    statusLabel: string
+    nextChange: string
+  } | null>(null)
+
+  useEffect(() => {
+    const update = () => setStatus(computeStoreStatus(getStoreHour(new Date())))
+    update()
+    const id = setInterval(update, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  return status
 }
 
 /* Shared location badge used on both desktop (inline) and mobile (strip below header) */
 export function LocationBadge({ compact = false }: { compact?: boolean }) {
-  const { isOpen, statusLabel, nextChange } = useStoreStatus()
+  const status = useStoreStatus()
+  // On first paint (SSR + initial client render) status is null on both
+  // server and client — identical output, so no hydration mismatch is
+  // possible. The dot/label/nextChange placeholders below are sized and
+  // styled the same as the real content to avoid any layout shift (CLS)
+  // when the real value swaps in post-mount.
+  const isOpen = status?.isOpen ?? false
+  const statusLabel = status?.statusLabel ?? '\u00A0'
+  const nextChange = status?.nextChange ?? '\u00A0'
+  const isPending = status === null
 
   return (
     <div className="flex items-center gap-2 shrink-0">
@@ -44,8 +83,8 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
           <span className="text-blue-200/60 text-[9px]">Toronto</span>
         </div>
         <div className="flex items-center gap-1 mt-0.5">
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.6)]' : 'bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.5)]'}`} />
-          <span className={`text-[9px] font-semibold ${isOpen ? 'text-emerald-300' : 'text-red-300'}`}>
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPending ? 'bg-white/20' : isOpen ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.6)]' : 'bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.5)]'}`} />
+          <span className={`text-[9px] font-semibold ${isPending ? 'text-blue-200/40' : isOpen ? 'text-emerald-300' : 'text-red-300'}`}>
             {statusLabel}
           </span>
           <span className="text-blue-300/30 text-[8px]">·</span>
