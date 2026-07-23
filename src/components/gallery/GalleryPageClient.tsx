@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Images } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export interface GalleryImage {
   id: string
@@ -35,17 +36,6 @@ export default function GalleryPageClient({
 }) {
   const [activeCategory, setActiveCategory] = useState<string>('All')
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
-
-  useEffect(() => {
-    if (selectedImage) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [selectedImage])
 
   const filtered = useMemo(() => {
     if (activeCategory === 'All') return images
@@ -170,6 +160,7 @@ function GalleryModal({
   onClose: () => void
 }) {
   const [show, setShow] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShow(true), 10)
@@ -181,6 +172,11 @@ function GalleryModal({
     window.setTimeout(() => onClose(), 200)
   }
 
+  // `true`: this component only ever exists in the tree while the modal is
+  // open (the parent unmounts it once the close animation finishes), so the
+  // trap/scroll-lock should be active for its entire mounted lifetime.
+  useFocusTrap(true, contentRef, close)
+
   return (
     <div
       className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-200 ${
@@ -190,7 +186,11 @@ function GalleryModal({
       onClick={close}
     >
       <div
-        className={`bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl transition-transform duration-200 ${
+        ref={contentRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className={`bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl transition-transform duration-200 focus:outline-none ${
           show ? 'scale-100' : 'scale-[0.96]'
         }`}
         onClick={(e) => e.stopPropagation()}

@@ -4,6 +4,39 @@ import { useEffect, useRef, type RefObject } from 'react'
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+// Reference-counted body scroll lock shared by every modal using this hook.
+// Counting (rather than a plain boolean) means nested/overlapping modals
+// (e.g. a confirm dialog opened from within another dialog) don't have the
+// first one to close prematurely re-enable page scroll while a second is
+// still open. Compensating with `paddingRight` for the removed scrollbar
+// width prevents the classic horizontal content "jump" when a modal opens
+// on a desktop viewport that has a visible vertical scrollbar.
+let scrollLockCount = 0
+let savedBodyOverflow = ''
+let savedBodyPaddingRight = ''
+
+function lockBodyScroll() {
+  if (scrollLockCount === 0) {
+    savedBodyOverflow = document.body.style.overflow
+    savedBodyPaddingRight = document.body.style.paddingRight
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    document.body.style.overflow = 'hidden'
+    if (scrollbarWidth > 0) {
+      const currentPadding = parseFloat(getComputedStyle(document.body).paddingRight) || 0
+      document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`
+    }
+  }
+  scrollLockCount++
+}
+
+function unlockBodyScroll() {
+  scrollLockCount = Math.max(0, scrollLockCount - 1)
+  if (scrollLockCount === 0) {
+    document.body.style.overflow = savedBodyOverflow
+    document.body.style.paddingRight = savedBodyPaddingRight
+  }
+}
+
 /**
  * Lightweight, dependency-free focus-trap for custom modals.
  *
@@ -16,6 +49,8 @@ const FOCUSABLE_SELECTOR =
  *  - restores focus to whatever element had focus before the modal opened
  *    (typically the trigger button) once the modal closes
  *  - focuses the first focusable element (or the container itself) on open
+ *  - locks background page scroll while open, compensating for scrollbar
+ *    width so the page doesn't shift/jump when the modal opens or closes
  */
 export function useFocusTrap(
   active: boolean,
@@ -37,6 +72,7 @@ export function useFocusTrap(
   useEffect(() => {
     if (!active) return
 
+    lockBodyScroll()
     previouslyFocused.current = document.activeElement as HTMLElement | null
 
     const container = containerRef.current
@@ -84,6 +120,7 @@ export function useFocusTrap(
     return () => {
       cancelAnimationFrame(raf)
       document.removeEventListener('keydown', handleKeyDown, true)
+      unlockBodyScroll()
       previouslyFocused.current?.focus?.()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
