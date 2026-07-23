@@ -41,3 +41,28 @@ export const prisma =
   })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+// A single hard refresh of a page like the PDP fires several serverless
+// functions concurrently (the page's own RSC render plus half a dozen
+// client-side API routes for cart/likes/notifications/etc.), each cold
+// starting its own Prisma instance and connection pool. Bursts like that
+// can transiently exceed the database's available connections, surfacing
+// as "Can't reach database server" — even though the DB itself is healthy
+// a moment later once the burst settles. Rather than let a single such
+// blip crash an entire page render, retry the handful of *core* queries
+// (the ones with no reasonable in-page fallback, e.g. the product lookup
+// itself) a couple of times with a short backoff before giving up.
+export async function withDbRetry<T>(fn: () => Promise<T>, attempts = 3, delayMs = 150): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error
+      if (attempt < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)))
+      }
+    }
+  }
+  throw lastError
+}

@@ -241,25 +241,32 @@ export async function getProductAvailability(
   productId: string,
   tx?: Prisma.TransactionClient
 ): Promise<ProductAvailability> {
-  const client = tx ?? (await import('@/lib/prisma')).prisma
+  const { prisma: globalPrisma, withDbRetry } = await import('@/lib/prisma')
+  const client = tx ?? globalPrisma
 
-  const [rows, product] = await Promise.all([
-    client.sizeInventory.findMany({
-      where: { productId },
-      orderBy: [{ location: { sortOrder: 'asc' } }, { size: 'asc' }],
-      select: {
-        quantity: true,
-        heldQuantity: true,
-        pickedQuantity: true,
-        size: true,
-        location: { select: LOCATION_SELECT },
-      },
-    }),
-    client.product.findUnique({
-      where: { id: productId },
-      select: { id: true, quantity: true, heldQuantity: true, pickedQuantity: true, sizes: true, status: true },
-    }),
-  ])
+  // Retry with backoff: a transient connection-pool blip here previously
+  // crashed the whole PDP render on the first hiccup (this call has no
+  // fallback of its own — see the try/catch in shop/[slug]/page.tsx for the
+  // outer safety net once retries are exhausted).
+  const [rows, product] = await withDbRetry(() =>
+    Promise.all([
+      client.sizeInventory.findMany({
+        where: { productId },
+        orderBy: [{ location: { sortOrder: 'asc' } }, { size: 'asc' }],
+        select: {
+          quantity: true,
+          heldQuantity: true,
+          pickedQuantity: true,
+          size: true,
+          location: { select: LOCATION_SELECT },
+        },
+      }),
+      client.product.findUnique({
+        where: { id: productId },
+        select: { id: true, quantity: true, heldQuantity: true, pickedQuantity: true, sizes: true, status: true },
+      }),
+    ])
+  )
 
   // No size-inventory rows at all means a not-yet-migrated simple product:
   // treat Product.quantity as a single synthetic ONE_SIZE row. Once real
