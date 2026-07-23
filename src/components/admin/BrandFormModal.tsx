@@ -44,6 +44,7 @@ export default function BrandFormModal({ brand, onClose }: Props) {
     const selected = e.target.files?.[0]
     if (!selected) return
     setFile(selected)
+    setImageUrl('')
     const reader = new FileReader()
     reader.onloadend = () => setPreview(reader.result as string)
     reader.readAsDataURL(selected)
@@ -143,7 +144,7 @@ export default function BrandFormModal({ brand, onClose }: Props) {
                 <p className="text-[10px] text-jays-steel">Or provide a URL below</p>
                 <input
                   value={imageUrl}
-                  onChange={(e) => { setImageUrl(e.target.value); setPreview(e.target.value) }}
+                  onChange={(e) => { setImageUrl(e.target.value); setPreview(e.target.value); setFile(null) }}
                   placeholder="https://..."
                   className={INPUT_CLS}
                 />

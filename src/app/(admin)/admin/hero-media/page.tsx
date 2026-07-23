@@ -76,6 +76,27 @@ export default function AdminHeroMediaPage() {
     }
   )
 
+  const reorderMutation = useMutation(
+    async (updates: { id: string; sortOrder: number }[]) => {
+      await Promise.all(
+        updates.map((payload) =>
+          fetch('/api/admin/hero-slides', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }).then((res) => {
+            if (!res.ok) throw new Error('Reorder failed')
+          })
+        )
+      )
+    },
+    {
+      invalidateOnSuccess: [`hero-slides-${scope}`, 'public-hero-slides'],
+      onSuccess: () => toast.success('Slide order updated'),
+      onError: () => toast.error('Reorder failed'),
+    }
+  )
+
   const deleteMutation = useMutation(
     async (id: string) => {
       const res = await fetch(`/api/admin/hero-slides?id=${id}`, { method: 'DELETE' })
@@ -97,16 +118,19 @@ export default function AdminHeroMediaPage() {
   }
 
   const move = (index: number, direction: 'up' | 'down') => {
+    if (reorderMutation.loading) return
     const target = direction === 'up' ? index - 1 : index + 1
     if (target < 0 || target >= slideList.length) return
     const updated = [...slideList]
     const [moved] = updated.splice(index, 1)
     updated.splice(target, 0, moved)
-    updated.forEach((slide, idx) => {
-      if (slide.sortOrder !== idx) {
-        patchMutation.mutate({ id: slide.id, sortOrder: idx })
-      }
-    })
+    const changes = updated
+      .map((slide, idx) => ({ id: slide.id, sortOrder: idx, changed: slide.sortOrder !== idx }))
+      .filter((c) => c.changed)
+      .map(({ id, sortOrder }) => ({ id, sortOrder }))
+    if (changes.length > 0) {
+      reorderMutation.mutate(changes)
+    }
   }
 
   return (
@@ -192,14 +216,14 @@ export default function AdminHeroMediaPage() {
                 <td className="px-2 py-1.5">
                   <div className="flex items-center gap-1">
                     <button
-                      disabled={idx === 0}
+                      disabled={idx === 0 || reorderMutation.loading}
                       onClick={() => move(idx, 'up')}
                       className="px-1.5 py-0.5 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-40 text-[11px]"
                     >
                       ↑
                     </button>
                     <button
-                      disabled={idx === slideList.length - 1}
+                      disabled={idx === slideList.length - 1 || reorderMutation.loading}
                       onClick={() => move(idx, 'down')}
                       className="px-1.5 py-0.5 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-40 text-[11px]"
                     >
@@ -211,7 +235,8 @@ export default function AdminHeroMediaPage() {
                 <td className="px-2 py-1.5">
                   <button
                     onClick={() => patchMutation.mutate({ id: slide.id, active: !slide.active })}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors ${slide.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}
+                    disabled={patchMutation.loading}
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors disabled:opacity-50 ${slide.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}
                   >
                     {slide.active ? 'Active' : 'Inactive'}
                   </button>

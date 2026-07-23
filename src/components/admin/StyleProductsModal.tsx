@@ -83,7 +83,10 @@ export default function StyleProductsModal({
     }
   )
 
+  const mutationBusy = assignMutation.loading || unassignMutation.loading
+
   function toggleProduct(id: string) {
+    if (mutationBusy) return
     if (assignedIds.has(id)) unassignMutation.mutate(id)
     else assignMutation.mutate(id)
   }
@@ -118,8 +121,9 @@ export default function StyleProductsModal({
                   </span>
                   <span className="max-w-[160px] truncate">{p.name}</span>
                   <button
-                    onClick={() => unassignMutation.mutate(p.id)}
-                    className="text-jays-red hover:text-red-700"
+                    onClick={() => toggleProduct(p.id)}
+                    disabled={mutationBusy}
+                    className="text-jays-red hover:text-red-700 disabled:opacity-50"
                     aria-label={`Unassign ${p.name}`}
                   >
                     <X size={12} />
@@ -151,7 +155,8 @@ export default function StyleProductsModal({
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleProduct(p.id)}
-                      className="w-4 h-4 rounded border-gray-300 accent-jays-navy shrink-0"
+                      disabled={mutationBusy}
+                      className="w-4 h-4 rounded border-gray-300 accent-jays-navy shrink-0 disabled:opacity-50"
                     />
                     <div className="w-8 h-8 rounded-md overflow-hidden bg-jays-ice relative shrink-0">
                       <Image src={p.imageUrl} alt={p.name} fill className="object-cover" unoptimized />

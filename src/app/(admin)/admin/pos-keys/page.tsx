@@ -26,6 +26,7 @@ export default function PosKeysPage() {
   const [locationId, setLocationId] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [revealedKey, setRevealedKey] = useState<{ name: string; rawKey: string } | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -71,16 +72,22 @@ export default function PosKeysPage() {
   }
 
   async function toggleActive(key: PosKey) {
-    const res = await fetch(`/api/admin/pos-keys/${key.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: !key.active }),
-    })
-    if (res.ok) {
-      toast.success(key.active ? 'Key revoked' : 'Key reactivated')
-      load()
-    } else {
-      toast.error('Failed to update key')
+    if (togglingId) return
+    setTogglingId(key.id)
+    try {
+      const res = await fetch(`/api/admin/pos-keys/${key.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !key.active }),
+      })
+      if (res.ok) {
+        toast.success(key.active ? 'Key revoked' : 'Key reactivated')
+        load()
+      } else {
+        toast.error('Failed to update key')
+      }
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -202,7 +209,8 @@ export default function PosKeysPage() {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => toggleActive(k)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    disabled={togglingId === k.id}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
                       k.active
                         ? 'bg-red-50 text-red-600 hover:bg-red-100'
                         : 'bg-green-50 text-green-600 hover:bg-green-100'

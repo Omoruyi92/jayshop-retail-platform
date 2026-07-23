@@ -197,14 +197,14 @@ export default function AdminCategoriesPage() {
 
   function handleAddTop(e: React.FormEvent) {
     e.preventDefault()
-    if (!newTopName.trim()) return
+    if (!newTopName.trim()) { toast.error('Category name cannot be empty'); return }
     createMutation.mutate({ name: newTopName.trim() })
     setNewTopName('')
   }
 
   function handleAddSub(e: React.FormEvent, parentId: string) {
     e.preventDefault()
-    if (!newSubName.trim()) return
+    if (!newSubName.trim()) { toast.error('Subcategory name cannot be empty'); return }
     createMutation.mutate({ name: newSubName.trim(), parentId })
     setNewSubName('')
     setAddingSubFor(null)
@@ -402,7 +402,7 @@ export default function AdminCategoriesPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                if (!newTypeName.trim()) return
+                if (!newTypeName.trim()) { toast.error('Type name cannot be empty'); return }
                 createTypeMutation.mutate({ categoryId: cat.id, name: newTypeName.trim() })
                 setNewTypeName('')
                 setAddingTypeFor(null)
