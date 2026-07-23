@@ -10,6 +10,7 @@ import TrackRecentlyViewed from '@/components/shop/TrackRecentlyViewed'
 import YouMayAlsoLike from '@/components/shop/YouMayAlsoLike'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import { getProductAvailability } from '@/lib/inventory/aggregate'
+import { getCategoryTree } from '@/lib/categories'
 
 export const revalidate = 30
 
@@ -92,11 +93,39 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   const availability = await getProductAvailability(product.id)
 
+  // Fetch the category tree on the server so StickyShopCategoryNav's final
+  // pill list/width is known on first paint instead of rendering the full
+  // static fallback list and shrinking once the client-side /api/categories
+  // fetch resolves (CLS root cause D in cls-audit-findings.md).
+  const initialCategories = await getCategoryTree()
+
+  // Fetch the initial review list server-side (same query as /api/reviews)
+  // so ProductReviews can skip its client-only loading skeleton entirely —
+  // the fixed-height skeleton collapsing to real content height was CLS
+  // root cause C in cls-audit-findings.md.
+  const initialReviews = await prisma.productReview.findMany({
+    where: { productId: product.id, status: { not: 'REJECTED' } },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  })
+
+  // Fetch the initial "How Others Are Wearing It" submissions server-side
+  // (same query/shape as /api/customer-style-submissions) so
+  // HowOthersAreWearingIt can skip its client-only "Loading gallery…" state
+  // — one of the three racing client-fetches identified as the source of
+  // non-deterministic PDP CLS (see cls-audit-findings.md).
+  const initialCustomerStyleSubmissions = await prisma.customerStyleSubmission.findMany({
+    where: { status: 'APPROVED', productId: product.id },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+    include: { images: { orderBy: { sortOrder: 'asc' } } },
+  })
+
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-white pt-[var(--subnav-height,2.75rem)]">
-      <StickyShopCategoryNav activeCategory={product.category} />
+      <StickyShopCategoryNav activeCategory={product.category} initialCategories={initialCategories} />
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <TrackRecentlyViewed
         id={product.id}
@@ -130,12 +159,23 @@ export default async function ProductPage({ params }: { params: { slug: string }
             sizeAvailability={sizeAvailability}
             locationInventory={locationInventory}
             availability={availability}
+            initialCustomerStyleSubmissions={initialCustomerStyleSubmissions}
           />
         </div>
       </div>
 
       <div className="mt-16 lg:mt-24">
-        <ProductReviews productId={product.id} />
+        <ProductReviews
+          productId={product.id}
+          initialReviews={initialReviews.map((r) => ({
+            id: r.id,
+            customerName: r.customerName,
+            rating: r.rating,
+            comment: r.comment,
+            createdAt: r.createdAt.toISOString(),
+            status: r.status as 'PENDING' | 'APPROVED' | 'REJECTED',
+          }))}
+        />
       </div>
 
       <div className="mt-12 lg:mt-16 border-t border-gray-100 pt-12">

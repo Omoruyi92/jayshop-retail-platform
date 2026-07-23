@@ -7,7 +7,7 @@ import StatusChip from '@/components/ui/StatusChip'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import LicensedBadge from '@/components/ui/LicensedBadge'
 import ChampionBadge from '@/components/ui/ChampionBadge'
-import HowOthersAreWearingIt from '@/components/shop/HowOthersAreWearingIt'
+import HowOthersAreWearingIt, { type Submission as CustomerStyleSubmission } from '@/components/shop/HowOthersAreWearingIt'
 import { formatCAD } from '@/lib/utils'
 import { titleCase } from '@/lib/text'
 import { colorToSwatch } from '@/lib/constants'
@@ -33,9 +33,10 @@ interface Props {
   sizeAvailability: SizeAvailability[] | null
   locationInventory?: LocationInventory[]
   availability?: ProductAvailability
+  initialCustomerStyleSubmissions?: CustomerStyleSubmission[]
 }
 
-export default function ProductDetails({ product: initialProduct, remaining: initialRemaining, isSoldOut, sizes, displayStatus, sizeAvailability: initialSizeAvailability, locationInventory: initialLocationInventory, availability: initialAvailability }: Props) {
+export default function ProductDetails({ product: initialProduct, remaining: initialRemaining, isSoldOut, sizes, displayStatus, sizeAvailability: initialSizeAvailability, locationInventory: initialLocationInventory, availability: initialAvailability, initialCustomerStyleSubmissions }: Props) {
   const { t } = useLanguage()
   const pd = t.product
   const { isLiked, toggle } = useFavorites()
@@ -353,7 +354,7 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
         </DialogContent>
       </Dialog>
 
-      <HowOthersAreWearingIt productId={product.id} />
+      <HowOthersAreWearingIt productId={product.id} initialSubmissions={initialCustomerStyleSubmissions} />
 
       {/* FAQ */}
       <div className="mt-6 pt-6 border-t border-gray-100">

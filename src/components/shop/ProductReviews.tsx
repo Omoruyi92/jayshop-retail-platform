@@ -51,9 +51,14 @@ function StarRating({ rating, onRate, interactive = false, size = 'md' }: {
   )
 }
 
-export default function ProductReviews({ productId }: { productId: string }) {
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [loading, setLoading] = useState(true)
+export default function ProductReviews({ productId, initialReviews }: { productId: string; initialReviews?: Review[] }) {
+  const [reviews, setReviews] = useState<Review[]>(initialReviews ?? [])
+  // When the server already provided the initial review list, there's no
+  // client-only loading window to render a skeleton for — this eliminates
+  // the fixed-height-skeleton-collapses-to-real-content shift (CLS root
+  // cause C in cls-audit-findings.md) entirely rather than just resizing
+  // the skeleton to guess at it.
+  const [loading, setLoading] = useState(initialReviews === undefined)
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [name, setName] = useState('')

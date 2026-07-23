@@ -46,14 +46,14 @@ function SimpleModal({
   )
 }
 
-interface CustomerStyleImage {
+export interface CustomerStyleImage {
   id: string
   imageUrl: string
   caption: string | null
   sortOrder: number
 }
 
-interface Submission {
+export interface Submission {
   id: string
   customerName: string | null
   customerEmail: string | null
@@ -65,11 +65,17 @@ interface Submission {
 
 interface HowOthersAreWearingItProps {
   productId: string
+  initialSubmissions?: Submission[]
 }
 
-export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearingItProps) {
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [loading, setLoading] = useState(true)
+export default function HowOthersAreWearingIt({ productId, initialSubmissions }: HowOthersAreWearingItProps) {
+  const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions ?? [])
+  // When the server already provided the initial submissions, skip the
+  // client-only loading window entirely — the "Loading gallery…" text has a
+  // different height than the real content it's replaced by, which was one
+  // of the three racing client-fetches causing non-deterministic PDP CLS
+  // (see cls-audit-findings.md).
+  const [loading, setLoading] = useState(initialSubmissions === undefined)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [lightbox, setLightbox] = useState<{ submission: Submission; index: number } | null>(null)
 
@@ -84,7 +90,10 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
+    // Only show the loading state if we don't already have server-provided
+    // data — this background refresh should never re-introduce the
+    // loading-text-to-content layout shift once real content is showing.
+    if (initialSubmissions === undefined) setLoading(true)
     fetch(`/api/customer-style-submissions?productId=${encodeURIComponent(productId)}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -97,6 +106,10 @@ export default function HowOthersAreWearingIt({ productId }: HowOthersAreWearing
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
+    // Intentionally omit `initialSubmissions` — it should only be consulted
+    // once on mount (to decide whether to skip the loading flash), not
+    // re-run this background refresh whenever the prop reference changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
