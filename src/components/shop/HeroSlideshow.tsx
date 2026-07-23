@@ -85,12 +85,21 @@ export default function HeroSlideshow({
           cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`
           style = {}
         }
-        // Media only fades to visible once its own load event fires — before
-        // that it stays fully transparent so the section's solid background
-        // shows through cleanly instead of a partially-decoded/streaming
-        // frame (the source of the reported flash/flicker on slow loads).
+        // Videos have no still-frame placeholder, so they keep the previous
+        // behavior: stay fully transparent (revealing the blurred image
+        // underneath, or the solid background as a last resort) until their
+        // own load event fires, avoiding a partially-decoded/streaming
+        // frame. Images that have a server-generated `blurDataURL` skip
+        // this gate entirely — Next's native `placeholder="blur"` already
+        // shows that soft preview immediately and cross-fades to the
+        // full-res decode on its own `onLoad`, so our own opacity gate
+        // would otherwise hide that blur too and bring back the solid
+        // navy flash this was meant to eliminate.
         const isReady = readyIds.has(slide.id)
-        const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${isReady ? 'opacity-100' : 'opacity-0'}`
+        const hasBlur = slide.mediaType === 'IMAGE' && !!slide.blurDataURL
+        const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${
+          hasBlur || isReady ? 'opacity-100' : 'opacity-0'
+        }`
         return (
           <div key={slide.id} className={cls} style={style}>
             {slide.mediaType === 'VIDEO' ? (
@@ -115,6 +124,9 @@ export default function HeroSlideshow({
                 className={mediaCls}
                 unoptimized
                 onLoad={() => markReady(slide.id)}
+                {...(slide.blurDataURL
+                  ? { placeholder: 'blur' as const, blurDataURL: slide.blurDataURL }
+                  : {})}
               />
             )}
             {overlay && <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/80 via-jays-navy/25 to-jays-navy/10" />}

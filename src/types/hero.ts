@@ -14,4 +14,16 @@ export interface Slide {
   altText: string | null
   sortOrder: number
   active: boolean
+  /**
+   * Tiny base64-encoded low-quality preview of `url`, generated server-side
+   * (see `@/lib/hero/getBlurDataURL`). Used as the `next/image` `blurDataURL`
+   * so the very first paint shows a soft, color-accurate preview of the
+   * actual photo instead of the section's solid `bg-jays-navy` fallback.
+   * `null`/`undefined` for videos (no still to derive a placeholder from),
+   * slides fetched via the `/api/hero-slides` client-side fallback route
+   * (which doesn't compute it), or if generation failed for any reason —
+   * `HeroSlideshow` degrades gracefully to rendering without a blur preview
+   * in that case.
+   */
+  blurDataURL?: string | null
 }
