@@ -45,8 +45,6 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
   const [subSide, setSubSide] = useState<Record<string, 'left' | 'right'>>({})
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, string | null>>({})
-  const [visible, setVisible] = useState(true)
-  const lastScrollY = useRef(0)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
 
@@ -73,21 +71,6 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
       categoryRefs.current[lastFocusedCategory.current]?.focus({ preventScroll: true })
     }
   }, [activeCategory])
-
-  useEffect(() => {
-    function onScroll() {
-      const current = window.scrollY
-      const delta = current - lastScrollY.current
-      if (delta > 6) {
-        setVisible(false)
-      } else if (delta < -6) {
-        setVisible(true)
-      }
-      lastScrollY.current = current
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const realCategories = loading
     ? [...CATEGORY_SORT_ORDER]
@@ -272,15 +255,24 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
   return (
     <div
       ref={navRef}
-      className={`fixed left-0 right-0 border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)] transition-transform duration-300 ${
+      // Sticky (not fixed) and stacked directly beneath SubNavBar via the
+      // combined --header-height + --subnav-height offset, so Header,
+      // SubNavBar, and this category nav pin/unpin together as a single
+      // coordinated unit under native browser scroll handling. This
+      // replaces the previous `fixed` + JS scroll-direction show/hide
+      // (translate-y transition), which animated independently from
+      // SubNavBar's native sticky motion and caused a visible double-nav
+      // overlap/flicker during scroll (both bars occupying the same band
+      // at slightly different times).
+      className={`sticky border-y border-jays-navy/10 bg-white shadow-[0_1px_0_rgba(19,74,142,0.06)] ${
         // Elevate above the mobile BottomNav (z-40) only while the mobile
         // category dropdown is open, so its expanded panel never renders
         // underneath/gets visually collided with the fixed bottom nav bar.
         // Otherwise keep the normal z-30 stacking (consistent with
         // Footer/SubNavBar) so it stays below the site Header (z-40).
         mobileOpen ? 'z-50' : 'z-30'
-      } ${visible ? 'translate-y-0' : '-translate-y-full'}`}
-      style={{ top: 'calc(var(--header-height, 3.5rem))' }}
+      }`}
+      style={{ top: 'calc(var(--header-height, 3.5rem) + var(--subnav-height, 2.75rem))' }}
     >
       <div className="relative mx-auto flex w-full max-w-none items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="hidden max-w-full items-center justify-center gap-1 overflow-x-auto py-2.5 md:flex" onMouseLeave={handleMouseLeave}>
@@ -506,7 +498,7 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
       {mobileOpen && (
         <div
           className="border-t border-gray-100 bg-white px-4 py-3 md:hidden overflow-y-auto overscroll-contain"
-          style={{ maxHeight: 'calc(100vh - var(--header-height, 3.5rem) - 3rem)', WebkitOverflowScrolling: 'touch' }}
+          style={{ maxHeight: 'calc(100vh - var(--header-height, 3.5rem) - var(--subnav-height, 2.75rem) - 3rem)', WebkitOverflowScrolling: 'touch' }}
         >
           {pills.map(({ label, value, hasDropdown, children }) => {
             const active = activeCategory?.toLowerCase() === value.toLowerCase()
