@@ -13,16 +13,16 @@ const PromotionsContext = createContext<Promotion[]>([])
 
 /**
  * Seeded from a server-side Prisma fetch (see `(public)/layout.tsx`) so the
- * correct promotion set — and therefore PromotionBanner/Header's correct
+ * correct promotion set — and therefore Header's promo marquee correct
  * final height — is already known on first paint, eliminating the
- * client-only fetch-then-pop-in that was the site's single largest CLS
- * contributor. The client-side fetch below only *refreshes* the list after
- * mount (keeps long-lived sessions in sync with newly published/expired
- * promotions) — it no longer gates the initial render.
+ * client-only fetch-then-pop-in that was a major CLS contributor. The
+ * client-side fetch below only *refreshes* the list after mount (keeps
+ * long-lived sessions in sync with newly published/expired promotions) —
+ * it no longer gates the initial render.
  *
- * Previously `PromotionBanner`, `Header`, and `PartnerLogosBar` each called
- * their own `usePromotions()`/fetch independently, firing the same request
- * up to 5x per page. Mounted once in the public layout so every consumer
+ * Previously `Header` and `PartnerLogosBar` each called their own
+ * `usePromotions()`/fetch independently, firing the same request multiple
+ * times per page. Mounted once in the public layout so every consumer
  * reads from the same in-memory state instead of re-fetching.
  */
 export function PromotionsProvider({

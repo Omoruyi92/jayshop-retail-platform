@@ -6,7 +6,6 @@ import Footer from '@/components/layout/Footer'
 import BottomNav from '@/components/layout/BottomNav'
 import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
-import PromotionBanner from '@/components/layout/PromotionBanner'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
 import { PromotionsProvider, type Promotion } from '@/lib/promotions/PromotionsContext'
@@ -23,8 +22,10 @@ export const metadata: Metadata = {
 /**
  * Fetches the same active-promotions set as `/api/promotions`, but directly
  * in the server component so `PromotionsProvider` can be seeded before first
- * paint (see PromotionBanner CLS fix). Falls back to `[]` on DB hiccups —
- * identical to the API route's own fallback — rather than failing the page.
+ * paint — the shared promotions state consumed by the header's promo
+ * marquee (`PartnerLogosBar`/`PromoMarqueeStrip`). Falls back to `[]` on DB
+ * hiccups — identical to the API route's own fallback — rather than failing
+ * the page.
  */
 async function getActivePromotions(): Promise<Promotion[]> {
   try {
@@ -53,7 +54,6 @@ export default async function PublicLayout({ children }: { children: React.React
         <CartProvider>
           <PromotionsProvider initialPromotions={initialPromotions}>
             <div className="min-h-screen flex flex-col">
-              <PromotionBanner />
               <Header />
               <SubNavBar />
               <main className="flex-1 pb-24 sm:pb-0">{children}</main>
