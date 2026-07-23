@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent, type FocusEvent as ReactFocusEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Menu, X } from 'lucide-react'
@@ -41,12 +42,23 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
     brand: null,
   })
   const [hoveredAttr, setHoveredAttr] = useState<string | null>(null)
-  const [menuSide, setMenuSide] = useState<Record<string, 'left' | 'right'>>({})
+  // Fixed-position (viewport) coordinates for each category's top-level
+  // dropdown panel, computed from the trigger's own rect at hover/focus
+  // time. The panel is rendered via a portal (see below) rather than as a
+  // normal absolute-positioned descendant of the horizontally-scrollable
+  // pills row, so these pixel coordinates replace the old 'left'/'right'
+  // side-flip class toggling.
+  const [menuPos, setMenuPos] = useState<Record<string, { top: number; left: number }>>({})
   const [subSide, setSubSide] = useState<Record<string, 'left' | 'right'>>({})
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, string | null>>({})
+  const [mounted, setMounted] = useState(false)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const categoryRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
   const lastFocusedCategory = useRef<string | null>(null)
@@ -110,8 +122,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
     if (e && typeof window !== 'undefined') {
       const rect = e.currentTarget.getBoundingClientRect()
       const MENU_WIDTH = 288 // matches min-w-[18rem]
+      const GAP = 8 // matches the previous pt-2 gap
       const overflowsRight = rect.left + MENU_WIDTH > window.innerWidth - 16
-      setMenuSide((prev) => ({ ...prev, [category]: overflowsRight ? 'right' : 'left' }))
+      const left = overflowsRight ? Math.max(16, rect.right - MENU_WIDTH) : rect.left
+      setMenuPos((prev) => ({ ...prev, [category]: { top: rect.bottom + GAP, left } }))
     }
   }
 
@@ -142,8 +156,10 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
     if (typeof window !== 'undefined') {
       const rect = e.currentTarget.getBoundingClientRect()
       const MENU_WIDTH = 288
+      const GAP = 8
       const overflowsRight = rect.left + MENU_WIDTH > window.innerWidth - 16
-      setMenuSide((prev) => ({ ...prev, [category]: overflowsRight ? 'right' : 'left' }))
+      const left = overflowsRight ? Math.max(16, rect.right - MENU_WIDTH) : rect.left
+      setMenuPos((prev) => ({ ...prev, [category]: { top: rect.bottom + GAP, left } }))
     }
   }
 
@@ -244,10 +260,16 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
 
   // Closes the dropdown when focus moves outside the trigger+panel group
   // entirely (e.g. Tab past the last item), but not when it's just moving
-  // between the trigger and its own panel.
+  // between the trigger and its own panel. The panel is portaled to
+  // document.body (see render below) so it's no longer a DOM descendant of
+  // the trigger's wrapper div — check the portaled panel node explicitly
+  // too, or focus moving from the trigger into its own dropdown would be
+  // (incorrectly) treated as leaving the group and close the menu.
   function handleGroupBlur(e: ReactFocusEvent<HTMLDivElement>, category: string) {
     const next = e.relatedTarget as Node | null
-    if (!next || !e.currentTarget.contains(next)) {
+    const panel = menuPanelRefs.current[category]
+    const stillInside = !!next && (e.currentTarget.contains(next) || (panel && panel.contains(next)))
+    if (!next || !stillInside) {
       setHovered((prev) => (prev.category === category ? { category: null, sub: null, brand: null } : prev))
     }
   }
@@ -314,14 +336,27 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                   )}
                 </Link>
 
-                {hasDropdown && isHovered && (
+                {hasDropdown && isHovered && mounted && menuPos[value] && createPortal(
+                  // Rendered via a portal to document.body (fixed viewport
+                  // coordinates computed on hover/focus, see handleMouseEnter/
+                  // handleCategoryFocus) instead of as an absolute descendant
+                  // of the horizontally-scrollable pills row above. That row
+                  // has `overflow-x-auto`, and per the CSS overflow spec a
+                  // container with only one axis set to non-'visible' has its
+                  // *other* axis computed to 'auto' too — so any dropdown
+                  // nested inside it was being silently clipped the instant
+                  // it extended past the row's own (48px-tall) box. It never
+                  // rendered, even though the trigger's active/expanded state
+                  // (chevron flip) looked correct — an invisible, effectively
+                  // non-functional "empty" nav dropdown. The portal sidesteps
+                  // any ancestor overflow entirely.
                   <div
                     ref={(el) => { menuPanelRefs.current[value] = el }}
                     role="menu"
-                    className={`absolute top-full z-40 min-w-[18rem] pt-2 ${
-                      menuSide[value] === 'right' ? 'right-0' : 'left-0'
-                    }`}
+                    className="fixed z-[100] min-w-[18rem]"
+                    style={{ top: menuPos[value].top, left: menuPos[value].left }}
                     onMouseEnter={keepOpen}
+                    onMouseLeave={handleMouseLeave}
                     onKeyDown={(e) => handlePanelKeyDown(e, value)}
                   >
                     <div className="rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-black/10">
@@ -471,7 +506,8 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
                         )
                       })}
                     </div>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             )

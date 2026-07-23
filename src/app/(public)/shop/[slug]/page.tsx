@@ -93,33 +93,47 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   const availability = await getProductAvailability(product.id)
 
-  // Fetch the category tree on the server so StickyShopCategoryNav's final
-  // pill list/width is known on first paint instead of rendering the full
-  // static fallback list and shrinking once the client-side /api/categories
-  // fetch resolves (CLS root cause D in cls-audit-findings.md).
-  const initialCategories = await getCategoryTree()
-
-  // Fetch the initial review list server-side (same query as /api/reviews)
-  // so ProductReviews can skip its client-only loading skeleton entirely —
-  // the fixed-height skeleton collapsing to real content height was CLS
-  // root cause C in cls-audit-findings.md.
-  const initialReviews = await prisma.productReview.findMany({
-    where: { productId: product.id, status: { not: 'REJECTED' } },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  })
-
-  // Fetch the initial "How Others Are Wearing It" submissions server-side
-  // (same query/shape as /api/customer-style-submissions) so
-  // HowOthersAreWearingIt can skip its client-only "Loading gallery…" state
-  // — one of the three racing client-fetches identified as the source of
-  // non-deterministic PDP CLS (see cls-audit-findings.md).
-  const initialCustomerStyleSubmissions = await prisma.customerStyleSubmission.findMany({
-    where: { status: 'APPROVED', productId: product.id },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    include: { images: { orderBy: { sortOrder: 'asc' } } },
-  })
+  // Fetch the category tree, initial reviews, and initial style submissions
+  // concurrently (they're independent of each other and of `availability`
+  // above). Each is wrapped with its own fallback so a transient hiccup on
+  // any single one of these secondary/supplementary queries can't take down
+  // the whole page render (previously a single failed `await` anywhere in
+  // this sequential chain surfaced as the PDP's intermittent
+  // "Application error: a server-side exception has occurred" on refresh).
+  // The core `product`/`sizeRows`/`availability` queries above are still
+  // awaited directly and allowed to throw into `notFound()`/the route's
+  // error boundary, since the page has nothing meaningful to render without
+  // them.
+  const [initialCategories, initialReviews, initialCustomerStyleSubmissions] = await Promise.all([
+    // Category tree: server-fetched so StickyShopCategoryNav's final pill
+    // list/width is known on first paint instead of rendering the full
+    // static fallback list and shrinking once the client-side
+    // /api/categories fetch resolves (CLS root cause D in
+    // cls-audit-findings.md). Falls back to `[]`, which makes the nav
+    // render its own static CATEGORY_SORT_ORDER fallback client-side.
+    getCategoryTree().catch(() => []),
+    // Initial review list (same query as /api/reviews) so ProductReviews
+    // can skip its client-only loading skeleton entirely — the fixed-height
+    // skeleton collapsing to real content height was CLS root cause C in
+    // cls-audit-findings.md. Falls back to `[]`, which just makes
+    // ProductReviews fetch client-side as it did before this optimization.
+    prisma.productReview.findMany({
+      where: { productId: product.id, status: { not: 'REJECTED' } },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    }).catch(() => []),
+    // Initial "How Others Are Wearing It" submissions (same query/shape as
+    // /api/customer-style-submissions) so HowOthersAreWearingIt can skip its
+    // client-only "Loading gallery…" state — one of the three racing
+    // client-fetches identified as the source of non-deterministic PDP CLS
+    // (see cls-audit-findings.md). Falls back to `[]` for the same reason.
+    prisma.customerStyleSubmission.findMany({
+      where: { status: 'APPROVED', productId: product.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    }).catch(() => []),
+  ])
 
   const images = [product.imageUrl, product.imageUrl2, product.imageUrl3].filter(Boolean)
 
