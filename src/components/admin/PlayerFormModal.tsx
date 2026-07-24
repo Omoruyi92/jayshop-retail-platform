@@ -4,6 +4,30 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { useMutation } from '@/components/sync/hooks/useMutation'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '@/lib/constants'
+
+const MAX_GALLERY_FILES = 6
+
+/** Reads a fetch Response body as JSON only when the server actually sent
+ * JSON. Platform-level errors (e.g. Vercel's 413 Request Entity Too Large)
+ * return a plain-text/HTML body, so calling `.json()` unconditionally
+ * throws a confusing "Unexpected token" SyntaxError instead of a useful
+ * message. */
+async function safeParseResponse(res: Response): Promise<{ error?: string; [key: string]: unknown }> {
+  const contentType = res.headers.get('content-type') ?? ''
+  if (contentType.includes('application/json')) {
+    try {
+      return await res.json()
+    } catch {
+      // fall through to text handling below
+    }
+  }
+  const text = await res.text().catch(() => '')
+  if (res.status === 413 || /request entity too large/i.test(text)) {
+    return { error: 'Upload too large — please use smaller images or fewer gallery photos.' }
+  }
+  return { error: text ? text.slice(0, 200) : `Request failed (${res.status})` }
+}
 
 export interface ProductOption {
   id: string
@@ -78,6 +102,18 @@ export default function PlayerFormModal({
 
   function handleHeroFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null
+    if (file) {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(`${file.name}: unsupported format. Use JPG, PNG, WebP, or AVIF.`)
+        e.target.value = ''
+        return
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error(`${file.name}: file too large. Max ${MAX_IMAGE_SIZE_MB}MB.`)
+        e.target.value = ''
+        return
+      }
+    }
     setHeroFile(file)
     if (file) {
       const reader = new FileReader()
@@ -89,9 +125,27 @@ export default function PlayerFormModal({
   }
 
   function handleGalleryFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? [])
-    setGalleryFiles(files)
-    setGalleryPreviews(files.map((f) => URL.createObjectURL(f)))
+    const candidates = Array.from(e.target.files ?? [])
+    const accepted: File[] = []
+    for (const file of candidates) {
+      if (galleryFiles.length + accepted.length >= MAX_GALLERY_FILES) {
+        toast.error(`Max ${MAX_GALLERY_FILES} gallery images allowed`)
+        break
+      }
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(`${file.name}: unsupported format. Use JPG, PNG, WebP, or AVIF.`)
+        continue
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error(`${file.name}: file too large. Max ${MAX_IMAGE_SIZE_MB}MB.`)
+        continue
+      }
+      accepted.push(file)
+    }
+    e.target.value = ''
+    if (accepted.length === 0) return
+    setGalleryFiles((prev) => [...prev, ...accepted])
+    setGalleryPreviews((prev) => [...prev, ...accepted.map((f) => URL.createObjectURL(f))])
   }
 
   function removeExistingGalleryUrl(url: string) {
@@ -124,10 +178,10 @@ export default function PlayerFormModal({
       const method = mode === 'create' ? 'POST' : 'PATCH'
       const res = await fetch(url, { method, body })
       if (!res.ok) {
-        const d = await res.json()
+        const d = await safeParseResponse(res)
         throw new Error(d.error ?? 'Failed to save player')
       }
-      const data = await res.json()
+      const data = await safeParseResponse(res)
       return (data.player ?? data) as Player
     },
     {
@@ -199,7 +253,8 @@ export default function PlayerFormModal({
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Upload hero image</label>
-              <input type="file" accept="image/*" onChange={handleHeroFile} className="w-full text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal" />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={handleHeroFile} className="w-full text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal" />
+              <p className="mt-1 text-[10px] text-jays-steel">JPG, PNG, WebP, or AVIF. Max {MAX_IMAGE_SIZE_MB}MB.</p>
               {(heroPreview || form.heroImageUrl) && (
                 <div className="mt-2 relative w-24 h-24 rounded-lg overflow-hidden border border-border">
                   <Image src={heroPreview || form.heroImageUrl} alt="Preview" fill className="object-cover" unoptimized />
@@ -210,11 +265,13 @@ export default function PlayerFormModal({
               <label className="block text-xs font-medium text-gray-600 mb-1">Upload additional gallery images</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/avif"
                 multiple
                 onChange={handleGalleryFiles}
-                className="w-full text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal"
+                disabled={galleryFiles.length >= MAX_GALLERY_FILES}
+                className="w-full text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-jays-navy file:text-white hover:file:bg-jays-royal disabled:opacity-50"
               />
+              <p className="mt-1 text-[10px] text-jays-steel">JPG, PNG, WebP, or AVIF. Max {MAX_IMAGE_SIZE_MB}MB each, up to {MAX_GALLERY_FILES} images.</p>
               {(existingGalleryUrls.length > 0 || galleryPreviews.length > 0) && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {existingGalleryUrls.map((url) => (
