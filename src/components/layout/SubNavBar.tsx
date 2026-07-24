@@ -4,8 +4,6 @@ import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useRef } from 'react'
 import {
   Home,
-  Info,
-  Landmark,
   Ruler,
   Package,
   Users,
@@ -15,17 +13,18 @@ import {
   Sparkles,
 } from 'lucide-react'
 
+// `mobileHidden` links are already reachable from the mobile bottom nav bar
+// (BottomNav.tsx: Shop, My Holds) — hidden here on mobile only to avoid
+// duplicate nav entries, while remaining visible on desktop (sm:flex).
 const links = [
-  { href: '/',               label: 'Home',           icon: Home },
-  { href: '/shop',           label: 'Shop',           icon: ShoppingBag },
-  { href: '/brands',         label: 'Brands',         icon: Globe },
-  { href: '/about-us',       label: 'About Us',       icon: Info },
-  { href: '/about',          label: 'Our Heritage',   icon: Landmark },
-  { href: '/size-chart',     label: 'Size Chart',     icon: Ruler },
-  { href: '/my-holds',       label: 'My Holds',       icon: Package },
-  { href: '/players',        label: 'Shop by Player', icon: Users },
-  { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles },
-  { href: '/gallery',        label: 'Gallery',        icon: ImageIcon },
+  { href: '/',               label: 'Home',           icon: Home,       mobileHidden: false },
+  { href: '/shop',           label: 'Shop',           icon: ShoppingBag, mobileHidden: true },
+  { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles,   mobileHidden: false },
+  { href: '/players',        label: 'Shop by Player', icon: Users,      mobileHidden: false },
+  { href: '/brands',         label: 'Brands',         icon: Globe,      mobileHidden: false },
+  { href: '/gallery',        label: 'Gallery',        icon: ImageIcon,  mobileHidden: false },
+  { href: '/size-chart',     label: 'Size Chart',     icon: Ruler,      mobileHidden: false },
+  { href: '/my-holds',       label: 'My Holds',       icon: Package,    mobileHidden: true },
 ]
 
 export default function SubNavBar() {
@@ -55,14 +54,14 @@ export default function SubNavBar() {
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-start gap-1 sm:gap-2 h-11 overflow-x-auto no-scrollbar">
-          {links.map(({ href, label, icon: Icon }) => {
+          {links.map(({ href, label, icon: Icon, mobileHidden }) => {
             const active = pathname === href
             return (
               <Link
                 key={href}
                 href={href}
                 className={`
-                  flex items-center gap-1.5 shrink-0 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wide transition-all leading-none
+                  ${mobileHidden ? 'hidden sm:flex' : 'flex'} items-center gap-1.5 shrink-0 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wide transition-all leading-none
                   ${active
                     ? 'bg-jays-navy text-white shadow-sm'
                     : 'text-jays-steel hover:text-jays-navy hover:bg-jays-ice/70'}

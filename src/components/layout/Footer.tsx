@@ -49,6 +49,20 @@ function SupportIcon({ className = 'w-4 h-4' }: { className?: string }) {
     </svg>
   )
 }
+function AboutUsIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+function HeritageIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
+    </svg>
+  )
+}
 /* ─── Footer ────────────────────────────────────────────────────── */
 export default function Footer() {
   const { t } = useLanguage()
@@ -56,11 +70,13 @@ export default function Footer() {
   const navItemsLeft = [
     { href: '/policy', label: 'Store Policy', icon: PolicyIcon },
     { href: '/returns', label: 'Return Policy', icon: ReturnsIcon },
+    { href: '/about-us', label: 'About Us', icon: AboutUsIcon },
   ]
 
   const navItemsRight = [
     { href: '/discounts', label: 'Discounts', icon: DiscountsIcon },
     { href: '/product-concerns', label: 'Product Concerns', icon: ConcernsIcon },
+    { href: '/about', label: 'Our Heritage', icon: HeritageIcon },
   ]
 
   return (
