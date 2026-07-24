@@ -570,6 +570,22 @@ model StoreGalleryImage {
   @@index([status, sortOrder])
 }
 
+// Admin-managed hero banner images shown at the top of the public Gallery
+// page. Independent from HeroSlide/SlideScope (Home/Shop/Style/Players) —
+// kept as its own model so the Gallery hero can be iterated on without any
+// risk to the existing, stability-verified Hero Media slideshow system.
+model GalleryHeroImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  altText   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 model CustomerPhoto {
   id               String   @id @default(cuid())
   productId        String

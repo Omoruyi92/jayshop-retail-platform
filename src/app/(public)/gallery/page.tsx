@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft, MapPin } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import GalleryPageClient from '@/components/gallery/GalleryPageClient'
+import GalleryHeroSection from '@/components/gallery/GalleryHeroSection'
+import { getGalleryHeroImages } from '@/lib/gallery/getGalleryHeroImages'
 
 // Store gallery photos change rarely (only via admin uploads/edits), so a
 // 5-minute ISR TTL — busted on-demand by admin gallery mutations via
@@ -11,7 +13,7 @@ import GalleryPageClient from '@/components/gallery/GalleryPageClient'
 export const revalidate = 300
 
 export default async function GalleryPage() {
-  const [images, categoryGroups] = await Promise.all([
+  const [images, categoryGroups, heroImages] = await Promise.all([
     prisma.storeGalleryImage.findMany({
       where: { status: 'ACTIVE' },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -29,6 +31,7 @@ export default async function GalleryPage() {
       where: { status: 'ACTIVE' },
       _count: { category: true },
     }),
+    getGalleryHeroImages(),
   ])
 
   const categories = categoryGroups.map((c) => ({
@@ -38,6 +41,8 @@ export default async function GalleryPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <GalleryHeroSection images={heroImages} />
+
       {/* Hero */}
       <section className="relative bg-jays-navy py-10 sm:py-14 overflow-hidden">
         <div className="absolute inset-0 opacity-10">

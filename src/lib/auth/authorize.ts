@@ -67,6 +67,10 @@ export function actionMinRole(action: string): AdminRole {
       return 'STAFF'
     case 'gallery:write':
       return 'MANAGER'
+    case 'gallery-hero:read':
+      return 'STAFF'
+    case 'gallery-hero:write':
+      return 'MANAGER'
     case 'categories:read':
       return 'STAFF'
     case 'categories:write':
