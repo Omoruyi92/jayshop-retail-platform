@@ -12,10 +12,18 @@ export interface GalleryHeroImageData {
 }
 
 export async function getGalleryHeroImages(): Promise<GalleryHeroImageData[]> {
-  const images = await prisma.galleryHeroImage.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
-    select: { id: true, imageUrl: true, altText: true },
-  })
-  return images
+  try {
+    const images = await prisma.galleryHeroImage.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+      select: { id: true, imageUrl: true, altText: true },
+    })
+    return images
+  } catch (err) {
+    // Fail closed to the empty-state fallback rather than crashing the
+    // Gallery page — e.g. during the brief window before this table
+    // exists in a given environment, or any transient DB error.
+    console.error('getGalleryHeroImages failed', err)
+    return []
+  }
 }
