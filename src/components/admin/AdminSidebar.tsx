@@ -9,7 +9,7 @@ import {
   BarChart2, Bell, ExternalLink, Menu, X,
   Tag, Image as ImageIcon, Users, Megaphone, Calendar,
   Clock, Boxes, KeyRound, Radio, Terminal, LineChart,
-  ScrollText, Star, MessageSquare, UserCog, Settings, FolderTree, Camera, Shirt,
+  ScrollText, Star, MessageSquare, UserCog, Settings, FolderTree, Shirt,
 } from 'lucide-react'
 
 const roleOrder: AdminRole[] = ['VIEWER', 'STAFF', 'MANAGER', 'OWNER']
@@ -45,7 +45,6 @@ const linkGroups: LinkGroup[] = [
       { href: '/admin/categories', label: 'Categories', icon: FolderTree, minRole: 'MANAGER' },
       { href: '/admin/brands', label: 'Brands', icon: Tag, minRole: 'MANAGER' },
       { href: '/admin/gallery', label: 'Gallery', icon: ImageIcon, minRole: 'MANAGER' },
-      { href: '/admin/gallery-hero', label: 'Gallery Hero', icon: Camera, minRole: 'MANAGER' },
       { href: '/admin/styles', label: 'Styles', icon: Shirt, minRole: 'STAFF' },
       { href: '/admin/players', label: 'Players', icon: Users, minRole: 'MANAGER' },
       { href: '/admin/promotions', label: 'Promotions', icon: Megaphone, minRole: 'MANAGER' },

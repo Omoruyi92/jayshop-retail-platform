@@ -3,7 +3,7 @@
 // (`@/hooks/useHeroMedia`), so the Home/Shop/Style/Players hero components
 // all speak the same shape without duplicating type definitions.
 
-export type HeroScope = 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS'
+export type HeroScope = 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY'
 
 export interface Slide {
   id: string
