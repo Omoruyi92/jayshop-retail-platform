@@ -28,7 +28,7 @@ const links = [
   { href: '/gallery',        label: 'Gallery',        icon: ImageIcon,  mobileHidden: false },
   { href: '/size-chart',     label: 'Size Chart',     icon: Ruler,      mobileHidden: false },
   { href: '/my-holds',       label: 'My Holds',       icon: Package,    mobileHidden: true },
-  { href: 'https://www.mlb.com/bluejays/fans', label: 'Fan Zone', icon: PartyPopper, mobileHidden: false, external: true },
+  { href: 'https://www.mlb.com/bluejays/video', label: 'Fan Zone', icon: PartyPopper, mobileHidden: false, external: true },
 ]
 
 export default function SubNavBar() {
