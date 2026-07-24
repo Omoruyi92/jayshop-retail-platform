@@ -6,6 +6,7 @@ import { requireRole } from '@/lib/auth/authorize.server'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { saveUploadedFile, deleteUploadedFile } from '@/lib/media/upload'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
+import { ensureGalleryScope } from '@/lib/hero/ensureGalleryScope'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url)
   const scope = searchParams.get('scope')?.toUpperCase() as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY' | null
+  if (!scope || scope === 'GALLERY') await ensureGalleryScope()
 
   const where: any = {}
   if (scope) where.scope = scope
@@ -86,6 +88,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Scope must be HOME, SHOP, STYLE_LANDING, PLAYERS, or GALLERY' }, { status: 400 })
     }
     const scope = scopeRaw.toLowerCase() as 'home' | 'shop' | 'style_landing' | 'players' | 'gallery'
+    if (scopeRaw === 'GALLERY') await ensureGalleryScope()
 
     if (!file || file.size === 0) {
       return NextResponse.json({ error: 'Slide file is required' }, { status: 400 })

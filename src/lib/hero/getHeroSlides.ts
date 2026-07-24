@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import type { HeroScope, Slide } from '@/types/hero'
 import { getBlurDataURL } from './getBlurDataURL'
+import { ensureGalleryScope } from './ensureGalleryScope'
 
 /**
  * Server-side fetch of active hero slides for a given scope, used by the
@@ -21,6 +22,8 @@ import { getBlurDataURL } from './getBlurDataURL'
  * [])` behavior).
  */
 export async function getHeroSlides(scope: HeroScope): Promise<Slide[]> {
+  if (scope === 'GALLERY') await ensureGalleryScope()
+
   const slides = await prisma.heroSlide
     .findMany({
       where: { scope, active: true },
