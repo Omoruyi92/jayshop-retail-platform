@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireRole } from '@/lib/auth/authorize.server'
 
 // TEMPORARY, one-time setup endpoint used to create the GalleryHeroImage
 // table on production. Vercel's build step only runs `prisma generate`
@@ -7,14 +8,13 @@ import { prisma } from '@/lib/prisma'
 // write-only "sensitive" env var not retrievable via any CLI tooling, so
 // this endpoint creates the table using a plain, idempotent, additive
 // `CREATE TABLE IF NOT EXISTS` statement identical to what
-// `prisma db push` would generate. Gated by CRON_SECRET (existing
-// server-only secret already configured in this project). Delete this
-// file once the table has been confirmed created in production.
+// `prisma db push` would generate. Gated by the existing admin auth
+// (same requireRole check as the gallery-hero admin API) so only an
+// authenticated MANAGER/OWNER admin can invoke it. Delete this file once
+// the table has been confirmed created in production.
 export async function POST(req: Request) {
-  const auth = req.headers.get('authorization')
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireRole(req, 'gallery-hero:write')
+  if (error) return error
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "GalleryHeroImage" (
