@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { ensureGalleryHeroTable } from '@/lib/gallery/ensureGalleryHeroTable'
 
 // Server-side data fetch for the Gallery page's hero section. Deliberately
 // independent from src/lib/hero/getHeroSlides.ts (HeroSlide/SlideScope) —
@@ -13,6 +14,7 @@ export interface GalleryHeroImageData {
 
 export async function getGalleryHeroImages(): Promise<GalleryHeroImageData[]> {
   try {
+    await ensureGalleryHeroTable()
     const images = await prisma.galleryHeroImage.findMany({
       where: { isActive: true },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],

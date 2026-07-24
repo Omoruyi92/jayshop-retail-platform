@@ -7,6 +7,7 @@ import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
 import { saveUploadedFile, deleteUploadedFile } from '@/lib/media/upload'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
+import { ensureGalleryHeroTable } from '@/lib/gallery/ensureGalleryHeroTable'
 
 // Admin CRUD for the Gallery page hero images (GalleryHeroImage). This is a
 // standalone model/route independent from the HeroSlide/SlideScope system
@@ -30,6 +31,8 @@ export async function GET(req: Request) {
   const { error } = await requireRole(req, 'gallery-hero:read')
   if (error) return error
 
+  await ensureGalleryHeroTable()
+
   const images = await prisma.galleryHeroImage.findMany({
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
   })
@@ -42,6 +45,7 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
+    await ensureGalleryHeroTable()
     const formData = await parseFormData(req)
     const altText = (formData.get('altText') as string | null)?.trim() || null
     const file = formData.get('file') as File | null
@@ -94,6 +98,7 @@ export async function PATCH(req: Request) {
   if (error) return error
 
   try {
+    await ensureGalleryHeroTable()
     const body = await parseJsonBody<{ id?: string; isActive?: boolean; sortOrder?: number; altText?: string }>(req)
     const { id, isActive, sortOrder, altText } = body
 
@@ -146,6 +151,7 @@ export async function DELETE(req: Request) {
   }
 
   try {
+    await ensureGalleryHeroTable()
     const image = await prisma.galleryHeroImage.findUnique({ where: { id } })
     if (image) {
       await deleteUploadedFile(image.imageUrl)
