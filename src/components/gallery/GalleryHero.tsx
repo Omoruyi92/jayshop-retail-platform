@@ -22,7 +22,12 @@ export default function GalleryHero({ initialSlides }: { initialSlides?: HeroSli
       className="relative h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[calc(58vh+120px)] lg:max-h-[640px]"
       style={heroFallbackStyle(initialSlides)}
     >
-      <HeroSlideshow scope="GALLERY" imagePosition="center" initialSlides={initialSlides} />
+      {/* imagePosition="top" (GALLERY-only override) keeps the top of the
+          uploaded storefront photo — e.g. signage — in frame instead of
+          being center-cropped. HeroSlideshow's `imagePosition` prop already
+          supports this per-scope; Home/Shop/Style/Players continue to pass
+          their own values (or default to "center") unaffected. */}
+      <HeroSlideshow scope="GALLERY" imagePosition="top" initialSlides={initialSlides} />
 
       <div className="absolute inset-x-0 bottom-0 z-10">
         <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10">

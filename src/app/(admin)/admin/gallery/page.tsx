@@ -77,6 +77,24 @@ export default function AdminGalleryPage() {
     }
   )
 
+  const deleteMutation = useMutation(
+    async (id: string) => {
+      const res = await fetch(`/api/admin/gallery/${id}?hard=true`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+    },
+    {
+      invalidateOnSuccess: ['admin-gallery', 'admin-gallery-archived', 'gallery'],
+      onSuccess: () => toast.success('Image permanently deleted'),
+      onError: () => toast.error('Failed to delete image'),
+    }
+  )
+
+  const handleDelete = (img: GalleryImage) => {
+    if (confirm(`Are you sure you want to permanently delete "${img.title}"? This cannot be undone.`)) {
+      deleteMutation.mutate(img.id)
+    }
+  }
+
   return (
     <div>
       <div className="page-header mt-2">
@@ -159,6 +177,7 @@ export default function AdminGalleryPage() {
                       ) : (
                         <button onClick={() => archiveMutation.mutate(img.id)} disabled={archiveMutation.loading} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[11px] rounded-md hover:bg-gray-200 transition-colors whitespace-nowrap disabled:opacity-50">Archive</button>
                       )}
+                      <button onClick={() => handleDelete(img)} disabled={deleteMutation.loading} className="px-1.5 py-0.5 bg-red-50 text-red-600 text-[11px] rounded-md hover:bg-red-100 transition-colors whitespace-nowrap disabled:opacity-50">Delete</button>
                     </div>
                   </td>
                 </tr>

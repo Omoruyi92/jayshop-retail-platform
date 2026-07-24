@@ -49,6 +49,7 @@ export type AuditAction =
   | 'gallery.created'
   | 'gallery.updated'
   | 'gallery.archived'
+  | 'gallery.deleted'
   | 'style-category.created'
   | 'style-category.updated'
   | 'style-category.deleted'

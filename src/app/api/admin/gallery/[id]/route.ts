@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/media/upload'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,7 +93,37 @@ export async function DELETE(
     return NextResponse.json({ error: 'Image not found' }, { status: 404 })
   }
 
+  const { searchParams } = new URL(req.url)
+  const hardDelete = searchParams.get('hard') === 'true'
   const admin = session.user as AdminSession['user']
+
+  if (hardDelete) {
+    // Permanent removal — used by the admin "Delete" action (confirmed via
+    // a confirmation dialog client-side) as opposed to the reversible
+    // "Archive" action below. Also removes the underlying blob file.
+    await prisma.storeGalleryImage.delete({ where: { id } })
+    await deleteUploadedFile(existing.imageUrl).catch(() => {
+      // Non-fatal — the DB record is already gone; an orphaned blob file
+      // shouldn't block the delete from completing.
+    })
+
+    await recordAudit({
+      tx: prisma,
+      action: 'gallery.deleted',
+      entityType: 'StoreGalleryImage',
+      entityId: id,
+      actorId: admin.adminId,
+      actorType: 'admin',
+      actorEmail: admin.email,
+      before: existing,
+      req,
+    })
+
+    revalidatePath('/gallery')
+
+    return NextResponse.json({ success: true })
+  }
+
   await prisma.storeGalleryImage.update({
     where: { id },
     data: { status: 'ARCHIVED' },
