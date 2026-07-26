@@ -3,32 +3,32 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { usePromotions } from '@/lib/promotions/PromotionsContext'
+import { getStoreStatus, type StoreStatusResult } from '@/lib/store/getStoreStatus'
 
-const OPEN_HOUR = 10
-const CLOSE_HOUR = 17
-const STORE_TIMEZONE = 'America/Toronto'
+/* Fetches today's scheduled game (if any) from the existing public
+ * `/api/game-days/next` endpoint — the same source of truth already used by
+ * the homepage's "game day" banner (HomePageClient.tsx). GameDay.date is a
+ * UTC calendar date, so "is this game today" is determined via UTC Y/M/D
+ * comparison, matching the pattern used elsewhere in the codebase. Resolves
+ * to `null` on any failure or when there is no game scheduled for today. */
+async function fetchTodayGame(): Promise<{ startTime: string | null } | null> {
+  try {
+    const res = await fetch('/api/game-days/next')
+    if (!res.ok) return null
+    const data = await res.json()
+    const gameDay = data?.gameDay
+    if (!gameDay?.date) return null
 
-/* Reads the current hour (0-23) in the store's timezone, regardless of the
- * runtime's ambient timezone (server runs in UTC on Vercel, browsers run in
- * the visitor's local timezone). This must be used identically on both
- * server and client so the two never disagree on the same instant. */
-function getStoreHour(date: Date): number {
-  const hourString = new Intl.DateTimeFormat('en-US', {
-    timeZone: STORE_TIMEZONE,
-    hour: 'numeric',
-    hour12: false,
-  }).format(date)
-  // 'en-US' with hour12:false can format midnight as "24"; normalize to 0-23.
-  return parseInt(hourString, 10) % 24
-}
+    const now = new Date()
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    const gameDate = new Date(gameDay.date)
+    const gameDateUTC = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate())
 
-function computeStoreStatus(hour: number) {
-  const isOpen = hour >= OPEN_HOUR && hour < CLOSE_HOUR
-  const statusLabel = isOpen ? 'Open' : 'Closed'
-  const nextChange = isOpen
-    ? `Closes at ${CLOSE_HOUR > 12 ? CLOSE_HOUR - 12 : CLOSE_HOUR}:00 PM`
-    : `Opens at ${OPEN_HOUR}:00 AM`
-  return { isOpen, statusLabel, nextChange }
+    if (gameDateUTC !== today) return null
+    return { startTime: gameDay.startTime ?? null }
+  } catch {
+    return null
+  }
 }
 
 /* On first paint (SSR + initial client render, before hydration), we
@@ -40,17 +40,23 @@ function computeStoreStatus(hour: number) {
  * useEffect after mount — the standard React-recommended pattern for any
  * value that legitimately differs between server and client render time. */
 function useStoreStatus() {
-  const [status, setStatus] = useState<{
-    isOpen: boolean
-    statusLabel: string
-    nextChange: string
-  } | null>(null)
+  const [status, setStatus] = useState<StoreStatusResult | null>(null)
 
   useEffect(() => {
-    const update = () => setStatus(computeStoreStatus(getStoreHour(new Date())))
+    let cancelled = false
+
+    const update = async () => {
+      const todayGame = await fetchTodayGame()
+      if (cancelled) return
+      setStatus(getStoreStatus(new Date(), todayGame))
+    }
+
     update()
     const id = setInterval(update, 60_000)
-    return () => clearInterval(id)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
   }, [])
 
   return status
@@ -68,6 +74,26 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
   const statusLabel = status?.statusLabel ?? '\u00A0'
   const nextChange = status?.nextChange ?? '\u00A0'
   const isPending = status === null
+  // Game-day-only state: store is open to ticketed fans inside the stadium,
+  // but locked out for the general public — distinct amber treatment so it
+  // reads differently from a plain overnight "Closed".
+  const isRestrictedPublic = status?.statusLabel === 'Closed to the General Public'
+
+  const dotClass = isPending
+    ? 'bg-white/20'
+    : isOpen
+      ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.6)]'
+      : isRestrictedPublic
+        ? 'bg-amber-400 shadow-[0_0_4px_rgba(251,191,36,0.6)]'
+        : 'bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.5)]'
+
+  const labelClass = isPending
+    ? 'text-blue-200/40'
+    : isOpen
+      ? 'text-emerald-300'
+      : isRestrictedPublic
+        ? 'text-amber-300'
+        : 'text-red-300'
 
   return (
     <div className="flex items-center gap-2 shrink-0">
@@ -83,8 +109,8 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
           <span className="text-blue-200/60 text-[9px]">Toronto</span>
         </div>
         <div className="flex items-center gap-1 mt-0.5">
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPending ? 'bg-white/20' : isOpen ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.6)]' : 'bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.5)]'}`} />
-          <span className={`text-[9px] font-semibold ${isPending ? 'text-blue-200/40' : isOpen ? 'text-emerald-300' : 'text-red-300'}`}>
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`} />
+          <span className={`text-[9px] font-semibold ${labelClass}`}>
             {statusLabel}
           </span>
           <span className="text-blue-300/30 text-[8px]">·</span>
