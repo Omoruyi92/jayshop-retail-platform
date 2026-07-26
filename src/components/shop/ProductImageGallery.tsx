@@ -145,8 +145,11 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
         ))}
       </div>
 
-      {/* Dot indicators */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+      {/* Dot indicators — desktop only. On mobile the image is edge-to-edge
+          (see commit e0b1701), so dots sitting over the top of the image
+          would overlap product graphics/logos; the thumbnail strip below
+          already conveys the active image on mobile. */}
+      <div className="hidden lg:flex absolute top-3 left-1/2 -translate-x-1/2 gap-1.5 z-10">
         {images.map((_, i) => (
           <button
             key={i}
