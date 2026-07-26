@@ -74,6 +74,39 @@ const basePrisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma
 
+// Self-healing guard for the `isCityConnect` / `isChampionshipGear` columns
+// on the `Product` table. Vercel's build step only runs `prisma generate`
+// (not `prisma migrate deploy`/`db push`) against production, and the
+// production `DATABASE_URL` is a Vercel "sensitive" env var that isn't
+// retrievable by CLI tooling to run a one-off migration (same constraint
+// documented in `ensureGalleryScope`). Every current/future call site that
+// touches the `Product` model — API routes, server components, even
+// build-time `generateStaticParams`/prerendering — goes through this same
+// extended `prisma` client, so hooking the guard into `$allOperations`
+// (rather than each call site individually) guarantees it always runs
+// before the very first `Product` query, self-healing the schema on the
+// first request/build after deploy. Uses `basePrisma` (not the extended
+// client) for the raw ALTER TABLE to avoid recursing into this same
+// extension.
+let productTagColumnsEnsured = false
+
+async function ensureProductTagColumns(): Promise<void> {
+  if (productTagColumnsEnsured) return
+  try {
+    await basePrisma.$executeRawUnsafe(
+      `ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "isCityConnect" BOOLEAN NOT NULL DEFAULT false`
+    )
+    await basePrisma.$executeRawUnsafe(
+      `ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "isChampionshipGear" BOOLEAN NOT NULL DEFAULT false`
+    )
+    productTagColumnsEnsured = true
+  } catch {
+    // Best-effort — if this fails (e.g. no permission, or already applied
+    // by a concurrent request), the query below surfaces its own error
+    // rather than silently swallowing a real problem.
+  }
+}
+
 // Rather than relying on every call site across the app to remember to wrap
 // its query in `withDbRetry` (several pages/routes didn't — /, /gallery,
 // /shop-by-style, /brands/[slug] were all still throwing raw on a
@@ -90,7 +123,8 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma
 // type-level technicality.
 export const prisma = basePrisma.$extends({
   query: {
-    async $allOperations({ query, args }) {
+    async $allOperations({ model, query, args }) {
+      if (model === 'Product') await ensureProductTagColumns()
       return withDbRetry(() => query(args))
     },
   },

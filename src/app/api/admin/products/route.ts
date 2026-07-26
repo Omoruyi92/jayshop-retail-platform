@@ -10,7 +10,6 @@ import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { syncProductTotalsFromSizeInventory } from '@/lib/inventory/availability'
 import { parseFormData, apiErrorResponse, parseJsonField } from '@/lib/api/request'
-import { ensureProductTagColumns } from '@/lib/products/ensureProductTagColumns'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,8 +31,6 @@ async function processImage(file: File | null, existingUrl: string) {
 export async function POST(req: Request) {
   const { error } = await requireRole(req, 'products:write')
   if (error) return error
-
-  await ensureProductTagColumns()
 
   try {
     const formData = await parseFormData(req)
