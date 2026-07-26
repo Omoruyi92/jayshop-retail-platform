@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useRef } from 'react'
 import {
   Home,
-  Ruler,
   Package,
   Users,
   ShoppingBag,
@@ -26,7 +25,6 @@ const links = [
   { href: '/players',        label: 'Shop by Player', icon: Users,      mobileHidden: false },
   { href: '/brands',         label: 'Brands',         icon: Globe,      mobileHidden: false },
   { href: '/gallery',        label: 'Gallery',        icon: ImageIcon,  mobileHidden: false },
-  { href: '/size-chart',     label: 'Size Chart',     icon: Ruler,      mobileHidden: false },
   { href: '/my-holds',       label: 'My Holds',       icon: Package,    mobileHidden: true },
   { href: 'https://www.mlb.com/bluejays/video', label: 'Fan Zone', icon: PartyPopper, mobileHidden: false, external: true },
 ]

@@ -63,6 +63,13 @@ function HeritageIcon({ className = 'w-4 h-4' }: { className?: string }) {
     </svg>
   )
 }
+function SizeChartIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h18M3 8v11a1 1 0 001 1h16a1 1 0 001-1V8M3 8l3-5h12l3 5M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" />
+    </svg>
+  )
+}
 /* ─── Footer ────────────────────────────────────────────────────── */
 export default function Footer() {
   const { t } = useLanguage()
@@ -77,6 +84,7 @@ export default function Footer() {
     { href: '/discounts', label: 'Discounts', icon: DiscountsIcon },
     { href: '/product-concerns', label: 'Product Concerns', icon: ConcernsIcon },
     { href: '/about', label: 'Our Heritage', icon: HeritageIcon },
+    { href: '/size-chart', label: 'Size Chart', icon: SizeChartIcon },
   ]
 
   return (
