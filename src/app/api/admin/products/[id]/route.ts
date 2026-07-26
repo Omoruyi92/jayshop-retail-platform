@@ -152,6 +152,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           imageUrl: product.imageUrl,
         },
       })
+    } else if (body.isNewArrival !== undefined && !Boolean(body.isNewArrival) && wasNewArrival) {
+      // Admin turned New Arrival off — remove any existing notification(s)
+      // for this product so it stops showing in the customer notification
+      // feed. Receipts cascade-delete automatically via the schema.
+      await prisma.customerNotification.deleteMany({ where: { productId: product.id } })
     }
 
     // Archiving a product hides it from all customer-facing sections (shop,
