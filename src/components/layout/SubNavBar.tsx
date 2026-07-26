@@ -18,11 +18,14 @@ import {
 // duplicate nav entries, while remaining visible on desktop (sm:flex).
 // `external` links point off-site and render as plain <a> tags (new tab)
 // instead of Next.js <Link> (client-side router navigation).
+// `primary` links (Shop, Shop by Style, Shop by Player) are the main
+// shopping entry points — styled bolder/navy with a subtle pill so they
+// stand out from the rest of the nav (Home, Brands, Gallery, etc.).
 const links = [
   { href: '/',               label: 'Home',           icon: Home,       mobileHidden: false },
-  { href: '/shop',           label: 'Shop',           icon: ShoppingBag, mobileHidden: true },
-  { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles,   mobileHidden: false },
-  { href: '/players',        label: 'Shop by Player', icon: Users,      mobileHidden: false },
+  { href: '/shop',           label: 'Shop',           icon: ShoppingBag, mobileHidden: true,  primary: true },
+  { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles,   mobileHidden: false, primary: true },
+  { href: '/players',        label: 'Shop by Player', icon: Users,      mobileHidden: false, primary: true },
   { href: '/brands',         label: 'Brands',         icon: Globe,      mobileHidden: false },
   { href: '/gallery',        label: 'Gallery',        icon: ImageIcon,  mobileHidden: false },
   { href: '/my-holds',       label: 'My Holds',       icon: Package,    mobileHidden: true },
@@ -56,13 +59,16 @@ export default function SubNavBar() {
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4 overflow-x-auto no-scrollbar">
         <div className="flex items-center justify-start gap-1 sm:gap-2 h-11 w-max mx-auto">
-          {links.map(({ href, label, icon: Icon, mobileHidden, external }) => {
+          {links.map(({ href, label, icon: Icon, mobileHidden, external, primary }) => {
             const active = !external && pathname === href
             const className = `
-                  ${mobileHidden ? 'hidden sm:flex' : 'flex'} items-center gap-1.5 shrink-0 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wide transition-all leading-none
+                  ${mobileHidden ? 'hidden sm:flex' : 'flex'} items-center gap-1.5 shrink-0 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs uppercase tracking-wide transition-all leading-none
+                  ${primary ? 'font-bold' : 'font-semibold'}
                   ${active
                     ? 'bg-jays-navy text-white shadow-sm'
-                    : 'text-jays-steel hover:text-jays-navy hover:bg-jays-ice/70'}
+                    : primary
+                      ? 'text-jays-navy bg-jays-ice hover:bg-jays-ice'
+                      : 'text-jays-steel hover:text-jays-navy hover:bg-jays-ice/70'}
                 `
             if (external) {
               return (
