@@ -101,11 +101,11 @@ export default function Header() {
               priority
             />
             <span className="flex flex-col leading-none">
-              <span className="font-display font-bold text-xl uppercase tracking-wider leading-none">
+              <span className="font-display font-bold text-xl uppercase tracking-wider leading-none text-center">
                 <span className="text-jays-red">JAYS</span>
                 <span className="text-white"> SHOP</span>
               </span>
-              <span className="block text-[7px] sm:text-[9px] font-semibold uppercase tracking-[0.1em] sm:tracking-[0.15em] text-blue-200/80 mt-0.5 whitespace-nowrap">
+              <span className="block text-center text-[8.5px] sm:text-[9px] font-semibold uppercase tracking-[0.22em] sm:tracking-[0.15em] text-blue-200/80 mt-0.5 whitespace-nowrap">
                 Toronto Blue Jays
               </span>
             </span>
