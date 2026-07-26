@@ -45,7 +45,7 @@ export default function HeaderActions() {
   }, [cartOpen, favoritesOpen])
 
   return (
-    <div className="flex items-center gap-2 mr-1">
+    <div className="flex items-center gap-1 sm:gap-2 mr-0 sm:mr-1">
       {/* Notifications */}
       <NotificationBell />
 
@@ -55,7 +55,7 @@ export default function HeaderActions() {
           ref={favTriggerRef}
           onClick={() => { setFavoritesOpen((p) => !p); setCartOpen(false) }}
           aria-label={`Favorites (${favoritesCount})`}
-          className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
+          className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
         >
           <Heart
             className={`w-[18px] h-[18px] transition-colors ${favoritesCount > 0 ? 'text-jays-red fill-jays-red' : 'text-white'}`}
@@ -85,7 +85,7 @@ export default function HeaderActions() {
           ref={cartTriggerRef}
           onClick={() => { setCartOpen((p) => !p); setFavoritesOpen(false) }}
           aria-label={`Cart (${cartCount})`}
-          className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
+          className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
         >
           <ShoppingBag className="w-[18px] h-[18px] text-white" strokeWidth={1.8} />
           {cartCount > 0 && (
