@@ -37,7 +37,10 @@ export default function CartPage() {
     try {
       const item = items.find((i) => i.productId === productId && i.size === size)
       if (!item) return
-      router.push(`/shop/${item.slug}?convertToHold=1${size ? `&size=${encodeURIComponent(size)}` : ''}`)
+      const params = new URLSearchParams({ convertToHold: '1' })
+      if (size) params.set('size', size)
+      if (item.quantity > 1) params.set('qty', String(item.quantity))
+      router.push(`/shop/${item.slug}?${params.toString()}`)
     } finally {
       setConverting((prev) => ({ ...prev, [`${productId}-${size ?? ''}`]: false }))
     }

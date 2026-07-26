@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { Product } from '@prisma/client'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -26,6 +26,7 @@ export default function HoldButton({
   sizeAvailability: SizeAvailability[] | null
 }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const { removeItem } = useCart()
   const hb = t.holdButton
@@ -55,6 +56,38 @@ export default function HoldButton({
   }>({})
 
   const hasSizes = sizes.length > 0
+
+  // Auto-open the hold modal with the size (and quantity, if provided)
+  // carried over from a "Convert to Hold" click on the Cart page, which
+  // navigates here with `?convertToHold=1&size=XL&qty=2`. Only runs once on
+  // mount so it doesn't re-trigger on unrelated re-renders, and cleans the
+  // params from the URL afterwards so a page refresh doesn't reopen it.
+  useEffect(() => {
+    if (searchParams.get('convertToHold') !== '1') return
+
+    const sizeParam = searchParams.get('size')
+    if (sizeParam && sizes.includes(sizeParam)) {
+      setSelectedSize(sizeParam)
+    }
+
+    const qtyParam = searchParams.get('qty')
+    if (qtyParam) {
+      const qty = parseInt(qtyParam, 10)
+      if (Number.isFinite(qty) && qty > 0) {
+        setQuantity(qty)
+      }
+    }
+
+    setOpen(true)
+
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('convertToHold')
+    params.delete('size')
+    params.delete('qty')
+    const query = params.toString()
+    router.replace(query ? `?${query}` : window.location.pathname, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Fetch game-day / hold-window info AND location-scoped size availability
   // whenever the modal opens or the hold type (Gate 5 vs Section 123)
