@@ -53,10 +53,14 @@ export default function Header() {
   const langTriggerRef = useRef<HTMLButtonElement>(null)
   const langPanelRef = useRef<HTMLDivElement>(null)
   const weCareRef = useRef<HTMLDivElement>(null)
+  const weCareTriggerRef = useRef<HTMLButtonElement>(null)
+  const weCarePanelRef = useRef<HTMLDivElement>(null)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileWeCareOpen, setMobileWeCareOpen] = useState(false)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null)
+  const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
 
   // Publish the header's real rendered height as a CSS var so downstream
@@ -99,6 +103,20 @@ export default function Header() {
   // dropdown fix — `absolute right-0` clips off-screen on mobile because
   // the trigger itself sits close to the viewport's right edge.
   const langPanelStyle = useDropdownPosition(open, langTriggerRef, langPanelRef)
+
+  // Same fix for the "We Care" values popover (desktop/tablet) — anchors
+  // to the trigger's real position instead of `absolute right-0` on its
+  // own narrow wrapper.
+  const weCarePanelStyle = useDropdownPosition(weCareOpen, weCareTriggerRef, weCarePanelRef)
+
+  // The mobile hamburger menu panel was `absolute right-0` on its own
+  // wrapper, which sits flush against the header's right edge — but the
+  // header row's content (bell/heart/cart/lang pill/hamburger) overflows
+  // past the viewport on 375-414px screens and gets silently clipped by
+  // the header's `overflow-x-clip`. That pushed the whole mobile menu
+  // (including the "We Care" accordion) off-screen, appearing to overlap
+  // the sub-nav strip below. Anchor it the same way as the other panels.
+  const mobileMenuStyle = useDropdownPosition(mobileMenuOpen, mobileMenuTriggerRef, mobileMenuPanelRef)
 
   return (
     <header ref={headerRef} className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
@@ -144,16 +162,23 @@ export default function Header() {
           {/* "We Care" — clickable with popover */}
           <div className="relative hidden md:block" ref={weCareRef}>
             <button
+              ref={weCareTriggerRef}
               onClick={() => setWeCareOpen((prev) => !prev)}
               className="text-blue-200 italic text-sm tracking-wide hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer whitespace-nowrap"
               style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
               aria-label="We Care values"
+              aria-haspopup="true"
+              aria-expanded={weCareOpen}
             >
               <span className="inline-block animate-breathe">We Care</span>
             </button>
 
             {weCareOpen && (
-              <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div
+                ref={weCarePanelRef}
+                style={weCarePanelStyle}
+                className="fixed w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
                 {/* Header */}
                 <div className="bg-gradient-to-r from-jays-navy to-jays-royal px-4 py-3">
                   <p className="font-display font-bold text-sm uppercase tracking-wider text-white">
@@ -246,6 +271,7 @@ export default function Header() {
           {/* Mobile hamburger menu */}
           <div className="relative sm:hidden" ref={mobileMenuRef}>
             <button
+              ref={mobileMenuTriggerRef}
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
               aria-label="Open menu"
@@ -257,7 +283,11 @@ export default function Header() {
             </button>
 
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div
+                ref={mobileMenuPanelRef}
+                style={mobileMenuStyle}
+                className="fixed w-64 max-w-[calc(100vw-16px)] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
                 {/* We Care — expandable */}
                 <button
                   onClick={() => setMobileWeCareOpen((prev) => !prev)}
