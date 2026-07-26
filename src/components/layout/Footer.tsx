@@ -313,7 +313,18 @@ export default function Footer() {
               ))}
             </div>
           </div>
-          
+
+          {/* Proudly Canadian — its own isolated badge on mobile so the
+              flag gets clear breathing room instead of being crammed
+              into the header's language/nav cluster (hidden below lg
+              there). Desktop keeps the existing header placement. */}
+          <div className="sm:hidden flex justify-center my-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/8 border border-white/15 px-3 py-1.5">
+              <Image src="/brand/canada-flag.png" alt="Canada" width={20} height={20} className="w-5 h-5 rounded-full object-contain shrink-0" />
+              <span className="text-[10px] font-display font-semibold text-blue-200 uppercase tracking-wider">Proudly Canadian</span>
+            </div>
+          </div>
+
           <div className="flex flex-col items-center gap-3 mt-4">
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[10px] sm:text-xs font-semibold text-blue-300/80 uppercase tracking-wider">
               <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
