@@ -18,6 +18,7 @@ import { Heart, X } from 'lucide-react'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { ProductAvailability } from '@/lib/inventory/aggregate'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog'
+import PdpSizeChart from '@/components/shop/PdpSizeChart'
 
 interface SizeAvailability {
   size: string
@@ -263,7 +264,15 @@ export default function ProductDetails({ product: initialProduct, remaining: ini
 
       {hasSizes && !isSoldOut && (
         <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Size</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">Select Size</label>
+            <PdpSizeChart
+              category={product.category}
+              productType={product.productType}
+              hatStyle={product.hatStyle}
+              ageGroup={product.ageGroup}
+            />
+          </div>
           <div className="flex flex-wrap gap-2">
             {sizes.map((size) => {
               const oos = isSizeOos(size)
