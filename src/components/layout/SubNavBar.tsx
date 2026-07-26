@@ -54,8 +54,8 @@ export default function SubNavBar() {
       style={{ top: 'var(--header-height, 3.5rem)' }}
       className="sticky z-30 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm"
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-4">
-        <div className="flex items-center justify-[safe_center] gap-1 sm:gap-2 h-11 overflow-x-auto no-scrollbar">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 overflow-x-auto no-scrollbar">
+        <div className="flex items-center justify-start gap-1 sm:gap-2 h-11 w-max mx-auto">
           {links.map(({ href, label, icon: Icon, mobileHidden, external }) => {
             const active = !external && pathname === href
             const className = `
