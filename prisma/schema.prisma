@@ -121,6 +121,8 @@ model Product {
   originalPriceCents Int?
   salePriceCents     Int                    @default(0)
   isBlankJersey      Boolean                @default(false)
+  isCityConnect      Boolean                @default(false)
+  isChampionshipGear Boolean                @default(false)
   holdEnabled        Boolean                @default(true)
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt

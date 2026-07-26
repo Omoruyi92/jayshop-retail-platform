@@ -37,6 +37,8 @@ interface Product {
   isFeatured: boolean
   isSport: boolean
   isBlankJersey: boolean
+  isCityConnect: boolean
+  isChampionshipGear: boolean
   colors: any
   sku?: string | null
   material?: string
@@ -74,6 +76,8 @@ function buildInitialForm(product: Product) {
     isFeatured:   product.isFeatured,
     isSport:      product.isSport,
     isBlankJersey: product.isBlankJersey,
+    isCityConnect: product.isCityConnect,
+    isChampionshipGear: product.isChampionshipGear,
     imageUrl:    product.imageUrl,
     imageUrl2:   product.imageUrl2,
     imageUrl3:   product.imageUrl3,
@@ -229,6 +233,8 @@ export default function EditProductModal({ product, onClose, onSaved, hatStyleOp
     formData.append('isFeatured', String(form.isFeatured))
     formData.append('isSport', String(form.isSport))
     formData.append('isBlankJersey', String(form.isBlankJersey))
+    formData.append('isCityConnect', String(form.isCityConnect))
+    formData.append('isChampionshipGear', String(form.isChampionshipGear))
     if (needsSizes) formData.append('sizes', form.sizes)
     formData.append('colors', JSON.stringify(form.colors.map(c => ({ name: c, hex: colorToSwatch(c) }))))
     formData.append('sku', form.sku.trim())
@@ -462,6 +468,14 @@ export default function EditProductModal({ product, onClose, onSaved, hatStyleOp
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                 <input type="checkbox" checked={form.isBlankJersey} onChange={(e) => setForm((f) => f ? ({ ...f, isBlankJersey: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-emerald-600" />
                 <span className="font-medium text-jays-navy">Blanks</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isCityConnect} onChange={(e) => setForm((f) => f ? ({ ...f, isCityConnect: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-jays-navy" />
+                <span className="font-medium text-jays-navy">City Connect</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.isChampionshipGear} onChange={(e) => setForm((f) => f ? ({ ...f, isChampionshipGear: e.target.checked }) : f)} className="w-4 h-4 rounded border-gray-300 accent-yellow-500" />
+                <span className="font-medium text-jays-navy">Championship Gear</span>
               </label>
             </div>
           </div>

@@ -66,6 +66,8 @@ export async function POST(req: Request) {
     const isNewArrival = formData.get('isNewArrival') === 'true'
     const isClearance = formData.get('isClearance') === 'true'
     const isBlankJersey = formData.get('isBlankJersey') === 'true'
+    const isCityConnect = formData.get('isCityConnect') === 'true'
+    const isChampionshipGear = formData.get('isChampionshipGear') === 'true'
 
     const sku = (formData.get('sku') as string | null) ?? null
     const material = (formData.get('material') as string | null) ?? ''
@@ -135,6 +137,8 @@ export async function POST(req: Request) {
           isNewArrival,
           isClearance,
           isBlankJersey,
+          isCityConnect,
+          isChampionshipGear,
           sku,
           material,
           careInstructions,

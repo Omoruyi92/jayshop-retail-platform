@@ -282,7 +282,7 @@ export default function AboutPage() {
                   Every Friday, rep the exclusive City Connect collection — a bold navy-and-red tribute to Toronto&apos;s streets, transit lines, and the CN Tower silhouette. Limited drops, only while supplies last.
                 </p>
                 <Link
-                  href="/shop"
+                  href="/shop?category=city-connect"
                   className="inline-flex items-center gap-1.5 bg-white text-jays-navy font-display font-semibold text-xs uppercase tracking-wide px-5 py-2 rounded-full hover:bg-blue-100 transition-colors"
                 >
                   Shop City Connect
@@ -307,7 +307,7 @@ export default function AboutPage() {
                   The 1992 and 1993 World Series rings stand as the crown jewels of Blue Jays history — the only back-to-back titles in franchise lore, encrusted with diamonds and forever etched into Toronto&apos;s baseball legacy.
                 </p>
                 <Link
-                  href="/shop"
+                  href="/shop?category=championship-gear"
                   className="inline-flex items-center gap-1.5 bg-jays-navy text-white font-display font-semibold text-xs uppercase tracking-wide px-5 py-2 rounded-full hover:bg-jays-royal transition-colors"
                 >
                   Shop Championship Gear

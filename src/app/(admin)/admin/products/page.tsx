@@ -45,6 +45,8 @@ interface Product {
   isFeatured: boolean
   isSport: boolean
   isBlankJersey: boolean
+  isCityConnect: boolean
+  isChampionshipGear: boolean
   colors: any
   sku?: string | null
   material?: string
@@ -116,7 +118,7 @@ export default function AdminProductsPage() {
     name: '', description: '', priceCents: '', salePrice: '', quantity: '1',
     sizes: 'S,M,L,XL,2XL,3XL', category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '',
     isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false,
-    isFeatured: false, isSport: false, isBlankJersey: false, colors: [] as string[], hatStyle: '',
+    isFeatured: false, isSport: false, isBlankJersey: false, isCityConnect: false, isChampionshipGear: false, colors: [] as string[], hatStyle: '',
     sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys'
   })
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, string>>({})
@@ -280,6 +282,8 @@ export default function AdminProductsPage() {
     body.append('isFeatured',   String(form.isFeatured))
     body.append('isSport',      String(form.isSport))
     body.append('isBlankJersey', String(form.isBlankJersey))
+    body.append('isCityConnect', String(form.isCityConnect))
+    body.append('isChampionshipGear', String(form.isChampionshipGear))
     body.append('colors',       JSON.stringify(form.colors))
     body.append('sku',          form.sku.trim())
     body.append('material',     form.material.trim())
@@ -302,7 +306,7 @@ export default function AdminProductsPage() {
     if (res.ok) {
       const { product: created } = await res.json()
       toast.success('Product added')
-      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys' })
+      setForm({ name: '', description: '', priceCents: '', salePrice: '', quantity: '1', sizes: getDefaultSizes('jerseys'), category: 'men', subcategory: 'jerseys', imageUrl: '', brand: '', isLicensed: false, isChampion: false, isNewArrival: false, isClearance: false, isFeatured: false, isSport: false, isBlankJersey: false, isCityConnect: false, isChampionshipGear: false, colors: [], hatStyle: '', sku: '', material: '', careInstructions: '', audience: '', ageGroup: '', productType: 'Jerseys' })
       setSizeQuantities({})
       setImages([]); setColorInput(""); setShowAdd(false)
       load()
@@ -553,6 +557,24 @@ export default function AdminProductsPage() {
                   className="w-4 h-4 rounded border-gray-300 accent-emerald-600"
                 />
                 <span className="font-medium text-jays-navy">Blanks</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isCityConnect}
+                  onChange={(e) => setForm(f => ({ ...f, isCityConnect: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 accent-jays-navy"
+                />
+                <span className="font-medium text-jays-navy">City Connect</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isChampionshipGear}
+                  onChange={(e) => setForm(f => ({ ...f, isChampionshipGear: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 accent-yellow-500"
+                />
+                <span className="font-medium text-jays-navy">Championship Gear</span>
               </label>
             </div>
           </div>

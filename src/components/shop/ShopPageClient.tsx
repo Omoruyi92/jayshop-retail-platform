@@ -52,6 +52,8 @@ interface Product {
   isNewArrival: boolean
   isClearance: boolean
   isBlankJersey: boolean
+  isCityConnect: boolean
+  isChampionshipGear: boolean
   salePriceCents: number
   createdAt: Date
   updatedAt: Date
@@ -60,7 +62,7 @@ interface Product {
   allSizesOos?: boolean
 }
 
-const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Blanks'])
+const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Blanks', 'city-connect', 'championship-gear'])
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 
@@ -96,6 +98,8 @@ function categoryMatches(product: Product, activeCategory: string): boolean {
     return product.isClearance || product.salePriceCents > 0
   }
   if (catLower === 'blanks' || catLower === 'blank') return product.isBlankJersey
+  if (catLower === 'city-connect' || catLower === 'city connect') return product.isCityConnect
+  if (catLower === 'championship-gear' || catLower === 'championship gear') return product.isChampionshipGear
   // Standard categories match by product.category; special categories are handled above.
   return product.category.toLowerCase() === catLower
 }

@@ -94,6 +94,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (formData.has('isFeatured')) body.isFeatured = formData.get('isFeatured') === 'true'
       if (formData.has('isSport')) body.isSport = formData.get('isSport') === 'true'
       if (formData.has('isBlankJersey')) body.isBlankJersey = formData.get('isBlankJersey') === 'true'
+      if (formData.has('isCityConnect')) body.isCityConnect = formData.get('isCityConnect') === 'true'
+      if (formData.has('isChampionshipGear')) body.isChampionshipGear = formData.get('isChampionshipGear') === 'true'
       
       if (formData.has('colors')) body.colors = parseJsonField(formData.get('colors') as string, 'colors')
       // sizeInventories is intentionally ignored — Main Store size allocation is
@@ -137,6 +139,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(body.isFeatured   !== undefined && { isFeatured: Boolean(body.isFeatured) }),
         ...(body.isSport      !== undefined && { isSport: Boolean(body.isSport) }),
         ...(body.isBlankJersey !== undefined && { isBlankJersey: Boolean(body.isBlankJersey) }),
+        ...(body.isCityConnect !== undefined && { isCityConnect: Boolean(body.isCityConnect) }),
+        ...(body.isChampionshipGear !== undefined && { isChampionshipGear: Boolean(body.isChampionshipGear) }),
       },
       include: { _count: { select: { holds: true } } },
     })
