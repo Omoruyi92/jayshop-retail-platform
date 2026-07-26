@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { buildManyAvailability } from '@/lib/inventory/aggregate'
 import { getMainStoreLocationId } from '@/lib/store-locations'
+import { ensureProductTagColumns } from '@/lib/products/ensureProductTagColumns'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
+  await ensureProductTagColumns()
+
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
   const slug = searchParams.get('slug')

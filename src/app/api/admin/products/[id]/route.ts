@@ -13,6 +13,7 @@ import { saveUploadedFile } from '@/lib/media/upload'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'
+import { ensureProductTagColumns } from '@/lib/products/ensureProductTagColumns'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,8 @@ async function processImage(file: File | null, existingUrl: string | null) {
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const { error } = await requireRole(req, 'products:write')
   if (error) return error
+
+  await ensureProductTagColumns()
 
   try {
     let body: any = {}
