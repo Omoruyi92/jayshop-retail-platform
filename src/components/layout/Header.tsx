@@ -7,11 +7,18 @@ import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
 import PartnerLogosBar, { LocationBadge, PromoMarquee, usePromotions } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
+import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: 'English',
   fr: 'Français',
   es: 'Español',
+}
+
+const LOCALE_SHORT_LABELS: Record<Locale, string> = {
+  en: 'EN',
+  fr: 'FR',
+  es: 'ES',
 }
 
 const LOCALES: Locale[] = ['en', 'fr', 'es']
@@ -43,6 +50,8 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const [weCareOpen, setWeCareOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const langTriggerRef = useRef<HTMLButtonElement>(null)
+  const langPanelRef = useRef<HTMLDivElement>(null)
   const weCareRef = useRef<HTMLDivElement>(null)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -84,6 +93,12 @@ export default function Header() {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open, weCareOpen, mobileMenuOpen])
+
+  // Anchors the language options panel to the trigger's real on-screen
+  // position (fixed + viewport-clamped), matching the cart/favorites
+  // dropdown fix — `absolute right-0` clips off-screen on mobile because
+  // the trigger itself sits close to the viewport's right edge.
+  const langPanelStyle = useDropdownPosition(open, langTriggerRef, langPanelRef)
 
   return (
     <header ref={headerRef} className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
@@ -170,15 +185,17 @@ export default function Header() {
           {/* Language selector */}
           <div className="relative" ref={dropdownRef}>
             <button
+              ref={langTriggerRef}
               onClick={() => setOpen((prev) => !prev)}
-              className="flex items-center gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
+              className="flex items-center gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-1.5 sm:px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-label="Select language"
             >
-              <span>{LOCALE_LABELS[locale]}</span>
+              <span className="sm:hidden">{LOCALE_SHORT_LABELS[locale]}</span>
+              <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
               <svg
-                className={`w-3 h-3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+                className={`w-3 h-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -190,9 +207,11 @@ export default function Header() {
 
             {open && (
               <div
+                ref={langPanelRef}
                 role="listbox"
                 aria-label="Language"
-                className="absolute right-0 mt-1.5 w-36 bg-white shadow-lg rounded-lg border border-gray-100 py-1 z-50"
+                style={langPanelStyle}
+                className="fixed w-36 bg-white shadow-lg rounded-lg border border-gray-100 py-1 z-50"
               >
                 {LOCALES.map((loc) => (
                   <button
