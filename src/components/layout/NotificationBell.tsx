@@ -229,7 +229,7 @@ export default function NotificationBell() {
 
           <div className="border-t border-gray-100 p-2">
             <Link
-              href="/shop?filter=new"
+              href="/shop?category=new-arrivals"
               onClick={() => setOpen(false)}
               className="block text-center text-xs font-semibold text-jays-navy hover:text-jays-red py-2 rounded-lg hover:bg-jays-ice transition-colors"
             >

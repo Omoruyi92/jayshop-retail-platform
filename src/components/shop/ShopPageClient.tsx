@@ -62,7 +62,7 @@ interface Product {
   allSizesOos?: boolean
 }
 
-const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'Sales & Clearance', 'Blanks', 'city-connect', 'championship-gear'])
+const SPECIAL_CATEGORIES = new Set(['Featured', 'New Arrivals', 'new-arrivals', 'Sales & Clearance', 'Blanks', 'city-connect', 'championship-gear'])
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 
