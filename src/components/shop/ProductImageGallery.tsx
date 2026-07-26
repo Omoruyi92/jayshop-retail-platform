@@ -89,8 +89,8 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
           src={images[0] || '/placeholder.png'}
           alt={alt}
           fill
-          sizes="(max-width: 1280px) 100vw, 50vw"
-          className="object-contain p-4"
+          sizes="(max-width: 1023px) 100vw, 50vw"
+          className="object-contain p-0 lg:p-4"
           style={{ position: 'absolute', inset: 0 }}
           priority
         />
@@ -112,8 +112,8 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
           src={images[activeIndex]}
           alt={`${alt} — ${IMAGE_LABELS[activeIndex] ?? `Image ${activeIndex + 1}`}`}
           fill
-          sizes="(max-width: 1280px) 100vw, 50vw"
-          className={`object-contain p-4 ${animateTick > 0 ? 'animate-image-cycle' : ''}`}
+          sizes="(max-width: 1023px) 100vw, 50vw"
+          className={`object-contain p-0 lg:p-4 ${animateTick > 0 ? 'animate-image-cycle' : ''}`}
           style={{ position: 'absolute', inset: 0 }}
           priority={activeIndex === 0}
         />
@@ -122,7 +122,7 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
       </div>
 
       {/* Thumbnail strip */}
-      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border-t border-gray-100">
+      <div className="flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-white/90 lg:bg-white/80 backdrop-blur-sm border-t border-gray-100">
         {images.map((src, i) => (
           <button
             key={i}
