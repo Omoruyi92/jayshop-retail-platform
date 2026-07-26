@@ -26,11 +26,30 @@ export async function POST(req: NextRequest) {
   try {
     const notifications = await prisma.customerNotification.findMany({
       where: { type },
-      select: { id: true },
+      select: { id: true, productId: true },
     })
 
+    // Same read-time guard as GET /api/notifications: only mark notifications
+    // as read if their linked product is still a live New Arrival. This keeps
+    // "mark all read" / unread-count semantics consistent with what the
+    // customer can actually see in the dropdown, and avoids writing receipts
+    // for stale rows tied to products that no longer qualify.
+    const productIds = Array.from(
+      new Set(notifications.map((n) => n.productId).filter((id): id is string => Boolean(id)))
+    )
+    const liveProducts = productIds.length
+      ? await prisma.product.findMany({
+          where: { id: { in: productIds }, isNewArrival: true, status: { not: 'ARCHIVED' } },
+          select: { id: true },
+        })
+      : []
+    const liveProductIds = new Set(liveProducts.map((p) => p.id))
+    const visibleNotifications = notifications.filter(
+      (n) => !n.productId || liveProductIds.has(n.productId)
+    )
+
     await prisma.$transaction(
-      notifications.map((n) =>
+      visibleNotifications.map((n) =>
         prisma.customerNotificationReceipt.upsert({
           where: {
             notificationId_customerId: {
@@ -48,7 +67,7 @@ export async function POST(req: NextRequest) {
       )
     )
 
-    return NextResponse.json({ success: true, count: notifications.length })
+    return NextResponse.json({ success: true, count: visibleNotifications.length })
   } catch {
     return NextResponse.json({ error: 'Failed to mark notifications read' }, { status: 500 })
   }

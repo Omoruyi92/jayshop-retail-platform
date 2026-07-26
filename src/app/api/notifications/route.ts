@@ -43,14 +43,16 @@ export async function GET(req: NextRequest) {
     },
   })
 
-  // Defense-in-depth: exclude notifications whose linked product was deleted
-  // or archived after the notification was created. Products are hard-deleted
-  // elsewhere (with matching notification cleanup), but this guards against
-  // any stale rows so a customer never sees/clicks a dead "New Arrival".
+  // Read-time filter: only ever show a notification whose linked product is
+  // CURRENTLY flagged isNewArrival AND not archived/deleted. This guards
+  // against stale `CustomerNotification` rows (e.g. a product that was
+  // unflagged/archived after the notification was created) so a customer
+  // never sees/clicks a "New Arrival" for a product that no longer qualifies,
+  // regardless of whether DB cleanup has run.
   const productIds = Array.from(new Set(notifications.map((n) => n.productId).filter(Boolean))) as string[]
   const liveProducts = productIds.length
     ? await prisma.product.findMany({
-        where: { id: { in: productIds }, status: { not: 'ARCHIVED' } },
+        where: { id: { in: productIds }, isNewArrival: true, status: { not: 'ARCHIVED' } },
         select: { id: true },
       })
     : []
