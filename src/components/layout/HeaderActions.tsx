@@ -45,7 +45,7 @@ export default function HeaderActions() {
   }, [cartOpen, favoritesOpen])
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 mr-0 sm:mr-1">
+    <div className="flex items-center gap-0 xs:gap-1 sm:gap-2 mr-0 sm:mr-1">
       {/* Notifications */}
       <NotificationBell />
 
@@ -55,10 +55,10 @@ export default function HeaderActions() {
           ref={favTriggerRef}
           onClick={() => { setFavoritesOpen((p) => !p); setCartOpen(false) }}
           aria-label={`Favorites (${favoritesCount})`}
-          className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
+          className="relative flex items-center justify-center w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
         >
           <Heart
-            className={`w-[18px] h-[18px] transition-colors ${favoritesCount > 0 ? 'text-jays-red fill-jays-red' : 'text-white'}`}
+            className={`w-4 h-4 xs:w-[18px] xs:h-[18px] transition-colors ${favoritesCount > 0 ? 'text-jays-red fill-jays-red' : 'text-white'}`}
             strokeWidth={1.8}
           />
           {favoritesCount > 0 && (
@@ -85,9 +85,9 @@ export default function HeaderActions() {
           ref={cartTriggerRef}
           onClick={() => { setCartOpen((p) => !p); setFavoritesOpen(false) }}
           aria-label={`Cart (${cartCount})`}
-          className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
+          className="relative flex items-center justify-center w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-lg hover:bg-white/10 transition-colors"
         >
-          <ShoppingBag className="w-[18px] h-[18px] text-white" strokeWidth={1.8} />
+          <ShoppingBag className="w-4 h-4 xs:w-[18px] xs:h-[18px] text-white" strokeWidth={1.8} />
           {cartCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-jays-red text-white text-[10px] font-bold border-2 border-jays-navy">
               {cartCount}

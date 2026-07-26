@@ -156,11 +156,14 @@ export default function Header() {
         <div className="flex-1 xl:hidden" />
 
         {/* Right: We Care, Language, Nav */}
-        <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-0 xs:gap-0.5 sm:gap-2 shrink-0">
           <HeaderActions />
 
-          {/* "We Care" — clickable with popover */}
-          <div className="relative hidden md:block" ref={weCareRef}>
+          {/* "We Care" — clickable with popover. Shown from `sm` (640px)
+              up, exactly where the mobile hamburger (below) hides, so
+              there's no dead zone between the two breakpoints where
+              neither control is reachable. */}
+          <div className="relative hidden sm:block" ref={weCareRef}>
             <button
               ref={weCareTriggerRef}
               onClick={() => setWeCareOpen((prev) => !prev)}
@@ -212,7 +215,7 @@ export default function Header() {
             <button
               ref={langTriggerRef}
               onClick={() => setOpen((prev) => !prev)}
-              className="flex items-center gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-1 sm:px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
+              className="flex items-center gap-0.5 xs:gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-0 xs:px-1 sm:px-2.5 py-1.5 text-[11px] xs:text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-label="Select language"
@@ -220,7 +223,7 @@ export default function Header() {
               <span className="sm:hidden">{LOCALE_SHORT_LABELS[locale]}</span>
               <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
               <svg
-                className={`w-3 h-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+                className={`hidden min-[340px]:block w-2.5 h-2.5 xs:w-3 xs:h-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -273,11 +276,11 @@ export default function Header() {
             <button
               ref={mobileMenuTriggerRef}
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="flex items-center justify-center w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
               aria-label="Open menu"
               aria-expanded={mobileMenuOpen}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
