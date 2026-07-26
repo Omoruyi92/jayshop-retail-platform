@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import Image from 'next/image'
 import { Home, Shirt, Sparkles, Baby, Watch, ShieldCheck, Trophy, Star, Tag as TagIcon } from 'lucide-react'
 import { SUBS_BY_CAT, KIDS_SUBCATEGORIES } from '@/lib/constants'
 
@@ -12,6 +13,8 @@ interface BannerConfig {
   icon: LucideIcon
   ctaLabel: string
   tags: string[]
+  logoSrc?: string
+  logoAlt?: string
 }
 
 function titleCase(s: string) {
@@ -153,6 +156,32 @@ const BANNERS: Record<string, BannerConfig> = {
     ctaLabel: 'Shop Blanks',
     tags: (SUBS_BY_CAT.blanks ?? []).map(titleCase),
   },
+  'City Connect': {
+    eyebrow: 'City Connect Fridays',
+    title: 'CITY CONNECT',
+    subtitle: "A bold navy-and-red tribute to Toronto's streets, transit lines, and the CN Tower silhouette. Limited drops, only while supplies last.",
+    gradient: 'from-jays-navy via-jays-navy to-jays-red',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
+    icon: Home,
+    ctaLabel: 'Shop City Connect',
+    tags: ['Jerseys', 'Fridays', 'Limited Drop'],
+    logoSrc: '/brand/city-connect-fridays.png',
+    logoAlt: 'City Connect Fridays',
+  },
+  'Championship Gear': {
+    eyebrow: 'Back-to-Back Champions',
+    title: 'CHAMPIONSHIP GEAR',
+    subtitle: 'Celebrating the 1992 & 1993 World Series titles — the only back-to-back championships in franchise history.',
+    gradient: 'from-jays-navy via-jays-royal to-slate-700',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
+    icon: Trophy,
+    ctaLabel: 'Shop Championship Gear',
+    tags: ['1992', '1993', 'World Series'],
+    logoSrc: '/brand/ws-rings.png',
+    logoAlt: '1992 & 1993 World Series Championship Rings',
+  },
 }
 
 function bannerKey(activeCategory: string): string {
@@ -187,6 +216,10 @@ function bannerKey(activeCategory: string): string {
     'blank': 'Blanks',
     'authentication': 'authentication',
     'authentic': 'authentic',
+    'city-connect': 'City Connect',
+    'city connect': 'City Connect',
+    'championship-gear': 'Championship Gear',
+    'championship gear': 'Championship Gear',
   }
   const alias = aliases[lower]
   if (alias && BANNERS[alias]) return alias
@@ -224,7 +257,11 @@ export default function CategoryBanner({ activeCategory }: { activeCategory: str
                 isDark ? 'bg-white/15 shadow-black/10' : 'bg-jays-navy/10 shadow-jays-navy/10'
               }`}
             >
-              <Icon className="h-6 w-6" />
+              {config.logoSrc ? (
+                <Image src={config.logoSrc} alt={config.logoAlt ?? config.title} width={40} height={40} className="h-9 w-9 object-contain" />
+              ) : (
+                <Icon className="h-6 w-6" />
+              )}
             </span>
             <div>
               <span
