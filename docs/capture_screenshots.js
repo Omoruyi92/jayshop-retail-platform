@@ -5,10 +5,15 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 
+// Usage: SCREENSHOT_ADMIN_EMAIL=xxx SCREENSHOT_ADMIN_PASSWORD=xxx node docs/capture_screenshots.js
 const BASE_URL = 'https://jayshop-retail-platform.vercel.app';
 const OUT_DIR = path.join(__dirname, 'deliverables', 'screenshots');
-const EMAIL = 'admin@jays.shop';
-const PASSWORD = 'BlueJays2026&';
+const EMAIL = process.env.SCREENSHOT_ADMIN_EMAIL;
+const PASSWORD = process.env.SCREENSHOT_ADMIN_PASSWORD;
+
+if (!EMAIL || !PASSWORD) {
+  throw new Error('SCREENSHOT_ADMIN_EMAIL and SCREENSHOT_ADMIN_PASSWORD env vars are required');
+}
 
 if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
