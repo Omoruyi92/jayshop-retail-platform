@@ -36,10 +36,10 @@ const BANNERS: Record<string, BannerConfig> = {
     tags: DEFAULT_TAGS,
   },
   men: {
-    eyebrow: 'Gear Up',
-    title: "MEN'S COLLECTION",
-    subtitle: 'Jerseys, fleece, and everyday essentials built for game day.',
-    gradient: 'from-jays-navy via-jays-royal to-jays-navy',
+    eyebrow: "Men's Collection",
+    title: 'FOR HIM',
+    subtitle: 'Premium Blue Jays gear designed for the modern fan.',
+    gradient: 'from-jays-navy via-blue-800 to-blue-900',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Shirt,
@@ -47,10 +47,10 @@ const BANNERS: Record<string, BannerConfig> = {
     tags: (SUBS_BY_CAT.men ?? []).map(titleCase),
   },
   women: {
-    eyebrow: 'Rep The Blue Jays',
-    title: "WOMEN'S COLLECTION",
-    subtitle: 'Bold styles and premium fits designed for every fan.',
-    gradient: 'from-rose-600 via-fuchsia-700 to-jays-navy',
+    eyebrow: "Women's Collection",
+    title: 'FOR HER',
+    subtitle: 'Stylish Blue Jays apparel crafted for every occasion.',
+    gradient: 'from-jays-navy via-purple-800 to-purple-900',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Sparkles,
@@ -58,76 +58,89 @@ const BANNERS: Record<string, BannerConfig> = {
     tags: (SUBS_BY_CAT.women ?? []).map(titleCase),
   },
   kids: {
-    eyebrow: 'Future Fans',
-    title: "KIDS' COLLECTION",
-    subtitle: 'Little-league gear for the youngest members of the Jays family.',
-    gradient: 'from-amber-400 via-orange-400 to-amber-500',
-    textClass: 'text-jays-navy',
-    chipClass: 'bg-jays-navy/10 text-jays-navy',
+    eyebrow: "Kids' Collection",
+    title: 'JUNIOR JAYS',
+    subtitle: 'Official Blue Jays gear for the next generation of fans.',
+    gradient: 'from-blue-600 via-teal-600 to-teal-700',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
     icon: Baby,
     ctaLabel: 'Shop Kids',
     tags: [...KIDS_SUBCATEGORIES].map(titleCase),
   },
   accessories: {
-    eyebrow: 'Finish The Look',
-    title: 'ACCESSORIES',
-    subtitle: 'Hats, bags, and collectibles to complete your fan gear.',
-    gradient: 'from-emerald-600 via-teal-600 to-jays-navy',
+    eyebrow: 'Accessories',
+    title: 'GEAR UP',
+    subtitle: 'Complete your look with official Blue Jays accessories.',
+    gradient: 'from-jays-navy via-slate-600 to-slate-700',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Watch,
     ctaLabel: 'Shop Accessories',
     tags: (SUBS_BY_CAT.accessories ?? []).map(titleCase),
   },
-  authentication: {
-    eyebrow: 'Verified Authentic',
-    title: 'AUTHENTICATION',
-    subtitle: 'Officially licensed, game-worn, and autographed collectibles.',
-    gradient: 'from-indigo-700 via-jays-royal to-jays-navy',
-    textClass: 'text-white',
-    chipClass: 'bg-white/10 text-white',
-    icon: ShieldCheck,
-    ctaLabel: 'Shop Authentication',
-    tags: ['Autographed', 'Game-Worn', 'Certified'],
-  },
   sport: {
-    eyebrow: 'Performance & Training',
-    title: 'SPORT GEAR',
-    subtitle: 'Training, travel, and game-day essentials for every Blue Jays supporter.',
-    gradient: 'from-slate-800 via-jays-navy to-jays-royal',
+    eyebrow: 'Sport Collection',
+    title: 'GAME READY',
+    subtitle: 'Performance gear for the diamond and beyond.',
+    gradient: 'from-blue-700 via-blue-800 to-jays-navy',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Trophy,
     ctaLabel: 'Shop Sport',
     tags: (SUBS_BY_CAT.sport ?? []).map(titleCase),
   },
-  authentic: {
-    eyebrow: 'Verified Authentic',
-    title: 'AUTHENTIC COLLECTIBLES',
-    subtitle: 'Officially licensed autographed, game-used, and certified memorabilia.',
-    gradient: 'from-indigo-700 via-jays-royal to-jays-navy',
+  Blanks: {
+    eyebrow: 'Blanks',
+    title: 'CLEAN SLATE',
+    subtitle: 'Premium blank apparel ready for customization.',
+    gradient: 'from-slate-500 via-slate-600 to-jays-navy',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
-    icon: ShieldCheck,
-    ctaLabel: 'Shop Authentic',
-    tags: ['Autographed', 'Game-Used', 'Certified'],
+    icon: Shirt,
+    ctaLabel: 'Shop Blanks',
+    tags: (SUBS_BY_CAT.blanks ?? []).map(titleCase),
   },
   Featured: {
-    eyebrow: 'Fan Favourites',
-    title: 'FEATURED PRODUCTS',
-    subtitle: 'Top-rated and hand-picked Blue Jays gear chosen for every fan.',
-    gradient: 'from-blue-500 via-blue-600 to-jays-navy',
+    eyebrow: "Editor's Picks",
+    title: 'FEATURED',
+    subtitle: 'Hand-picked selections from our latest drops.',
+    gradient: 'from-jays-red via-red-800 to-jays-navy',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Star,
     ctaLabel: 'Shop Featured',
     tags: ['Jerseys', 'Hats', 'Fleece'],
   },
+  // "authentication" is the slug the nav sends for the Authentics tab
+  authentication: {
+    eyebrow: 'Authentic Collection',
+    title: 'AUTHENTICS',
+    subtitle: 'Game-worn quality. Official MLB authenticated merchandise.',
+    gradient: 'from-blue-900 via-jays-royal to-yellow-700',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
+    icon: ShieldCheck,
+    ctaLabel: 'Shop Authentics',
+    tags: ['Autographed', 'Game-Worn', 'Certified'],
+  },
+  // "authentic" may come from DB-driven categories
+  authentic: {
+    eyebrow: 'Authentic Collection',
+    title: 'AUTHENTICS',
+    subtitle: 'Game-worn quality. Official MLB authenticated merchandise.',
+    gradient: 'from-blue-900 via-jays-royal to-yellow-700',
+    textClass: 'text-white',
+    chipClass: 'bg-white/10 text-white',
+    icon: ShieldCheck,
+    ctaLabel: 'Shop Authentics',
+    tags: ['Autographed', 'Game-Used', 'Certified'],
+  },
   'New Arrivals': {
-    eyebrow: 'Just Landed',
+    eyebrow: 'Just Dropped',
     title: 'NEW ARRIVALS',
-    subtitle: 'Fresh drops and the latest additions to the Jays Shop lineup.',
-    gradient: 'from-sky-500 via-blue-600 to-jays-navy',
+    subtitle: 'The freshest Blue Jays gear, straight from the press.',
+    gradient: 'from-blue-600 via-blue-700 to-jays-red',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: Sparkles,
@@ -135,26 +148,15 @@ const BANNERS: Record<string, BannerConfig> = {
     tags: [],
   },
   'Sales & Clearance': {
-    eyebrow: 'Up to 50% Off',
-    title: 'SALES & CLEARANCE',
-    subtitle: 'Score major savings on select jerseys, caps, and fan gear before they are gone.',
-    gradient: 'from-jays-red via-red-700 to-red-900',
+    eyebrow: 'Limited Time',
+    title: 'SALE',
+    subtitle: 'Score big savings on official Blue Jays merchandise.',
+    gradient: 'from-jays-red via-red-600 to-orange-500',
     textClass: 'text-white',
     chipClass: 'bg-white/10 text-white',
     icon: TagIcon,
     ctaLabel: 'Shop The Sale',
     tags: ['Limited Stock', 'Clearance', 'Hot Deals'],
-  },
-  Blanks: {
-    eyebrow: 'Blank Canvas',
-    title: 'BLANK JERSEYS',
-    subtitle: 'Plain jerseys, tees, and hoodies ready for your own name, number, or custom design.',
-    gradient: 'from-slate-300 via-slate-400 to-slate-500',
-    textClass: 'text-jays-navy',
-    chipClass: 'bg-jays-navy/10 text-jays-navy',
-    icon: Shirt,
-    ctaLabel: 'Shop Blanks',
-    tags: (SUBS_BY_CAT.blanks ?? []).map(titleCase),
   },
   'City Connect': {
     eyebrow: 'City Connect Fridays',
@@ -191,7 +193,7 @@ function bannerKey(activeCategory: string): string {
   // Exact match first (handles "All", "Featured", "Sales & Clearance", "Blanks")
   if (BANNERS[raw]) return raw
 
-  // Lowercase slug match (handles "men", "women", "sport", "authentic", etc.)
+  // Lowercase slug match (handles "men", "women", "sport", "authentic", "authentication", etc.)
   const lower = raw.toLowerCase()
   if (BANNERS[lower]) return lower
 
@@ -215,6 +217,7 @@ function bannerKey(activeCategory: string): string {
     'blanks': 'Blanks',
     'blank': 'Blanks',
     'authentication': 'authentication',
+    'authentics': 'authentication',
     'authentic': 'authentic',
     'city-connect': 'City Connect',
     'city connect': 'City Connect',
@@ -235,9 +238,9 @@ export default function CategoryBanner({ activeCategory }: { activeCategory: str
   return (
     <section className="w-full px-4 pt-6 sm:px-6 lg:px-8">
       <div
-        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br shadow-lg ring-1 ring-black/5 transition-colors duration-300 ${config.gradient} ${config.textClass}`}
+        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br shadow-lg ring-1 ring-black/5 transition-all duration-300 ${config.gradient} ${config.textClass}`}
       >
-        {/* subtle dotted texture, matches the sticky category nav treatment */}
+        {/* subtle dotted texture */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -246,11 +249,20 @@ export default function CategoryBanner({ activeCategory }: { activeCategory: str
             backgroundSize: '18px 18px',
           }}
         />
-        {/* soft glow orbs for a premium, layered feel */}
+        {/* soft glow orbs */}
         <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -right-12 -bottom-24 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-6 px-6 py-8 sm:px-8 sm:py-10 lg:flex-row lg:items-center lg:justify-between">
+        {/*
+          key={activeCategory} causes React to unmount + remount this div on
+          every category switch, which re-triggers the animate-fade-in-up CSS
+          animation — giving a smooth fade-and-rise transition for all text
+          content whenever the selected category changes.
+        */}
+        <div
+          key={activeCategory}
+          className="relative flex flex-col gap-6 px-6 py-8 sm:px-8 sm:py-10 lg:flex-row lg:items-center lg:justify-between animate-fade-in-up"
+        >
           <div className="flex items-start gap-4">
             <span
               className={`hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-lg sm:flex ${
