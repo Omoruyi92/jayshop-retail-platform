@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import type { HeroScope, Slide } from '@/types/hero'
 import { useHeroMedia } from '@/hooks/useHeroMedia'
 
@@ -37,6 +38,15 @@ interface HeroSlideshowProps {
    * Players where a more energetic browsing feel is desired.
    */
   transition?: 'fade' | 'slide'
+  /**
+   * Whether to render the play/pause + prev/next control bar. Defaults to
+   * true; controls only actually render once there are 2+ slides (a single
+   * slide has nothing to navigate to/from). Controls are absolutely
+   * positioned overlays anchored to this component's own `inset-0`
+   * container, so they never affect the outer hero section's reserved
+   * dimensions — no CLS impact.
+   */
+  showControls?: boolean
 }
 
 export default function HeroSlideshow({
@@ -47,9 +57,15 @@ export default function HeroSlideshow({
   initialSlides,
   overlay = true,
   transition = 'fade',
+  showControls = true,
 }: HeroSlideshowProps) {
   const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
+  // Whether automatic rotation is currently running. Manual prev/next always
+  // pauses it (a common, predictable carousel UX pattern — the user just
+  // told the slideshow what they want to look at, so it shouldn't immediately
+  // sweep past it), and the play/pause button toggles it directly.
+  const [isPlaying, setIsPlaying] = useState(true)
   // Tracks which slides have finished decoding/loading their media. Until a
   // given slide's own image/video signals ready, it stays invisible (opacity
   // 0) rather than painting the browser's partial/progressive decode — this
@@ -59,15 +75,34 @@ export default function HeroSlideshow({
   const markReady = (id: string) =>
     setReadyIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
 
+  const slideCount = slides.length
+  const goTo = useCallback(
+    (next: number) => {
+      setIndex(((next % slideCount) + slideCount) % slideCount)
+    },
+    [slideCount]
+  )
+  const goPrev = useCallback(() => {
+    setIsPlaying(false)
+    goTo(index - 1)
+  }, [goTo, index])
+  const goNext = useCallback(() => {
+    setIsPlaying(false)
+    goTo(index + 1)
+  }, [goTo, index])
+  const togglePlaying = useCallback(() => setIsPlaying((p) => !p), [])
+
   useEffect(() => {
-    if (slides.length <= 1) return
+    if (slideCount <= 1 || !isPlaying) return
     const id = setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length)
+      setIndex((i) => (i + 1) % slideCount)
     }, interval)
     return () => clearInterval(id)
-  }, [slides.length, interval])
+  }, [slideCount, interval, isPlaying])
 
   if (!loaded || slides.length === 0) return null
+
+  const hasControls = showControls && slideCount > 1
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
@@ -133,6 +168,57 @@ export default function HeroSlideshow({
           </div>
         )
       })}
+
+      {hasControls && (
+        <>
+          {/* Prev/next arrows sit vertically centered on the left/right
+              edges — every hero's text/CTA content is anchored to the top
+              or bottom edge (never the vertical middle), so this placement
+              never overlaps content on any scope, including on narrow
+              mobile widths where bottom-anchored headlines and CTAs can
+              span nearly the full section width. The right arrow is inset
+              further from the edge on `sm:`+ to clear the site-wide fixed
+              "Feedback" edge tab (`FeedbackTab` variant="floating"), a
+              ~32px-wide tab pinned to the viewport's right edge,
+              vertically centered, on desktop only (it's hidden below
+              `sm:`, matching this same breakpoint). Subtle by default
+              (semi-transparent), brightens on hover/focus. */}
+          <button
+            type="button"
+            onClick={goPrev}
+            aria-label="Previous slide"
+            className="absolute left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:left-3 sm:h-10 sm:w-10"
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label="Next slide"
+            className="absolute right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:right-12 sm:h-10 sm:w-10"
+          >
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+
+          {/* Play/pause lives in the top-left corner — the one corner none
+              of the hero sections use for overlaid content (headline/CTA
+              content anchors bottom-left/bottom-right, the Game Day badge
+              anchors top-right), so it stays clear on every scope. */}
+          <button
+            type="button"
+            onClick={togglePlaying}
+            aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+            aria-pressed={isPlaying}
+            className="absolute left-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:left-3 sm:top-3 sm:h-9 sm:w-9"
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="h-4 w-4 translate-x-[1px]" aria-hidden="true" />
+            )}
+          </button>
+        </>
+      )}
     </div>
   )
 }
