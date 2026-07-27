@@ -181,6 +181,14 @@ export default function HeroSlideshow({
         // navy flash this was meant to eliminate.
         const isReady = readyIds.has(slide.id)
         const hasBlur = slide.mediaType === 'IMAGE' && !!slide.blurDataURL
+        // Video slides: absolutely positioned to fill the slide container
+        // (matching the Next/Image `fill` layout) so the video element
+        // never causes a reflow or CLS on load. will-change-transform
+        // promotes it to its own GPU compositing layer for jitter-free
+        // opacity cross-fades.
+        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} will-change-transform transition-opacity duration-500 ease-out ${
+          isReady ? 'opacity-100' : 'opacity-0'
+        }`
         const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${
           hasBlur || isReady ? 'opacity-100' : 'opacity-0'
         }`
@@ -196,7 +204,9 @@ export default function HeroSlideshow({
                 autoPlay
                 muted
                 playsInline
-                className={mediaCls}
+                preload="auto"
+                disablePictureInPicture
+                className={videoCls}
                 aria-label={slide.altText || `${scope} hero video`}
                 onLoadedData={() => markReady(slide.id)}
                 onEnded={handleVideoEnded}
@@ -223,46 +233,28 @@ export default function HeroSlideshow({
       })}
 
       {hasControls && (
-        <>
-          {/* Prev/next arrows sit vertically centered on the left/right
-              edges — every hero's text/CTA content is anchored to the top
-              or bottom edge (never the vertical middle), so this placement
-              never overlaps content on any scope, including on narrow
-              mobile widths where bottom-anchored headlines and CTAs can
-              span nearly the full section width. The right arrow is inset
-              further from the edge on `sm:`+ to clear the site-wide fixed
-              "Feedback" edge tab (`FeedbackTab` variant="floating"), a
-              ~32px-wide tab pinned to the viewport's right edge,
-              vertically centered, on desktop only (it's hidden below
-              `sm:`, matching this same breakpoint). Subtle by default
-              (semi-transparent), brightens on hover/focus. */}
+        /* Single grouped control bar — [Prev] [Play/Pause] [Next] — pinned
+           to the bottom-center of the hero. Absolutely positioned so it
+           never affects the hero's reserved dimensions (no CLS). The pill
+           sits above any bottom-anchored content via z-20 and uses a
+           semi-transparent dark background + backdrop-blur so it stays
+           legible over both light and dark media. */
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/40 px-2 py-1.5 shadow-lg backdrop-blur-md sm:bottom-4 sm:gap-1.5 sm:px-3 sm:py-2">
           <button
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className="absolute left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:left-3 sm:h-10 sm:w-10"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            onClick={goNext}
-            aria-label="Next slide"
-            className="absolute right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:right-12 sm:h-10 sm:w-10"
-          >
-            <ChevronRight className="h-5 w-5" aria-hidden="true" />
-          </button>
 
-          {/* Play/pause lives in the top-left corner — the one corner none
-              of the hero sections use for overlaid content (headline/CTA
-              content anchors bottom-left/bottom-right, the Game Day badge
-              anchors top-right), so it stays clear on every scope. */}
           <button
             type="button"
             onClick={togglePlaying}
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
             aria-pressed={isPlaying}
-            className="absolute left-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-jays-navy/40 text-white opacity-70 shadow-md backdrop-blur-md transition-all hover:bg-jays-navy/60 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:left-3 sm:top-3 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4" aria-hidden="true" />
@@ -270,7 +262,16 @@ export default function HeroSlideshow({
               <Play className="h-4 w-4 translate-x-[1px]" aria-hidden="true" />
             )}
           </button>
-        </>
+
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label="Next slide"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+          >
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
       )}
     </div>
   )
