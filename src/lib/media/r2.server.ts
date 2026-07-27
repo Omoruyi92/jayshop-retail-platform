@@ -55,9 +55,17 @@ function normalizeR2Endpoint(endpoint: string, bucket: string): string {
 }
 
 function getClient(): S3Client {
-  const rawEndpoint = process.env.R2_ENDPOINT
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
+  const rawEndpoint = process.env.R2_ENDPOINT?.trim()
+  // Trim defensively: a stray trailing newline/whitespace pasted into the
+  // Vercel dashboard (common copy-paste artifact) survives into these values
+  // verbatim. For actual (non-presigned) SDK calls this ends up in the
+  // Authorization header and Node's setHeader throws ERR_INVALID_CHAR. For
+  // presigned URLs it silently corrupts the computed signature instead,
+  // which R2 rejects with an auth error that (unlike CORS preflight) carries
+  // no Access-Control-Allow-Origin header -- surfacing in the browser as a
+  // misleading "blocked by CORS policy" failure.
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID?.trim()
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY?.trim()
 
   if (!rawEndpoint || !accessKeyId || !secretAccessKey) {
     throw new Error('Missing R2 credentials. Set R2_ENDPOINT, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY.')
@@ -81,13 +89,13 @@ function getClient(): S3Client {
 }
 
 function getBucket(): string {
-  const bucket = process.env.R2_BUCKET_NAME
+  const bucket = process.env.R2_BUCKET_NAME?.trim()
   if (!bucket) throw new Error('Missing R2_BUCKET_NAME')
   return bucket
 }
 
 function getPublicUrl(): string {
-  const publicUrl = process.env.R2_PUBLIC_URL
+  const publicUrl = process.env.R2_PUBLIC_URL?.trim()
   if (!publicUrl) throw new Error('Missing R2_PUBLIC_URL')
   return publicUrl.replace(/\/$/, '')
 }
