@@ -145,7 +145,7 @@ export default function GameDayGuidePage() {
               </div>
               <div className="bg-white p-4 rounded border border-jays-steel/20">
                 <strong className="text-jays-navy block mb-1">Check the Concourse</strong>
-                <p className="text-sm text-gray-600">If Gate 1 is packed, check the 100-level and 200-level kiosks for popular items like hats and jerseys.</p>
+                <p className="text-sm text-gray-600">If Gate 5 is packed, use the map directions on the website to find a kiosk for popular items like hats and jerseys.</p>
               </div>
             </div>
           </div>
