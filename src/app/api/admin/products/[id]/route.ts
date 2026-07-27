@@ -4,7 +4,6 @@ import { nanoid } from 'nanoid'
 import { requireRole } from '@/lib/auth/authorize.server'
 import {
   isLocalUpload,
-  isBlobUpload,
   getImageReferences,
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
@@ -176,7 +175,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     // deleting or replacing one image slot must not leave orphaned files,
     // and must not touch files still referenced by the other two slots.
     const cleanupIfChanged = async (oldUrl: string | null, newUrl: string | undefined) => {
-      if (oldUrl && newUrl !== undefined && newUrl !== oldUrl && (isLocalUpload(oldUrl) || isBlobUpload(oldUrl))) {
+      if (oldUrl && newUrl !== undefined && newUrl !== oldUrl && isLocalUpload(oldUrl)) {
         const refs = await getImageReferences(prisma, oldUrl)
         if (refs === 0) await safeUnlinkUpload(oldUrl)
       }
@@ -248,7 +247,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     if (existing?.slug) revalidatePath(`/shop/${existing.slug}`)
     revalidatePath('/shop')
 
-    if (existing?.imageUrl && (isLocalUpload(existing.imageUrl) || isBlobUpload(existing.imageUrl))) {
+    if (existing?.imageUrl && isLocalUpload(existing.imageUrl)) {
       const refs = await getImageReferences(prisma, existing.imageUrl)
       if (refs === 0) await safeUnlinkUpload(existing.imageUrl)
     }

@@ -1,40 +1,28 @@
 import { mkdir, writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
-import { put, del } from '@vercel/blob'
 import { isBlobUpload, isStaticHeroVideo } from '../upload'
 
 /**
  * Server-side helpers for persisting uploaded files. These import Node's
  * `fs/promises` and therefore must only be used inside API routes / server
  * components, never in client bundles.
+ *
+ * All uploads now go to the local `public/` directory and are served as static
+ * assets by Vercel's Edge Network. The previous Vercel Blob path has been
+ * removed so the Blob store can be deleted/downgraded without breaking uploads.
  */
-
-function blobEnabled(): boolean {
-  return !!process.env.BLOB_READ_WRITE_TOKEN
-}
 
 /**
  * Persists an uploaded file buffer and returns its public URL.
- *  - If BLOB_READ_WRITE_TOKEN is set: uploads to Vercel Blob (`put`).
- *  - Otherwise: writes to `public/uploads/<subdir>/<fileName>`.
+ * Writes to `public/uploads/<subdir>/<fileName>` and returns `/uploads/...`.
  */
 export async function saveUploadedFile(
   buffer: Buffer,
   fileName: string,
-  contentType: string,
+  _contentType: string,
   subdir?: string
 ): Promise<string> {
   const pathname = subdir ? `${subdir}/${fileName}` : fileName
-
-  if (blobEnabled()) {
-    const blob = await put(pathname, buffer, {
-      access: 'public',
-      contentType,
-      addRandomSuffix: false,
-    })
-    return blob.url
-  }
-
   const uploadDir = subdir
     ? join(process.cwd(), 'public', 'uploads', subdir)
     : join(process.cwd(), 'public', 'uploads')
@@ -45,7 +33,7 @@ export async function saveUploadedFile(
 
 /**
  * Saves a hero video directly to `public/hero-videos/<scope>/<fileName>` so it
- * is served as a static asset instead of via Vercel Blob.
+ * is served as a static asset.
  */
 export async function saveHeroVideo(
   buffer: Buffer,
@@ -59,33 +47,20 @@ export async function saveHeroVideo(
 }
 
 /**
- * Best-effort delete of a previously-uploaded file on Blob, `public/uploads/`,
+ * Best-effort delete of a previously-uploaded file on `public/uploads/`
  * or `public/hero-videos/`. Never throws.
  */
 export async function deleteUploadedFile(url: string): Promise<void> {
-  if (isBlobUpload(url)) {
-    try {
-      await del(url)
-    } catch {
-      // ignore
-    }
-    return
-  }
+  const filePath = url.startsWith('/uploads/')
+    ? join(process.cwd(), 'public', url)
+    : isStaticHeroVideo(url)
+    ? join(process.cwd(), 'public', url)
+    : null
 
-  if (url.startsWith('/uploads/')) {
-    try {
-      await unlink(join(process.cwd(), 'public', url))
-    } catch {
-      // ignore
-    }
-    return
-  }
-
-  if (isStaticHeroVideo(url)) {
-    try {
-      await unlink(join(process.cwd(), 'public', url))
-    } catch {
-      // ignore
-    }
+  if (!filePath) return
+  try {
+    await unlink(filePath)
+  } catch {
+    // ignore (already deleted or never existed)
   }
 }

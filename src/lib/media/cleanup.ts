@@ -1,8 +1,7 @@
 import { unlink, access } from 'fs/promises'
 import { join } from 'path'
 import type { PrismaClient } from '@prisma/client'
-import { isBlobUpload as isBlobUploadUrl, isStaticHeroVideo } from './upload'
-import { deleteUploadedFile } from './server/upload.server'
+import { isStaticHeroVideo } from './upload'
 
 /**
  * Returns true if the imageUrl is a locally-uploaded file (starts with /uploads/).
@@ -12,21 +11,12 @@ export function isLocalUpload(imageUrl: string): boolean {
 }
 
 /**
- * Returns true if the imageUrl points to a Vercel Blob-hosted upload
- * (runtime uploads made via src/lib/media/upload.ts when
- * BLOB_READ_WRITE_TOKEN is configured, e.g. in production).
- */
-export function isBlobUpload(imageUrl: string): boolean {
-  return isBlobUploadUrl(imageUrl)
-}
-
-/**
  * Returns true if the imageUrl is a runtime upload managed by this app
- * (either local filesystem or Vercel Blob), as opposed to an external URL
- * (Cloudinary, Unsplash, etc.) or a committed seed image.
+ * (local filesystem), as opposed to an external URL (Cloudinary, Unsplash,
+ * etc.) or a committed seed image.
  */
 export function isManagedUpload(imageUrl: string): boolean {
-  return isLocalUpload(imageUrl) || isBlobUpload(imageUrl)
+  return isLocalUpload(imageUrl) || isStaticHeroVideo(imageUrl)
 }
 
 /**
@@ -52,15 +42,12 @@ export function resolveUploadPath(filename: string): string {
  * A file is only safe to delete when this returns 0. Checking all three
  * image slots (not just imageUrl) prevents deleting a file that is still
  * displayed as Image 2 or Image 3 on this product or any other product.
- *
- * Accepts either a local `/uploads/...` URL or a Vercel Blob URL — both are
- * stored verbatim in the DB's imageUrl fields, so no translation is needed.
  */
 export async function getImageReferences(
   prisma: PrismaClient,
   urlOrFilename: string
 ): Promise<number> {
-  const url = isBlobUpload(urlOrFilename) ? urlOrFilename : `/uploads/${extractFilename(urlOrFilename)}`
+  const url = `/uploads/${extractFilename(urlOrFilename)}`
 
   const [productCount, historyCount] = await Promise.all([
     prisma.product.count({
@@ -73,18 +60,12 @@ export async function getImageReferences(
 }
 
 /**
- * Safely deletes a previously-uploaded file, whether it's a local
- * `public/uploads/` file or a Vercel Blob object.
- * - Skips if the URL is neither (e.g. an external/seed image).
+ * Safely deletes a previously-uploaded local file.
+ * - Skips if the URL is neither a local upload nor a static hero video.
  * - Swallows "already deleted" errors silently.
  * - Re-throws unexpected errors for local files (preserves prior behavior).
  */
 export async function safeUnlinkUpload(imageUrl: string): Promise<void> {
-  if (isBlobUploadUrl(imageUrl)) {
-    await deleteUploadedFile(imageUrl)
-    return
-  }
-
   if (!isLocalUpload(imageUrl) && !isStaticHeroVideo(imageUrl)) return
 
   const filename = isStaticHeroVideo(imageUrl) ? imageUrl.replace(/^\/hero-videos\//, '') : extractFilename(imageUrl)
