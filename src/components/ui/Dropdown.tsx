@@ -105,8 +105,8 @@ export default function Dropdown({
         role="listbox"
         aria-labelledby={buttonId}
         className={cn(
-          'absolute z-50 mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150',
-          align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',
+          'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150 sm:absolute',
+          align === 'right' ? 'right-2 origin-top-right sm:right-0' : 'left-2 origin-top-left sm:left-0',
           isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
           panelClassName ?? 'w-56'
         )}
