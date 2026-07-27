@@ -1,27 +1,44 @@
 import { mkdir, writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
-import { isBlobUpload, isStaticHeroVideo } from '../upload'
+import { isBlobUpload, isStaticHeroVideo, isR2Upload } from '../upload'
+import { saveToR2, deleteFromR2 } from '../r2.server'
 
 /**
  * Server-side helpers for persisting uploaded files. These import Node's
  * `fs/promises` and therefore must only be used inside API routes / server
  * components, never in client bundles.
  *
- * All uploads now go to the local `public/` directory and are served as static
- * assets by Vercel's Edge Network. The previous Vercel Blob path has been
- * removed so the Blob store can be deleted/downgraded without breaking uploads.
+ * - Hero videos are always saved to `public/hero-videos/` and committed to git
+ *   so they are durable static assets.
+ * - All other image uploads go to Cloudflare R2 when R2 credentials are
+ *   configured, otherwise fall back to the local `public/uploads/` filesystem.
  */
+
+function r2Enabled(): boolean {
+  return !!(
+    process.env.R2_ENDPOINT &&
+    process.env.R2_ACCESS_KEY_ID &&
+    process.env.R2_SECRET_ACCESS_KEY &&
+    process.env.R2_BUCKET_NAME &&
+    process.env.R2_PUBLIC_URL
+  )
+}
 
 /**
  * Persists an uploaded file buffer and returns its public URL.
- * Writes to `public/uploads/<subdir>/<fileName>` and returns `/uploads/...`.
+ *  - If R2 credentials are configured: uploads to Cloudflare R2.
+ *  - Otherwise: writes to `public/uploads/<subdir>/<fileName>`.
  */
 export async function saveUploadedFile(
   buffer: Buffer,
   fileName: string,
-  _contentType: string,
+  contentType: string,
   subdir?: string
 ): Promise<string> {
+  if (r2Enabled()) {
+    return saveToR2(buffer, fileName, contentType, subdir)
+  }
+
   const pathname = subdir ? `${subdir}/${fileName}` : fileName
   const uploadDir = subdir
     ? join(process.cwd(), 'public', 'uploads', subdir)
@@ -33,7 +50,7 @@ export async function saveUploadedFile(
 
 /**
  * Saves a hero video directly to `public/hero-videos/<scope>/<fileName>` so it
- * is served as a static asset.
+ * is served as a committed static asset on Vercel's Edge Network.
  */
 export async function saveHeroVideo(
   buffer: Buffer,
@@ -47,10 +64,16 @@ export async function saveHeroVideo(
 }
 
 /**
- * Best-effort delete of a previously-uploaded file on `public/uploads/`
- * or `public/hero-videos/`. Never throws.
+ * Best-effort delete of a previously-uploaded file, whether it lives on
+ * Cloudflare R2, the local `public/uploads/` filesystem, or `public/hero-videos/`.
+ * Never throws.
  */
 export async function deleteUploadedFile(url: string): Promise<void> {
+  if (isR2Upload(url)) {
+    await deleteFromR2(url)
+    return
+  }
+
   const filePath = url.startsWith('/uploads/')
     ? join(process.cwd(), 'public', url)
     : isStaticHeroVideo(url)

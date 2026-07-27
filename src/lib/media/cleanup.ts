@@ -1,7 +1,8 @@
 import { unlink, access } from 'fs/promises'
 import { join } from 'path'
 import type { PrismaClient } from '@prisma/client'
-import { isStaticHeroVideo } from './upload'
+import { isR2Upload, isStaticHeroVideo } from './upload'
+import { deleteFromR2 } from './r2.server'
 
 /**
  * Returns true if the imageUrl is a locally-uploaded file (starts with /uploads/).
@@ -12,11 +13,11 @@ export function isLocalUpload(imageUrl: string): boolean {
 
 /**
  * Returns true if the imageUrl is a runtime upload managed by this app
- * (local filesystem), as opposed to an external URL (Cloudinary, Unsplash,
- * etc.) or a committed seed image.
+ * (local filesystem, R2, or hero video), as opposed to an external URL
+ * (Cloudinary, Unsplash, etc.) or a committed seed image.
  */
 export function isManagedUpload(imageUrl: string): boolean {
-  return isLocalUpload(imageUrl) || isStaticHeroVideo(imageUrl)
+  return isLocalUpload(imageUrl) || isR2Upload(imageUrl) || isStaticHeroVideo(imageUrl)
 }
 
 /**
@@ -42,12 +43,14 @@ export function resolveUploadPath(filename: string): string {
  * A file is only safe to delete when this returns 0. Checking all three
  * image slots (not just imageUrl) prevents deleting a file that is still
  * displayed as Image 2 or Image 3 on this product or any other product.
+ *
+ * Accepts local `/uploads/...` URLs or R2 URLs — both are stored verbatim.
  */
 export async function getImageReferences(
   prisma: PrismaClient,
   urlOrFilename: string
 ): Promise<number> {
-  const url = `/uploads/${extractFilename(urlOrFilename)}`
+  const url = isR2Upload(urlOrFilename) ? urlOrFilename : `/uploads/${extractFilename(urlOrFilename)}`
 
   const [productCount, historyCount] = await Promise.all([
     prisma.product.count({
@@ -60,12 +63,18 @@ export async function getImageReferences(
 }
 
 /**
- * Safely deletes a previously-uploaded local file.
- * - Skips if the URL is neither a local upload nor a static hero video.
+ * Safely deletes a previously-uploaded file.
+ * - R2 URLs are deleted from the bucket.
+ * - Local `/uploads/` or `/hero-videos/` files are deleted from disk.
  * - Swallows "already deleted" errors silently.
  * - Re-throws unexpected errors for local files (preserves prior behavior).
  */
 export async function safeUnlinkUpload(imageUrl: string): Promise<void> {
+  if (isR2Upload(imageUrl)) {
+    await deleteFromR2(imageUrl)
+    return
+  }
+
   if (!isLocalUpload(imageUrl) && !isStaticHeroVideo(imageUrl)) return
 
   const filename = isStaticHeroVideo(imageUrl) ? imageUrl.replace(/^\/hero-videos\//, '') : extractFilename(imageUrl)
@@ -85,7 +94,7 @@ export async function safeUnlinkUpload(imageUrl: string): Promise<void> {
  * Returns true if a local upload file physically exists on disk.
  */
 export async function uploadFileExists(imageUrl: string): Promise<boolean> {
-  if (!isLocalUpload(imageUrl)) return true // external URLs are assumed reachable
+  if (!isLocalUpload(imageUrl)) return true // external / R2 URLs are assumed reachable
 
   const filename = extractFilename(imageUrl)
   const filePath = resolveUploadPath(filename)

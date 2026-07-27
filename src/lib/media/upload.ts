@@ -9,3 +9,10 @@ export function isBlobUpload(url: string): boolean {
 export function isStaticHeroVideo(url: string): boolean {
   return url.startsWith('/hero-videos/')
 }
+
+/** Matches a URL served from the configured Cloudflare R2 public domain. */
+export function isR2Upload(url: string): boolean {
+  const publicUrl = process.env.R2_PUBLIC_URL
+  if (!publicUrl) return false
+  return url.startsWith(publicUrl.replace(/\/$/, ''))
+}

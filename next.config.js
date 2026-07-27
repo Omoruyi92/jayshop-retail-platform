@@ -34,8 +34,10 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'media.istockphoto.com' },
       { protocol: 'https', hostname: 'www.cardboardmemories.ca' },
-      // Vercel Blob storage — hostname is <store-id>.public.blob.vercel-storage.com
+      // Vercel Blob storage — kept for legacy URLs already stored in the DB
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
+      // Cloudflare R2 public bucket — add your R2_PUBLIC_URL hostname here
+      // Example: { protocol: 'https', hostname: 'jayshop-media.your-account.workers.dev' },
     ],
   },
 }
