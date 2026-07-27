@@ -57,3 +57,6 @@ cookies*.txt
 headers*.txt
 login_headers.txt
 .env*
+
+# credential / infrastructure reference docs (never commit, see history: 36fd9c2)
+docs/jayshop-cloud-storage-reference.*
