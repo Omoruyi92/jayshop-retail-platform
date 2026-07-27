@@ -32,19 +32,31 @@ const WE_CARE_VALUES = [
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
 ]
 
-/* Renders the promo marquee strip ONLY when there are active promotions.
-   The store status (LocationBadge) is now independently placed in the
-   main nav row, so this strip is purely promotional — it vanishes
-   completely from the DOM when no promotions are active, leaving no
-   empty container or placeholder behind. */
-function PromoOnlyStrip() {
+/* Conditionally renders the promotion marquee only when promotions exist.
+   Rendered INSIDE StoreStatusStrip, alongside the always-visible LocationBadge. */
+function PromoMarqueeIfActive() {
   const promotions = usePromotions()
   if (promotions.length === 0) return null
+  return (
+    <>
+      <span className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <PromoMarquee compact />
+    </>
+  )
+}
 
+/* Always-visible store status strip for non-xl screens.
+   This strip ALWAYS renders — it is never conditional.
+   LocationBadge (store status) is ALWAYS shown.
+   PromoMarquee is added alongside only when active promotions exist.
+   This ensures 'JAYS SHOP · Toronto · Closed · Opens at 10:00 AM'
+   is permanently visible on mobile/tablet regardless of promo state. */
+function StoreStatusStrip() {
   return (
     <div className="xl:hidden bg-jays-royal/80 border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center justify-center">
-        <PromoMarquee compact />
+      <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3 min-w-0">
+        <LocationBadge compact />
+        <PromoMarqueeIfActive />
       </div>
     </div>
   )
@@ -157,12 +169,8 @@ export default function Header() {
           <PartnerLogosBar />
         </div>
 
-        {/* Store status — always visible on non-xl screens, independent of
-            promotions. Sits in the flex-1 center slot of the main nav row
-            so it never disappears when the promo strip is absent. */}
-        <div className="flex xl:hidden items-center flex-1 min-w-0 mx-1 sm:mx-2 overflow-hidden">
-          <LocationBadge compact />
-        </div>
+        {/* Spacer on non-xl screens — store status lives in StoreStatusStrip below */}
+        <div className="flex-1 xl:hidden" />
 
         {/* Right: We Care, Language, Nav */}
         <div className="flex items-center gap-0 xs:gap-0.5 sm:gap-2 shrink-0">
@@ -334,10 +342,10 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Promo-only strip — below-xl, renders only when active promotions
-          exist. The store status is in the main nav row above, so this
-          container disappears entirely from the DOM when there are none. */}
-      <PromoOnlyStrip />
+      {/* Store status strip — ALWAYS visible on non-xl screens.
+          LocationBadge is unconditional. PromoMarquee only appears
+          alongside it when active promotions exist. */}
+      <StoreStatusStrip />
     </header>
   )
 }
