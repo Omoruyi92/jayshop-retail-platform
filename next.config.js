@@ -36,8 +36,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.cardboardmemories.ca' },
       // Vercel Blob storage — kept for legacy URLs already stored in the DB
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
-      // Cloudflare R2 public bucket — add your R2_PUBLIC_URL hostname here
-      // Example: { protocol: 'https', hostname: 'jayshop-media.your-account.workers.dev' },
+      // Cloudflare R2 public bucket
+      { protocol: 'https', hostname: 'pub-3d3bdd757883440d8a771904dea90451.r2.dev' },
     ],
   },
 }
