@@ -163,10 +163,10 @@ export default function HeroSlideshow({
           let rel = i - index
           if (rel > total / 2) rel -= total
           if (rel < -total / 2) rel += total
-          cls = 'absolute inset-0 transition-transform duration-700 ease-in-out will-change-transform'
+          cls = 'absolute inset-0 transition-transform duration-700 ease-in-out will-change-transform backface-hidden'
           style = { transform: `translateX(${rel * 100}%)`, zIndex: i === index ? 1 : 0 }
         } else {
-          cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'}`
+          cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] backface-hidden ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'}`
           style = {}
         }
         // Videos have no still-frame placeholder, so they keep the previous
@@ -186,7 +186,7 @@ export default function HeroSlideshow({
         // never causes a reflow or CLS on load. will-change-transform
         // promotes it to its own GPU compositing layer for jitter-free
         // opacity cross-fades.
-        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} will-change-transform transition-opacity duration-500 ease-out ${
+        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} will-change-transform backface-hidden transition-opacity duration-500 ease-out ${
           isReady ? 'opacity-100' : 'opacity-0'
         }`
         const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${
@@ -207,6 +207,7 @@ export default function HeroSlideshow({
                 preload="auto"
                 disablePictureInPicture
                 className={videoCls}
+                style={{ WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}
                 aria-label={slide.altText || `${scope} hero video`}
                 onLoadedData={() => markReady(slide.id)}
                 onEnded={handleVideoEnded}
