@@ -153,6 +153,14 @@ export default function HeroSlideshow({
 
   const hasControls = showControls && slideCount > 1
 
+  // Derive a lightweight poster for video slides from the nearest image slide's
+  // server-generated blurDataURL. data: URIs are valid <video poster> values in
+  // all modern browsers. This prevents a black video frame while autoPlay buffers
+  // the first frames — especially important for video-first hero configurations
+  // where no image slide exists to provide a heroFallbackStyle section background.
+  const nearestBlurDataURL =
+    slides.find((s) => s.mediaType === 'IMAGE' && !!s.blurDataURL)?.blurDataURL ?? undefined
+
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
       {slides.map((slide, i) => {
@@ -169,28 +177,43 @@ export default function HeroSlideshow({
           cls = `absolute inset-0 transition-opacity duration-1000 ease-in-out will-change-[opacity] backface-hidden ${i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'}`
           style = {}
         }
-        // Videos have no still-frame placeholder, so they keep the previous
-        // behavior: stay fully transparent (revealing the blurred image
-        // underneath, or the solid background as a last resort) until their
-        // own load event fires, avoiding a partially-decoded/streaming
-        // frame. Images that have a server-generated `blurDataURL` skip
-        // this gate entirely — Next's native `placeholder="blur"` already
-        // shows that soft preview immediately and cross-fades to the
-        // full-res decode on its own `onLoad`, so our own opacity gate
-        // would otherwise hide that blur too and bring back the solid
-        // navy flash this was meant to eliminate.
         const isReady = readyIds.has(slide.id)
         const hasBlur = slide.mediaType === 'IMAGE' && !!slide.blurDataURL
+        // The first slide (i === 0) is exempt from the readyIds opacity gate.
+        // readyIds exists to prevent partially-decoded images from flashing in
+        // during cross-fade transitions between slides — a valid concern for
+        // slides 1, 2, … that the user hasn't requested yet. For the FIRST slide
+        // it is counter-productive: because readyIds starts as an empty Set on
+        // every render (SSR and client-hydration alike), gating i === 0 on it
+        // means the first slide's media is opacity-0 in the initial SSR HTML and
+        // stays opacity-0 until onLoad/onLoadedData fires — which can be 1–5 s
+        // on a slow connection. The user sees nothing but the solid bg-jays-navy
+        // fallback for that entire window, which is the "blank hero" flash.
+        //
+        // With the gate removed for i === 0:
+        //  • IMAGE slides with blurDataURL: placeholder="blur" shows the inline
+        //    blurred preview from the first composited frame; heroFallbackStyle on
+        //    the parent <section> shows the same blur via CSS background — both
+        //    are visible before any JS runs, and the full-res image cross-fades in
+        //    on its own onLoad without any additional state change needed.
+        //  • IMAGE slides without blurDataURL: the <img> is transparent until
+        //    decoded (AVIF/WebP are non-progressive), but the section's bg-jays-navy
+        //    shows through — same as before, but now the final decode appears
+        //    directly (no 500 ms fade-in delay added by a state→opacity transition).
+        //  • VIDEO slides: with opacity-100 from first render plus poster= set to
+        //    the nearest image slide's blurDataURL, the browser immediately paints
+        //    the poster frame while autoPlay buffers — no black frame, no navy flash.
+        const isFirstSlide = i === 0
         // Video slides: absolutely positioned to fill the slide container
         // (matching the Next/Image `fill` layout) so the video element
         // never causes a reflow or CLS on load. will-change-transform
         // promotes it to its own GPU compositing layer for jitter-free
         // opacity cross-fades.
         const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} will-change-transform backface-hidden transition-opacity duration-500 ease-out ${
-          isReady ? 'opacity-100' : 'opacity-0'
+          isFirstSlide || isReady ? 'opacity-100' : 'opacity-0'
         }`
         const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${
-          hasBlur || isReady ? 'opacity-100' : 'opacity-0'
+          isFirstSlide || hasBlur || isReady ? 'opacity-100' : 'opacity-0'
         }`
         return (
           <div key={slide.id} className={cls} style={style}>
@@ -205,6 +228,7 @@ export default function HeroSlideshow({
                 muted
                 playsInline
                 preload="auto"
+                poster={nearestBlurDataURL}
                 disablePictureInPicture
                 className={videoCls}
                 style={{ WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}
