@@ -280,7 +280,7 @@ export default function HeroSlideshow({
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -303,7 +303,7 @@ export default function HeroSlideshow({
             type="button"
             onClick={goNext}
             aria-label="Next slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
