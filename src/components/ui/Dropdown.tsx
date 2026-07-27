@@ -44,6 +44,7 @@ export default function Dropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [position, setPosition] = useState<{ top: number; left?: number; right?: number } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const reactId = useId()
@@ -53,6 +54,38 @@ export default function Dropdown({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPosition(null)
+      return
+    }
+    function compute() {
+      const button = rootRef.current
+      if (!button) return
+      const rect = button.getBoundingClientRect()
+      const gap = 6
+      const panelWidth = typeof window !== 'undefined' && window.innerWidth < 640 ? Math.min(288, window.innerWidth - 16) : 256
+      const viewportWidth = window.innerWidth
+      let left = Math.max(8, rect.left)
+      let right: number | undefined
+      if (left + panelWidth > viewportWidth - 8) {
+        left = Math.max(8, viewportWidth - panelWidth - 8)
+      }
+      if (rect.left > viewportWidth - rect.left - rect.width) {
+        right = Math.max(8, viewportWidth - rect.right)
+        left = 0
+      }
+      setPosition({ top: rect.bottom + gap, left: left === 0 ? undefined : left, right })
+    }
+    compute()
+    window.addEventListener('resize', compute)
+    window.addEventListener('scroll', compute, true)
+    return () => {
+      window.removeEventListener('resize', compute)
+      window.removeEventListener('scroll', compute, true)
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return
@@ -119,11 +152,15 @@ export default function Dropdown({
             role="listbox"
             aria-labelledby={buttonId}
             className={cn(
-              'absolute z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg transition-[opacity,transform] duration-150 ease-out',
-              align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',
+              'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg transition-[opacity,transform] duration-150 ease-out',
               isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
               panelClassName ?? 'w-56'
             )}
+            style={
+              position
+                ? { top: position.top, left: position.left, right: position.right }
+                : { top: 0, left: 0 }
+            }
           >
             <div className="max-h-64 overflow-y-auto">
               {options.map((option) => {
