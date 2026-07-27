@@ -233,18 +233,15 @@ export default function HeroSlideshow({
       })}
 
       {hasControls && (
-        /* Single grouped control bar — [Prev] [Play/Pause] [Next] — pinned
-           to the bottom-center of the hero. Absolutely positioned so it
-           never affects the hero's reserved dimensions (no CLS). The pill
-           sits above any bottom-anchored content via z-20 and uses a
-           semi-transparent dark background + backdrop-blur so it stays
-           legible over both light and dark media. */
-        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/40 px-2 py-1.5 shadow-lg backdrop-blur-md sm:bottom-4 sm:gap-1.5 sm:px-3 sm:py-2">
+        /* [Prev] [Play/Pause] [Next] — bottom-center, no container bg.
+           Ghosted white icons + drop-shadow: readable on any hero image,
+           invisible until needed (Netflix/Apple TV+ style). */
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-4">
           <button
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -254,7 +251,7 @@ export default function HeroSlideshow({
             onClick={togglePlaying}
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
             aria-pressed={isPlaying}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4" aria-hidden="true" />
@@ -267,7 +264,7 @@ export default function HeroSlideshow({
             type="button"
             onClick={goNext}
             aria-label="Next slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white opacity-80 transition-all hover:bg-white/20 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
