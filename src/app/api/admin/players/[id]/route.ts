@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 import { requireRole, AdminSession } from '@/lib/auth/authorize.server'
 import { recordAudit } from '@/lib/audit'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile } from '@/lib/media/server/upload.server'
 import { parseFormData, parseJsonBody, apiErrorResponse, parseJsonField } from '@/lib/api/request'
 
 export const dynamic = 'force-dynamic'

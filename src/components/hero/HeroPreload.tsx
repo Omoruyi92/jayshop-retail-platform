@@ -1,4 +1,5 @@
 import type { Slide } from '@/types/hero'
+import { isBlobUpload } from '@/lib/media/upload'
 
 /**
  * Emits a `<link rel="preload">` hint for the first active hero video slide.
@@ -14,12 +15,18 @@ import type { Slide } from '@/types/hero'
  * server components automatically) so the browser starts the download as
  * early as possible, matching the treatment images get via `priority`.
  *
+ * We deliberately skip preloading remote blob videos. Preloading a blob-hosted
+ * video causes every visitor to download the entire file, which is exactly the
+ * behaviour that burned through the Hobby Blob Data Transfer limit. Local or
+ * same-origin static videos are safe (and cheap) to preload.
+ *
  * This component must be rendered in a **server component** context so
  * Next.js can hoist the `<link>` into the page `<head>`.
  */
 export default function HeroPreload({ slides }: { slides: Slide[] }) {
   const first = slides.find((s) => s.active)
   if (!first || first.mediaType !== 'VIDEO') return null
+  if (isBlobUpload(first.url)) return null
 
   // Derive a MIME type hint from the URL extension so the browser can
   // determine format compatibility before it starts the download.

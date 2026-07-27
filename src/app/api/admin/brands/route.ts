@@ -5,7 +5,7 @@ import { recordAudit } from '@/lib/audit'
 import { nanoid } from 'nanoid'
 import { brandToSlug } from '@/lib/constants'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile } from '@/lib/media/server/upload.server'
 import { getBrandProductCounts } from '@/lib/brands'
 import { revalidatePath } from 'next/cache'
 

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import type { HeroScope, Slide } from '@/types/hero'
 import { useHeroMedia } from '@/hooks/useHeroMedia'
+import { isBlobUpload } from '@/lib/media/upload'
 
 // Re-exported for backward compatibility — existing call sites import
 // `Slide` from this module; the canonical definition now lives in
@@ -143,6 +144,15 @@ export default function HeroSlideshow({
     }
   }, [index, isPlaying, slides])
 
+  // Fallback media when a remote blob (or any URL) fails to load. We keep the
+  // original slide data but swap the rendered src so the hero never collapses
+  // to a blank navy block during a blob outage.
+  const FALLBACK_IMAGE = '/uploads/hero-slides/shop-by-style/shop-by-style-hero.jpg'
+  const [fallbackSrcById, setFallbackSrcById] = useState<Record<string, string>>({})
+  const setFallback = useCallback((id: string) => {
+    setFallbackSrcById((prev) => (prev[id] ? prev : { ...prev, [id]: FALLBACK_IMAGE }))
+  }, [])
+
   // When a video plays to its natural end, automatically advance to the next
   // slide. isPlaying stays true so the slideshow keeps rotating.
   const handleVideoEnded = useCallback(() => {
@@ -204,6 +214,8 @@ export default function HeroSlideshow({
         //    the nearest image slide's blurDataURL, the browser immediately paints
         //    the poster frame while autoPlay buffers — no black frame, no navy flash.
         const isFirstSlide = i === 0
+        const isRemoteBlob = isBlobUpload(slide.url)
+        const mediaSrc = fallbackSrcById[slide.id] ?? slide.url
         // Video slides: absolutely positioned to fill the slide container
         // (matching the Next/Image `fill` layout) so the video element
         // never causes a reflow or CLS on load. will-change-transform
@@ -223,22 +235,24 @@ export default function HeroSlideshow({
                   if (el) videoRefs.current.set(slide.id, el)
                   else videoRefs.current.delete(slide.id)
                 }}
-                src={slide.url}
-                autoPlay
+                src={mediaSrc}
+                autoPlay={!fallbackSrcById[slide.id]}
                 muted
                 playsInline
-                preload="auto"
+                preload={isRemoteBlob ? 'metadata' : 'auto'}
                 poster={nearestBlurDataURL}
                 disablePictureInPicture
+                loop={!!fallbackSrcById[slide.id]}
                 className={videoCls}
                 style={{ WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}
                 aria-label={slide.altText || `${scope} hero video`}
                 onLoadedData={() => markReady(slide.id)}
+                onError={() => setFallback(slide.id)}
                 onEnded={handleVideoEnded}
               />
             ) : (
               <Image
-                src={slide.url}
+                src={mediaSrc}
                 alt={slide.altText || `${scope} hero image`}
                 fill
                 sizes="100vw"
@@ -246,6 +260,7 @@ export default function HeroSlideshow({
                 priority={i === 0}
                 className={mediaCls}
                 onLoad={() => markReady(slide.id)}
+                onError={() => setFallback(slide.id)}
                 {...(slide.blurDataURL
                   ? { placeholder: 'blur' as const, blurDataURL: slide.blurDataURL }
                   : {})}

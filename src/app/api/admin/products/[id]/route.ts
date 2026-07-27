@@ -9,7 +9,7 @@ import {
   safeUnlinkUpload,
 } from '@/lib/media/cleanup'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile } from '@/lib/media/server/upload.server'
 import { brandToSlug } from '@/lib/constants'
 import { revalidatePath } from 'next/cache'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest, parseJsonField } from '@/lib/api/request'

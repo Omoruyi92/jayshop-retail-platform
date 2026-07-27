@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile } from '@/lib/media/server/upload.server'
 
 export const dynamic = 'force-dynamic'
 

@@ -42,32 +42,6 @@ export default function AdminHeroMediaPage() {
 
   const uploadMutation = useMutation(
     async (file: File) => {
-      const isVideo = file.type === 'video/mp4' || file.type === 'video/webm'
-
-      if (isVideo) {
-        // Videos exceed Vercel's 4.5 MB serverless body limit, so we upload
-        // directly from the browser to Vercel Blob via a client token, then
-        // POST the resulting URL as JSON to create the DB record.
-        const { upload } = await import('@vercel/blob/client')
-        const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4'
-        const scopeDir = scope.toLowerCase()
-        const blob = await upload(`hero-slides/${scopeDir}/${Date.now()}.${ext}`, file, {
-          access: 'public',
-          handleUploadUrl: '/api/admin/hero-slides/blob-token',
-        })
-        const res = await fetch('/api/admin/hero-slides', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: blob.url, scope, altText: '', mediaType: 'VIDEO' }),
-        })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          throw new Error(data.error || 'Upload failed')
-        }
-        return res.json()
-      }
-
-      // Images are small enough to go through the normal server-side path.
       const formData = new FormData()
       formData.append('file', file)
       formData.append('scope', scope)

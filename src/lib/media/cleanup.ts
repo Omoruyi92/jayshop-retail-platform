@@ -1,7 +1,8 @@
 import { unlink, access } from 'fs/promises'
 import { join } from 'path'
-import { del } from '@vercel/blob'
 import type { PrismaClient } from '@prisma/client'
+import { isBlobUpload as isBlobUploadUrl, isStaticHeroVideo } from './upload'
+import { deleteUploadedFile } from './server/upload.server'
 
 /**
  * Returns true if the imageUrl is a locally-uploaded file (starts with /uploads/).
@@ -16,7 +17,7 @@ export function isLocalUpload(imageUrl: string): boolean {
  * BLOB_READ_WRITE_TOKEN is configured, e.g. in production).
  */
 export function isBlobUpload(imageUrl: string): boolean {
-  return /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//i.test(imageUrl)
+  return isBlobUploadUrl(imageUrl)
 }
 
 /**
@@ -79,19 +80,17 @@ export async function getImageReferences(
  * - Re-throws unexpected errors for local files (preserves prior behavior).
  */
 export async function safeUnlinkUpload(imageUrl: string): Promise<void> {
-  if (isBlobUpload(imageUrl)) {
-    try {
-      await del(imageUrl)
-    } catch {
-      // ignore — already deleted or unreachable
-    }
+  if (isBlobUploadUrl(imageUrl)) {
+    await deleteUploadedFile(imageUrl)
     return
   }
 
-  if (!isLocalUpload(imageUrl)) return
+  if (!isLocalUpload(imageUrl) && !isStaticHeroVideo(imageUrl)) return
 
-  const filename = extractFilename(imageUrl)
-  const filePath = resolveUploadPath(filename)
+  const filename = isStaticHeroVideo(imageUrl) ? imageUrl.replace(/^\/hero-videos\//, '') : extractFilename(imageUrl)
+  const filePath = isStaticHeroVideo(imageUrl)
+    ? join(process.cwd(), 'public', 'hero-videos', filename)
+    : resolveUploadPath(filename)
 
   try {
     await unlink(filePath)

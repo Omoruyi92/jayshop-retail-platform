@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/authorize.server'
 import { optimizeImageBuffer } from '@/lib/media/optimizeImage'
-import { saveUploadedFile, deleteUploadedFile } from '@/lib/media/upload'
+import { saveUploadedFile, saveHeroVideo, deleteUploadedFile } from '@/lib/media/server/upload.server'
 import { parseFormData, parseJsonBody, apiErrorResponse, badRequest } from '@/lib/api/request'
 import { ensureGalleryScope } from '@/lib/hero/ensureGalleryScope'
 
@@ -43,10 +43,12 @@ function mediaType(mime: string): 'IMAGE' | 'VIDEO' {
 async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing' | 'players' | 'gallery') {
   const bytes = await file.arrayBuffer()
   const rawExt = file.name.split('.').pop() || 'png'
-  const isImage = mediaType(file.type) === 'IMAGE'
-  const { buffer, ext, contentType } = isImage
-    ? await optimizeImageBuffer(Buffer.from(bytes), rawExt)
-    : { buffer: Buffer.from(bytes), ext: rawExt, contentType: file.type }
+  const type = mediaType(file.type)
+  if (type === 'VIDEO') {
+    const fileName = `${Date.now()}-${nanoid(12)}.${rawExt}`
+    return saveHeroVideo(Buffer.from(bytes), fileName, scope)
+  }
+  const { buffer, ext, contentType } = await optimizeImageBuffer(Buffer.from(bytes), rawExt)
   const fileName = `${nanoid(12)}.${ext}`
   return saveUploadedFile(buffer, fileName, contentType, `hero-slides/${scope}`)
 }
@@ -79,48 +81,6 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
-    // Client-side Blob upload path: the video was already uploaded directly to
-    // Vercel Blob (bypassing the 4.5 MB serverless body limit). The client
-    // sends the resulting Blob URL + metadata as JSON rather than FormData.
-    const contentType = req.headers.get('content-type') ?? ''
-    if (contentType.includes('application/json')) {
-      const body = await req.json() as {
-        url?: string
-        scope?: string
-        altText?: string
-        mediaType?: string
-      }
-
-      const scopeRaw = (body.scope ?? '').toUpperCase()
-      if (!['HOME', 'SHOP', 'STYLE_LANDING', 'PLAYERS', 'GALLERY'].includes(scopeRaw)) {
-        return NextResponse.json({ error: 'Scope must be HOME, SHOP, STYLE_LANDING, PLAYERS, or GALLERY' }, { status: 400 })
-      }
-      if (!body.url || !body.url.startsWith('https://')) {
-        return NextResponse.json({ error: 'A valid Blob URL is required' }, { status: 400 })
-      }
-      const type = body.mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE'
-
-      if (scopeRaw === 'GALLERY') await ensureGalleryScope()
-
-      const count = await prisma.heroSlide.count({
-        where: { scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY' },
-      })
-
-      const slide = await prisma.heroSlide.create({
-        data: {
-          scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY',
-          mediaType: type,
-          url: body.url,
-          altText: body.altText ?? '',
-          sortOrder: count,
-          active: true,
-        },
-      })
-
-      for (const path of scopeToPaths(scopeRaw)) revalidatePath(path)
-      return NextResponse.json(slide, { status: 201 })
-    }
-
     const formData = await parseFormData(req)
     const scopeRaw = (formData.get('scope') as string)?.toUpperCase()
     const altText = (formData.get('altText') as string | null) ?? ''
