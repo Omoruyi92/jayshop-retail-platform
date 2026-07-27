@@ -53,10 +53,10 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
         disabled={!hasMultiple}
         aria-label="Previous image"
         title="Previous image"
-        className={`absolute left-3 top-1/2 -translate-y-1/2 rounded-full p-2.5 shadow-lg transition-all z-20 group ${
+        className={`absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full transition-all z-20 group ${
           hasMultiple
-            ? 'bg-white/90 hover:bg-white hover:shadow-xl text-jays-navy'
-            : 'bg-white/60 text-gray-300 cursor-not-allowed'
+            ? 'text-white/40 drop-shadow-sm hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95'
+            : 'text-gray-300 cursor-not-allowed'
         }`}
       >
         <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
@@ -71,10 +71,10 @@ export default function ProductImageGallery({ images, alt }: ProductImageGallery
         disabled={!hasMultiple}
         aria-label="Next image"
         title="Next image"
-        className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2.5 shadow-lg transition-all z-20 group ${
+        className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full transition-all z-20 group ${
           hasMultiple
-            ? 'bg-white/90 hover:bg-white hover:shadow-xl text-jays-navy'
-            : 'bg-white/60 text-gray-300 cursor-not-allowed'
+            ? 'text-white/40 drop-shadow-sm hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95'
+            : 'text-gray-300 cursor-not-allowed'
         }`}
       >
         <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
