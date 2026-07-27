@@ -105,7 +105,7 @@ export default function Dropdown({
         role="listbox"
         aria-labelledby={buttonId}
         className={cn(
-          'absolute z-30 mt-1.5 transition-all duration-150',
+          'absolute z-50 mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150',
           align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',
           isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
           panelClassName ?? 'w-56'
@@ -131,7 +131,7 @@ export default function Dropdown({
                   )}
                 >
                   {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red" />}
-                  <span className="truncate">{option.label}</span>
+                  <span className="break-words leading-snug">{option.label}</span>
                 </button>
               )
             })}
