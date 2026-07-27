@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
 export interface DropdownOption {
@@ -42,10 +43,43 @@ export default function Dropdown({
   trigger,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [position, setPosition] = useState<{ top: number; left?: number; right?: number } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const reactId = useId()
   const buttonId = id ? `${id}-button` : `dropdown-button-${reactId}`
   const listId = id ? `${id}-listbox` : `dropdown-listbox-${reactId}`
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPosition(null)
+      return
+    }
+    function compute() {
+      const button = rootRef.current
+      if (!button) return
+      const rect = button.getBoundingClientRect()
+      const gap = 6
+      const panelWidth = typeof window !== 'undefined' && window.innerWidth < 640 ? Math.min(288, window.innerWidth - 16) : 256
+      const viewportWidth = window.innerWidth
+      let left = Math.max(8, rect.left)
+      let right: number | undefined
+      if (left + panelWidth > viewportWidth - 8) {
+        left = Math.max(8, viewportWidth - panelWidth - 8)
+      }
+      if (rect.left > viewportWidth - rect.left - rect.width) {
+        right = Math.max(8, viewportWidth - rect.right)
+        left = 0
+      }
+      setPosition({ top: rect.bottom + gap, left: left === 0 ? undefined : left, right })
+    }
+    compute()
+    window.addEventListener('resize', compute)
+    window.addEventListener('scroll', compute, true)
+    return () => {
+      window.removeEventListener('resize', compute)
+      window.removeEventListener('scroll', compute, true)
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return
@@ -65,6 +99,51 @@ export default function Dropdown({
   }, [isOpen])
 
   const activeLabel = options.find((o) => o.value === value)?.label ?? options[0]?.label ?? ''
+
+  const panel = (
+    <div
+      id={listId}
+      role="listbox"
+      aria-labelledby={buttonId}
+      style={
+        position
+          ? { top: position.top, left: position.left, right: position.right }
+          : { top: 0, left: 0 }
+      }
+      className={cn(
+        'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150',
+        isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
+        panelClassName ?? 'w-56'
+      )}
+    >
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="max-h-64 overflow-y-auto">
+          {options.map((option) => {
+            const active = option.value === value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => {
+                  onChange(option.value)
+                  setIsOpen(false)
+                }}
+                className={cn(
+                  'flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition-colors focus:outline-none focus:bg-jays-ice',
+                  active ? 'bg-jays-navy font-semibold text-white' : 'text-jays-navy hover:bg-jays-ice/60'
+                )}
+              >
+                {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red" />}
+                <span className="break-words leading-snug">{option.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div ref={rootRef} className={cn('relative shrink-0', className)}>
@@ -100,44 +179,7 @@ export default function Dropdown({
         )}
       </button>
 
-      <div
-        id={listId}
-        role="listbox"
-        aria-labelledby={buttonId}
-        className={cn(
-          'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150 sm:absolute',
-          align === 'right' ? 'right-2 origin-top-right sm:right-0' : 'left-2 origin-top-left sm:left-0',
-          isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
-          panelClassName ?? 'w-56'
-        )}
-      >
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-          <div className="max-h-64 overflow-y-auto">
-            {options.map((option) => {
-              const active = option.value === value
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => {
-                    onChange(option.value)
-                    setIsOpen(false)
-                  }}
-                  className={cn(
-                    'flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition-colors focus:outline-none focus:bg-jays-ice',
-                    active ? 'bg-jays-navy font-semibold text-white' : 'text-jays-navy hover:bg-jays-ice/60'
-                  )}
-                >
-                  {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red" />}
-                  <span className="break-words leading-snug">{option.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
+      {typeof document !== 'undefined' ? createPortal(panel, document.body) : panel}
     </div>
   )
 }
