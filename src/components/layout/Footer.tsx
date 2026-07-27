@@ -75,6 +75,7 @@ export default function Footer() {
   const { t } = useLanguage()
 
   const navItemsLeft = [
+    { href: '/game-day-guide', label: 'Game Day Guide', icon: StoreLocationIcon },
     { href: '/policy', label: 'Store Policy', icon: PolicyIcon },
     { href: '/returns', label: 'Return Policy', icon: ReturnsIcon },
     { href: '/about-us', label: 'About Us', icon: AboutUsIcon },
