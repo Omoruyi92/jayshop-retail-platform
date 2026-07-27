@@ -141,7 +141,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 h-14 flex items-center gap-2">
         {/* Left: Logo + MLB */}
         <div className="flex items-center gap-2 shrink-0">
-          <Link href="/" className="flex items-center focus-visible:outline-none" aria-label="Jays Shop home">
+          <Link href="/" className="flex items-center gap-2 focus-visible:outline-none" aria-label="Jays Shop home">
             <Image
               src="/brand/logo.png"
               alt="Blue Jays logo"
@@ -150,6 +150,15 @@ export default function Header() {
               className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
               priority
             />
+            <span className="hidden sm:flex flex-col leading-none">
+              <span className="font-display font-bold text-xl uppercase tracking-wider leading-none text-center">
+                <span className="text-jays-red">JAYS</span>
+                <span className="text-white"> SHOP</span>
+              </span>
+              <span className="block text-center text-[8.5px] sm:text-[9px] font-semibold uppercase tracking-[0.22em] sm:tracking-[0.15em] text-blue-200/80 mt-0.5 whitespace-nowrap">
+                Toronto Blue Jays
+              </span>
+            </span>
           </Link>
           <span className="hidden sm:block w-px h-5 bg-white/20 mx-0.5" aria-hidden="true" />
           <MLBLogo size={44} className="hidden sm:block opacity-80 shrink-0" />
