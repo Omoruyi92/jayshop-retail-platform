@@ -119,7 +119,7 @@ export default function GameDayGuidePage() {
             <h3 className="text-lg font-bold text-jays-navy mb-2">What&apos;s Different on Game Days?</h3>
             <p className="text-gray-700">
               On game days, the Gate 1 and Gate 5 shops transition to serve ticketed guests. 
-              Non-ticketed fans should visit the shops prior to gate opening times (typically 2 hours before first pitch). 
+              Non-ticketed fans should visit the shops prior to gate opening — typically 90 minutes before first pitch on weekdays and 2 hours on weekends. 
               Additional kiosks open throughout the concourse levels.
             </p>
           </div>
@@ -127,8 +127,8 @@ export default function GameDayGuidePage() {
           <div className="border border-jays-ice bg-gray-50/50 p-6">
             <h3 className="text-lg font-bold text-jays-navy mb-2">In-Store & Hold-Tag Pickup</h3>
             <ul className="list-disc pl-5 text-gray-700 space-y-2">
-              <li><strong>In-Store Pickup:</strong> Orders placed online can be picked up at the designated Gate 1 counter.</li>
-              <li><strong>Hold-Tag Flow:</strong> If you reserved an item using our Hold system, present your hold confirmation at the express checkout lane at Gate 5 or Gate 1 to finalize your purchase.</li>
+              <li><strong>In-Store Pickup:</strong> Orders placed online can be picked up at the designated Gate 5 counter.</li>
+              <li><strong>Hold-Tag Flow:</strong> If you reserved an item using our Hold system, present your hold confirmation at the express checkout lane at Sec123 or Gate 5 to finalize your purchase.</li>
             </ul>
           </div>
 
