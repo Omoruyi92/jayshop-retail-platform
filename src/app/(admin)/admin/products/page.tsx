@@ -729,10 +729,15 @@ export default function AdminProductsPage() {
                   </td>
                   {/* Likes */}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-jays-steel">
-                      <Heart className="w-3.5 h-3.5 text-jays-red fill-jays-red/10" />
-                      <span className="font-semibold text-jays-navy">{p._count?.likes ?? 0}</span>
-                    </span>
+                    {(() => {
+                      const likeCount = p._count?.likes ?? 0
+                      return (
+                        <span className="inline-flex items-center gap-1">
+                          <Heart className={likeCount > 0 ? 'w-3.5 h-3.5 text-jays-red fill-jays-red' : 'w-3.5 h-3.5 text-gray-300'} />
+                          <span className={`font-semibold ${likeCount > 0 ? 'text-jays-navy' : 'text-jays-steel'}`}>{likeCount}</span>
+                        </span>
+                      )
+                    })()}
                   </td>
                   {/* Status */}
                   <td className="px-3 py-2 align-top">

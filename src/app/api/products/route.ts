@@ -42,7 +42,10 @@ export async function GET(request: Request) {
         ],
       }),
     },
-    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [
+      { likes: { _count: 'desc' } },
+      { sku: { sort: 'asc', nulls: 'last' } },
+    ],
     include: {
       sizeInventories: {
         select: {
