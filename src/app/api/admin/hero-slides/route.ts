@@ -53,6 +53,26 @@ async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing' | '
   return saveUploadedFile(buffer, fileName, contentType, `hero-slides/${scope}`)
 }
 
+interface CreateSlideBody {
+  scope: 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY'
+  url: string
+  mediaType: 'IMAGE' | 'VIDEO'
+  altText?: string
+}
+
+function isValidCreateSlideBody(body: unknown): body is CreateSlideBody {
+  if (typeof body !== 'object' || body === null) return false
+  const b = body as Record<string, unknown>
+  const validScopes = ['HOME', 'SHOP', 'STYLE_LANDING', 'PLAYERS', 'GALLERY']
+  const validTypes = ['IMAGE', 'VIDEO']
+  return (
+    typeof b.scope === 'string' && validScopes.includes(b.scope) &&
+    typeof b.url === 'string' &&
+    typeof b.mediaType === 'string' && validTypes.includes(b.mediaType) &&
+    (b.altText === undefined || typeof b.altText === 'string')
+  )
+}
+
 async function removeFile(url: string) {
   await deleteUploadedFile(url)
 }
@@ -81,6 +101,37 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
+    const contentType = req.headers.get('content-type') || ''
+
+    // JSON path: used by direct-browser-upload flows (e.g. hero videos via R2
+    // presigned URLs) where the file bytes never touch this serverless function.
+    if (contentType.includes('application/json')) {
+      const body = await parseJsonBody<CreateSlideBody>(req)
+      if (!isValidCreateSlideBody(body)) {
+        return badRequest('Invalid slide payload')
+      }
+
+      if (body.scope === 'GALLERY') await ensureGalleryScope()
+
+      const count = await prisma.heroSlide.count({ where: { scope: body.scope } })
+
+      const slide = await prisma.heroSlide.create({
+        data: {
+          scope: body.scope,
+          mediaType: body.mediaType,
+          url: body.url,
+          altText: body.altText ?? '',
+          sortOrder: count,
+          active: true,
+        },
+      })
+
+      for (const path of scopeToPaths(body.scope)) revalidatePath(path)
+
+      return NextResponse.json(slide, { status: 201 })
+    }
+
+    // Multipart path: legacy image uploads still send the file bytes here.
     const formData = await parseFormData(req)
     const scopeRaw = (formData.get('scope') as string)?.toUpperCase()
     const altText = (formData.get('altText') as string | null) ?? ''

@@ -4,6 +4,9 @@ import {
   DeleteObjectCommand,
   HeadObjectCommand,
 } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+
+import { nanoid } from 'nanoid'
 
 /**
  * Cloudflare R2 server-side helpers.
@@ -111,4 +114,42 @@ export async function r2ObjectExists(url: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+/**
+ * Generate a presigned URL that allows the browser to upload a file directly
+ * to R2 via PUT. The URL is valid for `expiresInSeconds` (default 5 min).
+ * Returns both the signed PUT URL and the final public URL where the object
+ * will be served.
+ */
+export async function getPresignedR2UploadUrl(
+  opts: {
+    fileName: string
+    contentType: string
+    subdir?: string
+    expiresInSeconds?: number
+  }
+): Promise<{ presignedUrl: string; publicUrl: string; key: string }> {
+  const key = opts.subdir ? `${opts.subdir}/${opts.fileName}` : opts.fileName
+  const client = getClient()
+  const bucket = getBucket()
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: opts.contentType,
+  })
+
+  const presignedUrl = await getSignedUrl(client, command, {
+    expiresIn: opts.expiresInSeconds ?? 300,
+  })
+
+  return { presignedUrl, publicUrl: `${getPublicUrl()}/${key}`, key }
+}
+
+/**
+ * Build a unique hero video filename for a given scope.
+ */
+export function makeHeroVideoFileName(scope: string, ext: string): string {
+  return `${scope}-${Date.now()}-${nanoid(8)}.${ext}`
 }

@@ -42,6 +42,47 @@ export default function AdminHeroMediaPage() {
 
   const uploadMutation = useMutation(
     async (file: File) => {
+      const isVideo = file.type === 'video/mp4' || file.type === 'video/webm'
+
+      if (isVideo) {
+        // Hero videos are too large for Vercel's serverless body limit, so we
+        // upload directly from the browser to Cloudflare R2 via a presigned URL.
+        const presignedRes = await fetch(
+          `/api/admin/hero-slides/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}&size=${file.size}&scope=${encodeURIComponent(scope)}`,
+          { method: 'GET' }
+        )
+        if (!presignedRes.ok) {
+          const data = await presignedRes.json().catch(() => ({}))
+          throw new Error(data.error || 'Upload failed')
+        }
+        const { presignedUrl, publicUrl } = await presignedRes.json()
+
+        const putRes = await fetch(presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        })
+        if (!putRes.ok) {
+          throw new Error('Upload to storage failed')
+        }
+
+        const createRes = await fetch('/api/admin/hero-slides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scope,
+            url: publicUrl,
+            mediaType: 'VIDEO',
+            altText: '',
+          }),
+        })
+        if (!createRes.ok) {
+          const data = await createRes.json().catch(() => ({}))
+          throw new Error(data.error || 'Upload failed')
+        }
+        return createRes.json()
+      }
+
       const formData = new FormData()
       formData.append('file', file)
       formData.append('scope', scope)
