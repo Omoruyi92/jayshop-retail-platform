@@ -21,7 +21,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search produ
         Search products
       </label>
       {/* Search icon */}
-      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400" aria-hidden="true">
+      <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-white/60" aria-hidden="true">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-4 w-4"
@@ -45,7 +45,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search produ
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-border bg-white py-2.5 pl-9 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-jays-navy focus:outline-none focus:ring-2 focus:ring-jays-navy/20 transition-colors duration-150"
+        className="w-full rounded-full border border-white/20 bg-white/10 py-2.5 pl-10 pr-10 text-sm text-white backdrop-blur-md placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors duration-150"
         autoComplete="off"
         spellCheck={false}
       />
@@ -56,7 +56,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search produ
           type="button"
           aria-label="Clear search"
           onClick={() => onChange('')}
-          className="absolute inset-y-0 right-2 flex items-center px-1 text-gray-400 hover:text-gray-600 transition-colors duration-150"
+          className="absolute inset-y-0 right-2 flex items-center px-1 text-white/60 hover:text-white/80 transition-colors duration-150"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
