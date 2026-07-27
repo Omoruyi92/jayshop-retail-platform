@@ -124,8 +124,8 @@ export default function Dropdown({
           : { top: 0, left: 0 }
       }
       className={cn(
-        'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden transition-all duration-150',
-        isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
+        'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] origin-top overflow-hidden transition-[opacity,transform] duration-200 ease-out will-change-transform',
+        isOpen ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0 pointer-events-none',
         panelClassName ?? 'w-56'
       )}
     >
