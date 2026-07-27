@@ -6,7 +6,7 @@ export const STORE_TIMEZONE = 'America/Toronto'
 
 const OPEN_HOUR = 10 // 10:00 AM
 const CLOSE_HOUR = 17 // 5:00 PM
-const GATE_OPEN_OFFSET_MINUTES = 120 // gates open = first pitch − 2h
+const PUBLIC_CLOSE_OFFSET_MINUTES = 60 // close to public = first pitch − 1h
 
 export type StoreStatusLabel = 'Open' | 'Closed' | 'Closed to the General Public'
 
@@ -76,10 +76,10 @@ function formatMinutesAsClock(totalMinutes: number): string {
  * - Non-game day (or game day with no usable startTime): standard
  *   10:00 AM–5:00 PM Open window.
  * - Game day with a valid startTime: Open from 10:00 AM until
- *   min(gateOpenTime, 5:00 PM). At/after that cutoff, if the cutoff was
- *   actually driven by the gate-open time (i.e. gates open before the
+ *   min(publicCloseTime, 5:00 PM). At/after that cutoff, if the cutoff was
+ *   actually driven by the public close time (i.e. it closes to the public before the
  *   regular 5:00 PM close), status becomes "Closed to the General Public"
- *   instead of the regular "Closed". If gates open later than 5:00 PM
+ *   instead of the regular "Closed". If public close is later than 5:00 PM
  *   (e.g. evening games), the regular 5:00 PM close wins and status is
  *   plain "Closed" afterward.
  */
@@ -93,20 +93,20 @@ export function getStoreStatus(now: Date, todayGame: TodayGameInput | null): Sto
   }
 
   const firstPitchMinutes = todayGame ? parseStartTimeToMinutes(todayGame.startTime) : null
-  const gateOpenMinutes = firstPitchMinutes !== null ? firstPitchMinutes - GATE_OPEN_OFFSET_MINUTES : null
+  const publicCloseMinutes = firstPitchMinutes !== null ? firstPitchMinutes - PUBLIC_CLOSE_OFFSET_MINUTES : null
 
-  // Effective close is whichever comes first: gate-open time (if it's
+  // Effective close is whichever comes first: public close time (if it's
   // actually before the regular close) or the regular 5:00 PM close.
   // Clamp to openMinutes so an unusually early first pitch can't make the
   // computed cutoff fall before the store's own opening time.
-  const gateClosesEarly = gateOpenMinutes !== null && gateOpenMinutes < closeMinutes
-  const cutoffMinutes = Math.max(gateClosesEarly ? gateOpenMinutes! : closeMinutes, openMinutes)
+  const closesEarlyToPublic = publicCloseMinutes !== null && publicCloseMinutes < closeMinutes
+  const cutoffMinutes = Math.max(closesEarlyToPublic ? publicCloseMinutes! : closeMinutes, openMinutes)
 
   if (nowMinutes < cutoffMinutes) {
     return { isOpen: true, statusLabel: 'Open', nextChange: `Closes at ${formatMinutesAsClock(cutoffMinutes)}` }
   }
 
-  if (gateClosesEarly) {
+  if (closesEarlyToPublic) {
     return { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' }
   }
 
