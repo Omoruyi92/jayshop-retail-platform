@@ -68,7 +68,6 @@ export default function GameDayGuidePage() {
             <ul className="list-disc pl-5 text-gray-700 space-y-2">
               <li><strong>Gate 1:</strong> Primary Jays Shop location, accessible from outside the stadium.</li>
               <li><strong>Gate 5:</strong> Secondary location with stadium access.</li>
-              <li><strong>Gate 8:</strong> Kiosk and select apparel.</li>
             </ul>
           </div>
           

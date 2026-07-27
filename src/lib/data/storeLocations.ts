@@ -33,13 +33,6 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     name: "Jays Shop – ",
-    venue: "Gate 8 Rogers Centre",
-    addressLines: ["1 Blue Jays Way, Toronto, ON"],
-    hours: "Varies by game time",
-    verified: false
-  },
-  {
-    name: "Jays Shop – ",
     venue: "CF Toronto Eaton Centre",
     addressLines: ["220 Yonge St, Toronto, ON"],
     hours: "Mon-Sat: 10:00 a.m.–9:00 p.m. / Sun: 11:00 a.m.–7:00 p.m.",
