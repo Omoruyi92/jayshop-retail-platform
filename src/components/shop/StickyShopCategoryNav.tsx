@@ -240,7 +240,15 @@ export default function StickyShopCategoryNav({ activeCategory, onSelect, initia
     if (hatStyle && hatStyle !== 'All') params.set('hatStyle', hatStyle)
     if (audience && audience !== 'All') params.set('audience', audience)
     if (ageGroup && ageGroup !== 'All') params.set('ageGroup', ageGroup)
-    router.push(`/shop?${params.toString()}`)
+    // scroll: false — category/sub/attribute clicks are in-page filter
+    // changes, not a navigation to a new destination the user expects to
+    // land at the top of. Without this, Next.js's default App Router
+    // scroll-restoration snaps the page back to y=0 on every click, so a
+    // user browsing partway down the grid loses their position and has to
+    // scroll back down past the (now sticky) category nav. A full
+    // page refresh/reload still starts at the top via the browser's own
+    // native (unrelated) scroll behavior, so that expectation is preserved.
+    router.push(`/shop?${params.toString()}`, { scroll: false })
   }
 
   function subLink(category: string, sub: string, brand: string) {
