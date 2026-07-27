@@ -6,7 +6,6 @@ export const STORE_TIMEZONE = 'America/Toronto'
 
 const OPEN_HOUR = 10 // 10:00 AM
 const CLOSE_HOUR = 17 // 5:00 PM
-const PUBLIC_CLOSE_OFFSET_MINUTES = 60 // close to public = first pitch − 1h
 
 export type StoreStatusLabel = 'Open' | 'Closed' | 'Closed to the General Public'
 
@@ -44,6 +43,17 @@ function getStoreMinutes(date: Date, timeZone: string = STORE_TIMEZONE): number 
   const hour = parseInt(hourPart, 10) % 24
   const minute = parseInt(minutePart, 10)
   return hour * 60 + minute
+}
+
+/** Returns the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday) */
+function getStoreDayOfWeek(date: Date, timeZone: string = STORE_TIMEZONE): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+  }).formatToParts(date)
+  const weekdayStr = parts.find((p) => p.type === 'weekday')?.value ?? 'Sun'
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  return days.indexOf(weekdayStr)
 }
 
 /** Parses a "HH:mm" 24-hour string (as stored on GameDay.startTime) into
@@ -93,7 +103,10 @@ export function getStoreStatus(now: Date, todayGame: TodayGameInput | null): Sto
   }
 
   const firstPitchMinutes = todayGame ? parseStartTimeToMinutes(todayGame.startTime) : null
-  const publicCloseMinutes = firstPitchMinutes !== null ? firstPitchMinutes - PUBLIC_CLOSE_OFFSET_MINUTES : null
+  const isWeekend = getStoreDayOfWeek(now) === 0 || getStoreDayOfWeek(now) === 6
+  const gateOpenOffset = isWeekend ? 120 : 90 // 2h on weekends, 90m on weekdays
+  const publicCloseOffset = gateOpenOffset + 60 // Closes 1h prior to gates
+  const publicCloseMinutes = firstPitchMinutes !== null ? firstPitchMinutes - publicCloseOffset : null
 
   // Effective close is whichever comes first: public close time (if it's
   // actually before the regular close) or the regular 5:00 PM close.
