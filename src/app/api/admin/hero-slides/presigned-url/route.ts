@@ -47,6 +47,13 @@ export async function GET(req: Request) {
       expiresInSeconds: 300,
     })
 
+    // Diagnostic: log only the pathname of the generated presigned URL (never
+    // the query string, which carries the request signature) so a doubled
+    // bucket segment (/bucket/bucket/key) is directly visible in `vercel logs`
+    // without exposing credentials.
+    // eslint-disable-next-line no-console
+    console.log('[r2] presigned PUT pathname:', new URL(presignedUrl).pathname)
+
     return NextResponse.json({ presignedUrl, publicUrl, scope: scopeRaw })
   } catch (err) {
     return apiErrorResponse(err, 'Failed to create presigned upload URL')
