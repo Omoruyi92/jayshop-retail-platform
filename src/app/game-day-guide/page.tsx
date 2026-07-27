@@ -6,6 +6,7 @@ import { storeLocations } from "@/lib/data/storeLocations";
 export default function GameDayGuidePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
+      <h1 className="sr-only">Game Day Guide</h1>
 
       {/* ── Back to Home ── */}
       <div>
@@ -22,11 +23,11 @@ export default function GameDayGuidePage() {
       <section>
         <div className="flex items-center justify-center mb-12">
           <div className="flex-grow h-px bg-jays-steel/30"></div>
-          <h1 className="mx-6 text-3xl md:text-4xl text-center">
+          <h2 className="mx-6 text-3xl md:text-4xl text-center">
             <span className="italic text-jays-navy font-serif">Jays Shop</span>
             <br className="md:hidden" />
             <span className="font-bold text-jays-navy ml-2">Store Locations and Hours</span>
-          </h1>
+          </h2>
           <div className="flex-grow h-px bg-jays-steel/30"></div>
         </div>
         
