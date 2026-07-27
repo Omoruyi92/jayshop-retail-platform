@@ -18,6 +18,11 @@ interface DropdownProps {
   className?: string
   buttonClassName?: string
   panelClassName?: string
+  /**
+   * Optional trigger element. When provided, the default text+arrow button is
+   * replaced entirely. Useful for compact mobile icon toggles.
+   */
+  trigger?: React.ReactNode
 }
 
 /**
@@ -34,6 +39,7 @@ export default function Dropdown({
   className,
   buttonClassName,
   panelClassName,
+  trigger,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -75,19 +81,23 @@ export default function Dropdown({
           buttonClassName
         )}
       >
-        <span className="truncate">{activeLabel}</span>
-        <svg
-          className={cn(
-            'h-3.5 w-3.5 shrink-0 text-jays-steel transition-transform duration-200',
-            isOpen && 'rotate-180'
-          )}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
-        </svg>
+        {trigger ?? (
+          <>
+            <span className="truncate">{activeLabel}</span>
+            <svg
+              className={cn(
+                'h-3.5 w-3.5 shrink-0 text-jays-steel transition-transform duration-200',
+                isOpen && 'rotate-180'
+              )}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+            </svg>
+          </>
+        )}
       </button>
 
       <div

@@ -12,6 +12,7 @@ import type { Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 import StickyShopCategoryNav from '@/components/shop/StickyShopCategoryNav'
 import CategoryBanner from '@/components/shop/CategoryBanner'
 import Dropdown from '@/components/ui/Dropdown'
+import { SlidersHorizontal } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { HAT_STYLES, categoryHasAudience, categoryHasAgeGroup, AUDIENCES, KIDS_AGE_GROUPS } from '@/lib/constants'
 import { titleCase } from '@/lib/text'
@@ -624,17 +625,39 @@ export default function ShopPageClient({
           </div>
 
           <div className="flex items-center gap-2">
-            <span id="shop-sort-label" className="text-xs font-semibold uppercase tracking-wide text-jays-steel">
+            {/* Desktop sort: visible label + full text dropdown */}
+            <span id="shop-sort-label" className="hidden text-xs font-semibold uppercase tracking-wide text-jays-steel sm:inline">
               Sort by
             </span>
-            <Dropdown
-              id="shop-sort"
-              ariaLabel="Sort products"
-              value={sortBy}
-              onChange={(v) => setSortBy(v as SortOption)}
-              options={SORT_OPTIONS}
-              panelClassName="w-64"
-            />
+            <div className="hidden sm:block">
+              <Dropdown
+                id="shop-sort"
+                ariaLabel="Sort products"
+                value={sortBy}
+                onChange={(v) => setSortBy(v as SortOption)}
+                options={SORT_OPTIONS}
+                panelClassName="w-64"
+              />
+            </div>
+
+            {/* Mobile sort: compact icon-only menu trigger with same options */}
+            <div className="sm:hidden">
+              <Dropdown
+                id="shop-sort-mobile"
+                ariaLabel="Sort products"
+                value={sortBy}
+                onChange={(v) => setSortBy(v as SortOption)}
+                options={SORT_OPTIONS}
+                panelClassName="w-64"
+                buttonClassName="px-2.5 py-2"
+                trigger={
+                  <span className="flex items-center gap-1.5">
+                    <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">Sort</span>
+                  </span>
+                }
+              />
+            </div>
           </div>
         </div>
 
