@@ -637,6 +637,7 @@ export default function ShopPageClient({
                 onChange={(v) => setSortBy(v as SortOption)}
                 options={SORT_OPTIONS}
                 panelClassName="w-64"
+                buttonClassName="border-transparent bg-transparent px-2.5 py-1.5 shadow-none hover:border-transparent hover:bg-jays-ice/70 aria-expanded:bg-jays-ice/70"
               />
             </div>
 
