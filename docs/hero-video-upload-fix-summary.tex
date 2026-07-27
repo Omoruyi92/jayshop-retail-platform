@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{jaysnavy}{RGB}{0, 30, 98}
+\definecolor{jaysred}{RGB}{200, 16, 46}
+
+\title{\textcolor{jaysnavy}{Hero Video Upload Fix — Manager Summary}}
+\author{Jays Shop Tech Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Problem}
+Managers uploading MP4 hero videos in \texttt{/admin/hero-media} received \textbf{``Upload failed''} or \textbf{``Failed to fetch''} errors.
+
+\section*{Root Cause}
+Vercel serverless functions reject request bodies larger than approximately \textbf{4.5 MB}. Hero videos exceeded this limit, so the upload never reached our application code.
+
+\section*{What We Changed}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Direct browser-to-Cloudflare R2 uploads}
+  \begin{itemize}
+    \item The browser uploads the video file straight to our Cloudflare R2 bucket using a temporary signed URL.
+    \item This bypasses Vercel's body-size limit entirely.
+  \end{itemize}
+
+  \item \textbf{New presigned-URL API}
+  \begin{itemize}
+    \item Route: \texttt{/api/admin/hero-slides/presigned-url}
+    \item Validates the video file, then returns a signed upload URL and final public URL.
+  \end{itemize}
+
+  \item \textbf{Updated slide-creation API}
+  \begin{itemize}
+    \item Route: \texttt{/api/admin/hero-slides} (POST)
+    \item Now accepts a lightweight JSON record after the file is already in R2, creating the database slide entry.
+  \end{itemize}
+
+  \item \textbf{Updated admin page}
+  \begin{itemize}
+    \item \texttt{/admin/hero-media} now uses the direct-upload flow for MP4/WebM videos.
+    \item Image uploads continue to work exactly as before.
+  \end{itemize}
+
+  \item \textbf{R2 bucket CORS policy}
+  \begin{itemize}
+    \item Configured Cloudflare to allow upload requests from the production Vercel domain.
+  \end{itemize}
+\end{enumerate}
+
+\section*{Result}
+\begin{itemize}
+  \item Hero video uploads now work reliably in production.
+  \item No new Vercel Blob charges; Cloudflare R2's free tier covers storage.
+  \item Images and existing slides are unaffected.
+\end{itemize}
+
+\section*{Status}
+\textbf{Deployed and verified.} Managers can upload hero videos from the production admin dashboard.
+
+\end{document}

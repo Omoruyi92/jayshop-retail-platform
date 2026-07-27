@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   HeadObjectCommand,
+  PutBucketCorsCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
@@ -114,6 +115,32 @@ export async function r2ObjectExists(url: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+/**
+ * Configure the bucket's CORS policy to allow direct browser PUT uploads from
+ * the listed origins. This must be run once per R2 bucket (or whenever the
+ * production/custom domain changes).
+ */
+export async function configureR2Cors(allowedOrigins: string[]): Promise<void> {
+  const client = getClient()
+  const bucket = getBucket()
+
+  await client.send(
+    new PutBucketCorsCommand({
+      Bucket: bucket,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['PUT', 'POST'],
+            AllowedOrigins: allowedOrigins,
+            MaxAgeSeconds: 300,
+          },
+        ],
+      },
+    })
+  )
 }
 
 /**
