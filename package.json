@@ -18,7 +18,8 @@
     "db:reset-full": "npx prisma db push --force-reset && npx tsx prisma/seed.ts",
     "db:clear-products": "tsx prisma/clear-products.ts",
     "media:audit": "tsx scripts/media-audit.ts",
-    "media:cleanup": "tsx scripts/media-audit.ts --execute"
+    "media:cleanup": "tsx scripts/media-audit.ts --execute",
+    "r2:configure-cors": "tsx scripts/configure-r2-cors.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1095.0",

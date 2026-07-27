@@ -39,6 +39,13 @@ function getClient(): S3Client {
     endpoint,
     credentials: { accessKeyId, secretAccessKey },
     forcePathStyle: true,
+    // AWS SDK v3 >=3.729 defaults to WHEN_SUPPORTED, which proactively adds an
+    // x-amz-checksum-crc32 header to presigned PutObjectCommands. Since no Body
+    // is provided when presigning (the browser uploads it later), the SDK hashes
+    // an empty payload and bakes that checksum into the signature. R2 then
+    // rejects the real upload because the checksum doesn't match. WHEN_REQUIRED
+    // stops the SDK from attaching checksums unless explicitly requested.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
   })
 }
 
