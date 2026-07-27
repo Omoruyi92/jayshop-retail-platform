@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// Usage: SEED_ADMIN_PASSWORD=xxx npx tsx prisma/seed.ts
+const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD
+
 async function getOrCreateDefaultTenant() {
   const existing = await prisma.tenant.findFirst({ where: { isDefault: true } })
   if (existing) return existing
@@ -30,7 +33,11 @@ async function seedAdmin(tenantId: string) {
     return
   }
 
-  const passwordHash = await bcrypt.hash('Musa9295$', 12)
+  if (!SEED_ADMIN_PASSWORD) {
+    throw new Error('SEED_ADMIN_PASSWORD env var is required')
+  }
+
+  const passwordHash = await bcrypt.hash(SEED_ADMIN_PASSWORD, 12)
   await prisma.admin.create({
     data: {
       email: 'admin@jays.shop',
@@ -291,7 +298,7 @@ async function main() {
   console.log('\nSeed complete!')
   console.log('---------------------------------')
   console.log('Admin login:  admin@jays.shop')
-  console.log('Password:     Bluejays2026')
+  console.log('Password:     (set via SEED_ADMIN_PASSWORD)')
   console.log('---------------------------------')
 }
 
