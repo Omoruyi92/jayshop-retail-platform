@@ -79,6 +79,48 @@ export async function POST(req: Request) {
   if (error) return error
 
   try {
+    // Client-side Blob upload path: the video was already uploaded directly to
+    // Vercel Blob (bypassing the 4.5 MB serverless body limit). The client
+    // sends the resulting Blob URL + metadata as JSON rather than FormData.
+    const contentType = req.headers.get('content-type') ?? ''
+    if (contentType.includes('application/json')) {
+      const body = await req.json() as {
+        url?: string
+        scope?: string
+        altText?: string
+        mediaType?: string
+      }
+
+      const scopeRaw = (body.scope ?? '').toUpperCase()
+      if (!['HOME', 'SHOP', 'STYLE_LANDING', 'PLAYERS', 'GALLERY'].includes(scopeRaw)) {
+        return NextResponse.json({ error: 'Scope must be HOME, SHOP, STYLE_LANDING, PLAYERS, or GALLERY' }, { status: 400 })
+      }
+      if (!body.url || !body.url.startsWith('https://')) {
+        return NextResponse.json({ error: 'A valid Blob URL is required' }, { status: 400 })
+      }
+      const type = body.mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE'
+
+      if (scopeRaw === 'GALLERY') await ensureGalleryScope()
+
+      const count = await prisma.heroSlide.count({
+        where: { scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY' },
+      })
+
+      const slide = await prisma.heroSlide.create({
+        data: {
+          scope: scopeRaw as 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY',
+          mediaType: type,
+          url: body.url,
+          altText: body.altText ?? '',
+          sortOrder: count,
+          active: true,
+        },
+      })
+
+      for (const path of scopeToPaths(scopeRaw)) revalidatePath(path)
+      return NextResponse.json(slide, { status: 201 })
+    }
+
     const formData = await parseFormData(req)
     const scopeRaw = (formData.get('scope') as string)?.toUpperCase()
     const altText = (formData.get('altText') as string | null) ?? ''
