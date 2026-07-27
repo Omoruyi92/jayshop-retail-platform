@@ -1,8 +1,22 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { storeLocations } from "@/lib/data/storeLocations";
 
 export default function GameDayGuidePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
+
+      {/* ── Back to Home ── */}
+      <div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-jays-steel hover:text-jays-navy text-sm transition-colors"
+        >
+          <ChevronLeft size={14} aria-hidden="true" />
+          Back to Home
+        </Link>
+      </div>
       
       {/* ── Section 1: Store Locations and Hours ── */}
       <section>
@@ -149,6 +163,14 @@ export default function GameDayGuidePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── Shop Now CTA ── */}
+      <section className="text-center py-8">
+        <p className="text-jays-navy font-serif italic text-xl mb-6">Ready to gear up?</p>
+        <Button asChild size="lg">
+          <Link href="/shop">Shop Now</Link>
+        </Button>
       </section>
 
     </div>
