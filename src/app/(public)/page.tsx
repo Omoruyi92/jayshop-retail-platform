@@ -2,6 +2,7 @@ import HomePageClient from '@/components/home/HomePageClient'
 import BrandCatalogPreview from '@/components/home/BrandCatalogPreview'
 import PlayerCatalogPreview from '@/components/home/PlayerCatalogPreview'
 import LinkedGearPreview from '@/components/home/LinkedGearPreview'
+import HeroPreload from '@/components/hero/HeroPreload'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 import { prisma } from '@/lib/prisma'
 
@@ -27,10 +28,13 @@ export default async function HomePage() {
   ])
 
   return (
-    <HomePageClient initialHeroSlides={initialHeroSlides} brands={brands}>
-      <BrandCatalogPreview />
-      <PlayerCatalogPreview />
-      <LinkedGearPreview />
-    </HomePageClient>
+    <>
+      <HeroPreload slides={initialHeroSlides} />
+      <HomePageClient initialHeroSlides={initialHeroSlides} brands={brands}>
+        <BrandCatalogPreview />
+        <PlayerCatalogPreview />
+        <LinkedGearPreview />
+      </HomePageClient>
+    </>
   )
 }

@@ -218,10 +218,9 @@ export default function HeroSlideshow({
                 alt={slide.altText || `${scope} hero image`}
                 fill
                 sizes="100vw"
-                quality={95}
+                quality={85}
                 priority={i === 0}
                 className={mediaCls}
-                unoptimized
                 onLoad={() => markReady(slide.id)}
                 {...(slide.blurDataURL
                   ? { placeholder: 'blur' as const, blurDataURL: slide.blurDataURL }

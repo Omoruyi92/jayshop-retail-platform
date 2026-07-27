@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import GalleryPageClient from '@/components/gallery/GalleryPageClient'
 import GalleryHero from '@/components/gallery/GalleryHero'
+import HeroPreload from '@/components/hero/HeroPreload'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 // Store gallery photos change rarely (only via admin uploads/edits), so a
@@ -38,8 +39,8 @@ export default async function GalleryPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <HeroPreload slides={heroSlides} />
       <GalleryHero initialSlides={heroSlides} />
-
       <GalleryPageClient images={images} categories={categories} />
     </div>
   )

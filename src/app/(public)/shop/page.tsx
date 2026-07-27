@@ -1,4 +1,5 @@
 import ShopPageClient from '@/components/shop/ShopPageClient'
+import HeroPreload from '@/components/hero/HeroPreload'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 import { getCategoryTree } from '@/lib/categories'
 
@@ -25,10 +26,13 @@ export default async function ShopPage({
   const initialCategories = await getCategoryTree()
 
   return (
-    <ShopPageClient
-      activeCategory={activeCategory}
-      initialHeroSlides={initialHeroSlides}
-      initialCategories={initialCategories}
-    />
+    <>
+      <HeroPreload slides={initialHeroSlides} />
+      <ShopPageClient
+        activeCategory={activeCategory}
+        initialHeroSlides={initialHeroSlides}
+        initialCategories={initialCategories}
+      />
+    </>
   )
 }

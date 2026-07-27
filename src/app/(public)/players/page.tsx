@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import PlayersHero from '@/components/players/PlayersHero'
 import PlayersPageClient from '@/components/players/PlayersPageClient'
+import HeroPreload from '@/components/hero/HeroPreload'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 // ISR: player data rarely changes; a 60s TTL matches the caching approach
@@ -36,6 +37,7 @@ export default async function PopularPlayersPage() {
 
   return (
     <div>
+      <HeroPreload slides={initialHeroSlides} />
       <PlayersHero initialSlides={initialHeroSlides} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <PlayersPageClient players={players} />

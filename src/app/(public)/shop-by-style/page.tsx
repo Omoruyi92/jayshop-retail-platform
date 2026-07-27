@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import StylesHero from '@/components/styles/StylesHero'
 import StylesMasonryGrid from '@/components/styles/StylesMasonryGrid'
 import { EmptyState } from '@/components/ui/EmptyState'
+import HeroPreload from '@/components/hero/HeroPreload'
 import { getHeroSlides } from '@/lib/hero/getHeroSlides'
 
 export const revalidate = 60
@@ -32,6 +33,7 @@ export default async function ShopByStylePage() {
 
   return (
     <div className="bg-white">
+      <HeroPreload slides={initialHeroSlides} />
       <StylesHero initialSlides={initialHeroSlides} />
 
       <div className="mx-auto w-full bg-white px-0 py-0">
