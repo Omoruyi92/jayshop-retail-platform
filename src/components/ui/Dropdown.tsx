@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
+import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
 export interface DropdownOption {
   value: string
@@ -29,6 +30,12 @@ interface DropdownProps {
 /**
  * Branded, accessible replacement for a native `<select>`, matching the
  * app's pill/gradient design system (rounded trigger + floating listbox).
+ *
+ * Positioning/open-close behavior mirrors the Language selector dropdown
+ * in `Header.tsx`: the panel is only mounted while open (via
+ * `useDropdownPosition`, same hook Header/HeaderActions/NotificationBell
+ * use), so there is no stale `top:0,left:0` position left over from a
+ * previous render to animate from on close.
  */
 export default function Dropdown({
   value,
@@ -36,7 +43,6 @@ export default function Dropdown({
   onChange,
   ariaLabel,
   id,
-  align = 'right',
   className,
   buttonClassName,
   panelClassName,
@@ -44,48 +50,18 @@ export default function Dropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [position, setPosition] = useState<{ top: number; left?: number; right?: number } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const reactId = useId()
   const buttonId = id ? `${id}-button` : `dropdown-button-${reactId}`
   const listId = id ? `${id}-listbox` : `dropdown-listbox-${reactId}`
 
+  const panelStyle = useDropdownPosition(isOpen, triggerRef, panelRef)
+
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (!isOpen) {
-      setPosition(null)
-      return
-    }
-    function compute() {
-      const button = rootRef.current
-      if (!button) return
-      const rect = button.getBoundingClientRect()
-      const gap = 6
-      const panelWidth = typeof window !== 'undefined' && window.innerWidth < 640 ? Math.min(288, window.innerWidth - 16) : 256
-      const viewportWidth = window.innerWidth
-      let left = Math.max(8, rect.left)
-      let right: number | undefined
-      if (left + panelWidth > viewportWidth - 8) {
-        left = Math.max(8, viewportWidth - panelWidth - 8)
-      }
-      if (rect.left > viewportWidth - rect.left - rect.width) {
-        right = Math.max(8, viewportWidth - rect.right)
-        left = 0
-      }
-      setPosition({ top: rect.bottom + gap, left: left === 0 ? undefined : left, right })
-    }
-    compute()
-    window.addEventListener('resize', compute)
-    window.addEventListener('scroll', compute, true)
-    return () => {
-      window.removeEventListener('resize', compute)
-      window.removeEventListener('scroll', compute, true)
-    }
-  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return
@@ -112,6 +88,7 @@ export default function Dropdown({
   return (
     <div ref={rootRef} className={cn('relative shrink-0', className)}>
       <button
+        ref={triggerRef}
         type="button"
         id={buttonId}
         aria-haspopup="listbox"
@@ -144,6 +121,7 @@ export default function Dropdown({
       </button>
 
       {mounted &&
+        isOpen &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
@@ -151,16 +129,11 @@ export default function Dropdown({
             ref={panelRef}
             role="listbox"
             aria-labelledby={buttonId}
+            style={panelStyle}
             className={cn(
-              'fixed z-[60] mt-1.5 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg transition-[opacity,transform] duration-150 ease-out',
-              isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0',
+              'z-[60] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200',
               panelClassName ?? 'w-56'
             )}
-            style={
-              position
-                ? { top: position.top, left: position.left, right: position.right }
-                : { top: 0, left: 0 }
-            }
           >
             <div className="max-h-64 overflow-y-auto">
               {options.map((option) => {
