@@ -43,11 +43,17 @@ export default function Dropdown({
   trigger,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [position, setPosition] = useState<{ top: number; left?: number; right?: number } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const reactId = useId()
   const buttonId = id ? `${id}-button` : `dropdown-button-${reactId}`
   const listId = id ? `${id}-listbox` : `dropdown-listbox-${reactId}`
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!isOpen) {
@@ -84,8 +90,14 @@ export default function Dropdown({
   useEffect(() => {
     if (!isOpen) return
     function onClickOutside(event: MouseEvent) {
-      if (!rootRef.current) return
-      if (!rootRef.current.contains(event.target as Node)) setIsOpen(false)
+      const target = event.target as Node
+      if (
+        rootRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      ) {
+        return
+      }
+      setIsOpen(false)
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') setIsOpen(false)
@@ -103,6 +115,7 @@ export default function Dropdown({
   const panel = (
     <div
       id={listId}
+      ref={panelRef}
       role="listbox"
       aria-labelledby={buttonId}
       style={
@@ -179,7 +192,7 @@ export default function Dropdown({
         )}
       </button>
 
-      {typeof document !== 'undefined' ? createPortal(panel, document.body) : panel}
+      {mounted && typeof document !== 'undefined' ? createPortal(panel, document.body) : null}
     </div>
   )
 }
