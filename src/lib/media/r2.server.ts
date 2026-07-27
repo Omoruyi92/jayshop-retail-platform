@@ -25,14 +25,45 @@ import { nanoid } from 'nanoid'
  *   R2_PUBLIC_URL          public/custom domain where objects are served
  */
 
+/**
+ * Cloudflare's dashboard "S3 API" field displays the endpoint with the bucket
+ * name appended as a path suffix, e.g.
+ *   https://<account-id>.r2.cloudflarestorage.com/<bucket-name>
+ * but the AWS SDK's `endpoint` option must be the bucket-LESS origin — the SDK
+ * appends the bucket itself (we use forcePathStyle, i.e. `/<bucket>/<key>`).
+ * If a user pastes the dashboard value verbatim into R2_ENDPOINT, the bucket
+ * name ends up duplicated in the final path (`/bucket/bucket/key`), which R2
+ * rejects with a 400 (surfaced to the browser as a CORS failure since the
+ * error response omits Access-Control-Allow-Origin).
+ *
+ * This strips a trailing `/<bucketName>` (and any trailing slash) so the app
+ * tolerates both forms of the env var.
+ */
+function normalizeR2Endpoint(endpoint: string, bucket: string): string {
+  const trimmed = endpoint.replace(/\/+$/, '')
+  const suffix = `/${bucket}`
+  if (trimmed.endsWith(suffix)) {
+    const normalized = trimmed.slice(0, -suffix.length)
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[r2] R2_ENDPOINT included the bucket name ("${suffix}") as a path suffix; ` +
+        `normalized to host-only endpoint. Update R2_ENDPOINT to avoid this warning.`
+    )
+    return normalized
+  }
+  return trimmed
+}
+
 function getClient(): S3Client {
-  const endpoint = process.env.R2_ENDPOINT
+  const rawEndpoint = process.env.R2_ENDPOINT
   const accessKeyId = process.env.R2_ACCESS_KEY_ID
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
 
-  if (!endpoint || !accessKeyId || !secretAccessKey) {
+  if (!rawEndpoint || !accessKeyId || !secretAccessKey) {
     throw new Error('Missing R2 credentials. Set R2_ENDPOINT, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY.')
   }
+
+  const endpoint = normalizeR2Endpoint(rawEndpoint, getBucket())
 
   return new S3Client({
     region: 'auto',
