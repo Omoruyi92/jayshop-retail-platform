@@ -8,6 +8,7 @@ import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
+import { SearchProvider } from '@/lib/store/SearchContext'
 import { PromotionsProvider, type Promotion } from '@/lib/promotions/PromotionsContext'
 import { prisma } from '@/lib/prisma'
 import { isDbConnectionError } from '@/lib/db-error'
@@ -50,6 +51,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <LanguageProvider>
+      <SearchProvider>
       <FavoritesProvider>
         <CartProvider>
           <PromotionsProvider initialPromotions={initialPromotions}>
@@ -66,6 +68,7 @@ export default async function PublicLayout({ children }: { children: React.React
           </PromotionsProvider>
         </CartProvider>
       </FavoritesProvider>
+      </SearchProvider>
     </LanguageProvider>
   )
 }

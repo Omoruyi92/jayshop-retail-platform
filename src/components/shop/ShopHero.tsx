@@ -1,18 +1,13 @@
 'use client'
 
-import SearchBar from '@/components/shop/SearchBar'
 import HeroSlideshow, { type Slide as HeroSlide } from '@/components/shop/HeroSlideshow'
 import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 
 export default function ShopHero({
-  searchValue,
-  onSearchChange,
   liveLabel,
   livePulse,
   initialSlides,
 }: {
-  searchValue: string
-  onSearchChange: (value: string) => void
   liveLabel: string
   livePulse: boolean
   initialSlides?: HeroSlide[]
@@ -28,12 +23,11 @@ export default function ShopHero({
           without hiding the artwork. Fade transitions between slides. */}
       <HeroSlideshow scope="SHOP" imagePosition="top" initialSlides={initialSlides} />
 
-      {/* Content centered, above slideshow controls */}
+      {/* Live badge — centered at the bottom */}
       <div className="absolute inset-x-0 bottom-0 z-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">
-          {/* Live badge */}
           <span
-            className={`mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-3 py-1 text-[11px] font-display font-semibold uppercase tracking-[0.15em] text-emerald-300 backdrop-blur-sm transition-opacity duration-500 ${
+            className={`inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-3 py-1 text-[11px] font-display font-semibold uppercase tracking-[0.15em] text-emerald-300 backdrop-blur-sm transition-opacity duration-500 ${
               livePulse ? 'opacity-100' : 'opacity-90'
             }`}
           >
@@ -43,11 +37,6 @@ export default function ShopHero({
             </span>
             {liveLabel}
           </span>
-
-          {/* Glass search bar */}
-          <div className="relative z-10 w-full max-w-md px-4 sm:max-w-lg sm:px-0">
-            <SearchBar value={searchValue} onChange={onSearchChange} placeholder="What are you looking for?" />
-          </div>
         </div>
       </div>
     </section>

@@ -19,6 +19,7 @@ import { useCategoryTree, type CategoryNode } from '@/hooks/useCategoryTree'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { saveShopState, loadShopState, clearShopState, saveProductListContext } from '@/lib/shop/shopState'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+import { useSearch } from '@/lib/store/SearchContext'
 
 // Max products shown per category-grouped carousel row on the default,
 // unfiltered Shop browsing view (see `isGroupedView` below) — mirrors the
@@ -199,10 +200,8 @@ export default function ShopPageClient({
   const [sortBy, setSortBy] = useState<SortOption>('default')
   const [loading, setLoading] = useState(true)
   const [livePulse, setLivePulse] = useState(false)
-  const [searchInput, setSearchInput] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  const { searchInput, searchQuery, setSearchInput, clearSearch } = useSearch()
   const prevCountRef = useRef<number>(0)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasRestoredRef = useRef(false)
   const pendingScrollRef = useRef<number | null>(null)
@@ -215,6 +214,7 @@ export default function ShopPageClient({
     const urlAgeGroup = searchParams?.get('ageGroup')?.trim()
     const urlBrand = searchParams?.get('brand')?.trim()
     const urlHatStyle = searchParams?.get('hatStyle')?.trim()
+    const urlSearch = searchParams?.get('search')?.trim()
     if (urlCategory === 'All') {
       // Explicit reset request from the "All" pill — always show the full
       // catalog and discard any previously saved filter state. A "View All
@@ -229,8 +229,7 @@ export default function ShopPageClient({
       setActiveBrand('All')
       setActiveHatStyle('All')
       setActivePriceRange('All')
-      setSearchInput('')
-      setSearchQuery('')
+      clearSearch()
       setSortBy('default')
       hasRestoredRef.current = true
       return
@@ -255,8 +254,8 @@ export default function ShopPageClient({
       setActiveAgeGroup(urlAgeGroup || saved.ageGroup || 'All')
       setActiveBrand(urlBrand || saved.brand)
       setActiveHatStyle(urlHatStyle || saved.hatStyle || 'All')
-      setSearchInput(saved.search)
-      setSearchQuery(saved.search)
+      // URL search param takes priority over saved state
+      setSearchInput(urlSearch ?? saved.search)
       pendingScrollRef.current = saved.scrollY
     } else {
       setActiveCategory(resolvedCategory)
@@ -265,6 +264,7 @@ export default function ShopPageClient({
       if (urlAgeGroup) setActiveAgeGroup(urlAgeGroup)
       if (urlBrand) setActiveBrand(urlBrand)
       if (urlHatStyle) setActiveHatStyle(urlHatStyle)
+      if (urlSearch) setSearchInput(urlSearch)
     }
     hasRestoredRef.current = true
   }, [searchParams, initialCategory])
@@ -284,8 +284,7 @@ export default function ShopPageClient({
       setActiveBrand('All')
       setActiveHatStyle('All')
       setActivePriceRange('All')
-      setSearchInput('')
-      setSearchQuery('')
+      clearSearch()
       setSortBy('default')
       return
     }
@@ -329,15 +328,8 @@ export default function ShopPageClient({
     })
   }, [loading])
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => setSearchQuery(value), 250)
-  }, [])
-
   useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
       if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current)
     }
   }, [])
@@ -569,8 +561,6 @@ export default function ShopPageClient({
   return (
     <>
       <ShopHero
-        searchValue={searchInput}
-        onSearchChange={handleSearchChange}
         liveLabel={s.live}
         livePulse={livePulse}
         initialSlides={initialHeroSlides}
