@@ -16,11 +16,11 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
 
   return (
     <section
-      className="relative h-[46vh] max-h-[440px] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[52vh] sm:max-h-[480px] lg:h-[calc(58vh+151px)] lg:max-h-[691px]"
+      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {hasSlides ? (
-        <HeroSlideshow scope="STYLE_LANDING" imagePosition="center" initialSlides={initialSlides} />
+        <HeroSlideshow scope="STYLE_LANDING" imagePosition="top" initialSlides={initialSlides} />
       ) : (
         <>
           <Image
@@ -30,7 +30,7 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
             priority
             sizes="100vw"
             quality={95}
-            className="object-cover object-center"
+            className="object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-jays-navy/85 via-jays-navy/30 to-jays-navy/10" />
         </>

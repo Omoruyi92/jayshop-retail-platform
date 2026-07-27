@@ -27,7 +27,7 @@ export default function PlayersHero({ initialSlides }: { initialSlides: HeroSlid
 
   return (
     <section
-      className="relative h-[38vh] max-h-[380px] min-h-[220px] w-full overflow-hidden bg-jays-navy sm:h-[46vh] sm:max-h-[440px] lg:h-[calc(52vh+151px)] lg:max-h-[651px]"
+      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       <HeroSlideshow scope="PLAYERS" imagePosition="top" overlay={false} initialSlides={initialSlides} transition="fade" />
