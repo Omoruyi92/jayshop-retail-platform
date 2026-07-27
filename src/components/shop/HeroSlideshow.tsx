@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import type { HeroScope, Slide } from '@/types/hero'
@@ -75,6 +75,13 @@ export default function HeroSlideshow({
   const markReady = (id: string) =>
     setReadyIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
 
+  // Map of slide id → <video> element for programmatic play/pause/reset control.
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map())
+  // Tracks the last slide index we "arrived at" as a VIDEO slide so we can
+  // reset currentTime to 0 on slide entry without also resetting on a simple
+  // isPlaying toggle while staying on the same video slide.
+  const lastVideoIndexRef = useRef<number>(-1)
+
   const slideCount = slides.length
   const goTo = useCallback(
     (next: number) => {
@@ -92,13 +99,55 @@ export default function HeroSlideshow({
   }, [goTo, index])
   const togglePlaying = useCallback(() => setIsPlaying((p) => !p), [])
 
+  // IMAGE slides: use the normal fixed-interval auto-advance.
+  // VIDEO slides skip this entirely — they advance via the onEnded handler
+  // once the video plays to its natural end.
   useEffect(() => {
     if (slideCount <= 1 || !isPlaying) return
+    const currentSlide = slides[index]
+    if (currentSlide?.mediaType === 'VIDEO') return
     const id = setInterval(() => {
       setIndex((i) => (i + 1) % slideCount)
     }, interval)
     return () => clearInterval(id)
-  }, [slideCount, interval, isPlaying])
+  }, [slideCount, interval, isPlaying, index, slides])
+
+  // VIDEO slides: reset playback to the start whenever we arrive at a new
+  // video slide, and keep the video element in sync with the isPlaying flag.
+  useEffect(() => {
+    const currentSlide = slides[index]
+    if (!currentSlide || currentSlide.mediaType !== 'VIDEO') {
+      // Leaving a video slide — clear the tracking ref so the next video
+      // slide is guaranteed to get a fresh reset.
+      lastVideoIndexRef.current = -1
+      return
+    }
+
+    const videoEl = videoRefs.current.get(currentSlide.id)
+    if (!videoEl) return
+
+    // Only reset to the start when we genuinely navigate to a new video slide,
+    // not when isPlaying flips while we're already watching this slide.
+    if (lastVideoIndexRef.current !== index) {
+      lastVideoIndexRef.current = index
+      videoEl.currentTime = 0
+    }
+
+    if (isPlaying) {
+      videoEl.play().catch(() => {
+        // play() can be rejected if the browser interrupts (e.g. a rapid
+        // slide switch before the previous promise settled). Safe to ignore.
+      })
+    } else {
+      videoEl.pause()
+    }
+  }, [index, isPlaying, slides])
+
+  // When a video plays to its natural end, automatically advance to the next
+  // slide. isPlaying stays true so the slideshow keeps rotating.
+  const handleVideoEnded = useCallback(() => {
+    setIndex((i) => (i + 1) % slideCount)
+  }, [slideCount])
 
   if (!loaded || slides.length === 0) return null
 
@@ -139,14 +188,18 @@ export default function HeroSlideshow({
           <div key={slide.id} className={cls} style={style}>
             {slide.mediaType === 'VIDEO' ? (
               <video
+                ref={(el) => {
+                  if (el) videoRefs.current.set(slide.id, el)
+                  else videoRefs.current.delete(slide.id)
+                }}
                 src={slide.url}
                 autoPlay
                 muted
-                loop
                 playsInline
                 className={mediaCls}
                 aria-label={slide.altText || `${scope} hero video`}
                 onLoadedData={() => markReady(slide.id)}
+                onEnded={handleVideoEnded}
               />
             ) : (
               <Image
