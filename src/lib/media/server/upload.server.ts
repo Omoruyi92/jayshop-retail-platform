@@ -1,6 +1,6 @@
 import { mkdir, writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
-import { isBlobUpload, isStaticHeroVideo, isR2Upload } from '../upload'
+import { isStaticHeroVideo, isR2Upload } from '../upload'
 import { saveToR2, deleteFromR2 } from '../r2.server'
 
 /**
@@ -49,14 +49,22 @@ export async function saveUploadedFile(
 }
 
 /**
- * Saves a hero video directly to `public/hero-videos/<scope>/<fileName>` so it
- * is served as a committed static asset on Vercel's Edge Network.
+ * Saves a hero video to Cloudflare R2 when R2 credentials are configured,
+ * otherwise falls back to the local `public/hero-videos/` filesystem.
+ *
+ * Using R2 in production is required because Vercel's serverless filesystem is
+ * ephemeral — videos written locally at runtime disappear on the next deploy
+ * or function cold start, causing "Upload failed" errors for managers.
  */
 export async function saveHeroVideo(
   buffer: Buffer,
   fileName: string,
   scope: string
 ): Promise<string> {
+  if (r2Enabled()) {
+    return saveToR2(buffer, fileName, 'video/mp4', `hero-videos/${scope}`)
+  }
+
   const dir = join(process.cwd(), 'public', 'hero-videos', scope)
   await mkdir(dir, { recursive: true })
   await writeFile(join(dir, fileName), buffer)
