@@ -134,11 +134,14 @@ function StatusPill({ status }: { status: HealthStatus }) {
   )
 }
 
+const PRODUCTS_PAGE_SIZE = 50
+
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null)
+  const [productsPage, setProductsPage] = useState(1)
   const loadRef = useRef<(silent?: boolean) => void>(() => {})
 
   useEffect(() => {
@@ -214,6 +217,19 @@ export default function AdminAnalyticsPage() {
     return data.outOfStock.filter((r) => r.locationCode === selectedLocation.code)
   }, [data, selectedLocation])
 
+  // byProduct arrives from the API already sorted by status severity
+  // (out-of-stock first) across the full product set. We only slice for
+  // display here — pagination must never re-sort or re-derive severity.
+  const totalProducts = data?.byProduct.length ?? 0
+  const totalProductPages = Math.max(1, Math.ceil(totalProducts / PRODUCTS_PAGE_SIZE))
+  const clampedProductsPage = Math.min(Math.max(1, productsPage), totalProductPages)
+
+  const pagedProducts = useMemo(() => {
+    if (!data) return []
+    const start = (clampedProductsPage - 1) * PRODUCTS_PAGE_SIZE
+    return data.byProduct.slice(start, start + PRODUCTS_PAGE_SIZE)
+  }, [data, clampedProductsPage])
+
   if (loading || !data) {
     return (
       <div>
@@ -225,7 +241,7 @@ export default function AdminAnalyticsPage() {
     )
   }
 
-  const { totals, byLocation, byProduct, bySize, recentlySold, popular, activeHolds, expiredHolds } = data
+  const { totals, byLocation, bySize, recentlySold, popular, activeHolds, expiredHolds } = data
 
   const maxSizeUnits = Math.max(1, ...bySize.map((s) => s.totalUnits))
 
@@ -373,7 +389,7 @@ export default function AdminAnalyticsPage() {
           <h2 className="font-display font-semibold uppercase text-jays-navy text-sm">Products</h2>
           <p className="text-xs text-jays-steel mt-0.5">Sorted by status severity (out-of-stock first)</p>
         </div>
-        {byProduct.length === 0 ? (
+        {totalProducts === 0 ? (
           <EmptyState title="No products" />
         ) : (
           <table className="w-full text-sm">
@@ -386,7 +402,7 @@ export default function AdminAnalyticsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {byProduct.map((p) => (
+              {pagedProducts.map((p) => (
                 <tr key={p.productId} className="hover:bg-jays-ice/50 transition-colors">
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3 min-w-0">
@@ -404,6 +420,31 @@ export default function AdminAnalyticsPage() {
               ))}
             </tbody>
           </table>
+        )}
+        {totalProducts > PRODUCTS_PAGE_SIZE && (
+          <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-jays-ice/30">
+            <span className="text-xs text-jays-steel">
+              Showing {(clampedProductsPage - 1) * PRODUCTS_PAGE_SIZE + 1}–
+              {Math.min(clampedProductsPage * PRODUCTS_PAGE_SIZE, totalProducts)} of {totalProducts}
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                disabled={clampedProductsPage <= 1}
+                onClick={() => setProductsPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-jays-navy disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
+              >
+                &larr; Previous
+              </button>
+              <span className="text-xs text-jays-steel">Page {clampedProductsPage} of {totalProductPages}</span>
+              <button
+                disabled={clampedProductsPage >= totalProductPages}
+                onClick={() => setProductsPage((p) => Math.min(totalProductPages, p + 1))}
+                className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-jays-navy disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </div>
         )}
       </TableWrapper>
 
