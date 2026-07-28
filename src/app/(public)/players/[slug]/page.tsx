@@ -78,7 +78,7 @@ export default async function PlayerDetailPage({ params }: { params: { slug: str
       </Link>
 
       <div
-        className="relative aspect-[4/3] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-jays-ice mb-6"
+        className="relative aspect-[4/3] sm:aspect-[16/9] w-full overflow-hidden bg-white mb-6"
         style={{ position: 'relative' }}
       >
         <ProductImageGallery images={galleryImages} alt={player.name} />
