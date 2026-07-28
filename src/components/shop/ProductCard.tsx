@@ -69,19 +69,19 @@ export default function ProductCard({
       onClick={handleClick}
       className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
     >
-      <div className="group overflow-hidden bg-white rounded-2xl border border-gray-100 transition-all duration-300 ease-out hover:border-gray-300 hover:-translate-y-1">
+      <div className="overflow-hidden">
         <div className="relative aspect-[3/4] overflow-hidden bg-white" style={{ position: 'relative' }}>
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-contain p-1 transition-transform duration-300 group-hover:scale-[1.03]"
             style={{ position: 'absolute', inset: 0 }}
           />
         </div>
-        <div className="p-3">
-          <p className="font-semibold text-jays-navy text-sm leading-tight line-clamp-2 tracking-tight" title={product.name}>
+        <div className="pt-2.5 min-h-[2.5rem]">
+          <p className="font-semibold text-jays-navy text-sm leading-tight line-clamp-2 tracking-tight transition-colors group-hover:text-jays-royal group-hover:underline group-hover:underline-offset-2" title={product.name}>
             {titleCase(product.name)}
           </p>
         </div>

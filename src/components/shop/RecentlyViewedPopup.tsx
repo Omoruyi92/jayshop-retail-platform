@@ -110,16 +110,16 @@ export default function RecentlyViewedPopup() {
                 onClick={handleClose}
                 className="flex-shrink-0 w-28 snap-start group"
               >
-                <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-jays-ice border border-gray-100 mb-1.5">
+                <div className="relative aspect-[4/5] overflow-hidden bg-white mb-1.5">
                   <Image
                     src={item.imageUrl}
                     alt={item.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-200"
+                    className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
                     unoptimized
                   />
                 </div>
-                <p className="text-xs font-medium text-jays-navy line-clamp-2 leading-snug">
+                <p className="text-xs font-medium text-jays-navy line-clamp-2 leading-snug transition-colors group-hover:text-jays-royal group-hover:underline group-hover:underline-offset-2">
                   {item.name}
                 </p>
               </Link>

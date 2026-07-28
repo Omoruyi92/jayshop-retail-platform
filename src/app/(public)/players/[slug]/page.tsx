@@ -123,20 +123,20 @@ export default async function PlayerDetailPage({ params }: { params: { slug: str
               <Link
                 key={g.linkId}
                 href={`/shop/${g.product.slug}`}
-                className="group bg-white rounded-xl border border-gray-100 overflow-hidden transition-colors hover:border-gray-300"
+                className="group"
               >
-                <div className="relative aspect-square bg-white">
+                <div className="relative aspect-square bg-white overflow-hidden">
                   <Image
                     src={g.product.imageUrl}
                     alt={g.product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, 33vw"
-                    className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain p-1 group-hover:scale-[1.03] transition-transform duration-300"
                     priority={index === 0}
                   />
                 </div>
-                <div className="p-2">
-                  <p className="text-xs font-semibold text-jays-navy truncate">{g.label || g.product.name}</p>
+                <div className="pt-2">
+                  <p className="text-xs font-semibold text-jays-navy truncate transition-colors group-hover:text-jays-royal group-hover:underline group-hover:underline-offset-2">{g.label || g.product.name}</p>
                 </div>
               </Link>
             ))}

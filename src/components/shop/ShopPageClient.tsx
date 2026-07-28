@@ -671,9 +671,9 @@ export default function ShopPageClient({
         {loading ? (
           <div className="mb-12 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="overflow-hidden rounded-2xl border border-gray-100 bg-white animate-pulse">
+              <div key={index} className="overflow-hidden bg-white animate-pulse">
                 <div className="aspect-[3/4] bg-gray-100" />
-                <div className="space-y-2 p-3">
+                <div className="space-y-2 pt-2.5">
                   <div className="h-3 w-3/4 rounded bg-gray-100" />
                   <div className="h-3 w-1/2 rounded bg-gray-50" />
                 </div>

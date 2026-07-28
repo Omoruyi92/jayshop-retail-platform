@@ -18,7 +18,7 @@ export default function PlayerCard({ player, priority = false }: { player: Playe
   return (
     <Link
       href={`/players/${player.slug}`}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 hover:border-gray-300 hover:-translate-y-1"
+      className="group relative flex flex-col"
     >
       <div className="relative aspect-square w-full bg-white overflow-hidden">
         <Image
@@ -26,7 +26,7 @@ export default function PlayerCard({ player, priority = false }: { player: Playe
           alt={player.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain group-hover:scale-105 transition-transform duration-500"
+          className="object-contain group-hover:scale-[1.03] transition-transform duration-500"
           priority={priority}
         />
         <PlayerBadge
@@ -42,8 +42,8 @@ export default function PlayerCard({ player, priority = false }: { player: Playe
         )}
       </div>
 
-      <div className="flex flex-col gap-1 p-3">
-        <h3 className="font-display font-bold text-jays-navy text-sm leading-tight truncate">{player.name}</h3>
+      <div className="flex flex-col gap-1 pt-2.5">
+        <h3 className="font-display font-bold text-jays-navy text-sm leading-tight truncate transition-colors group-hover:text-jays-royal group-hover:underline group-hover:underline-offset-2">{player.name}</h3>
         {player.position && (
           <p className="text-xs text-gray-500 uppercase tracking-wide">{player.position}</p>
         )}
