@@ -19,7 +19,7 @@ import { heroFallbackStyle } from '@/lib/hero/heroFallbackStyle'
 export default function GalleryHero({ initialSlides }: { initialSlides?: HeroSlide[] }) {
   return (
     <section
-      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
+      className="relative h-[56vh] max-h-[520px] min-h-[380px] w-full overflow-hidden bg-white sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {/* imagePosition="top" (GALLERY-only override) keeps the top of the

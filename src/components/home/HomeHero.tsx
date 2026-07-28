@@ -25,7 +25,7 @@ export default function HomeHero({ isGameDayToday = false, initialSlides }: Home
 
   return (
     <section
-      className="relative isolate h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[calc(62vh+151px)] lg:max-h-[771px]"
+      className="relative isolate h-[50vh] max-h-[500px] min-h-[360px] w-full overflow-hidden bg-white sm:h-[56vh] sm:max-h-[560px] lg:h-[calc(62vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {/* Full-bleed hero media, primary visual focus */}
