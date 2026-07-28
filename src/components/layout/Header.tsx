@@ -4,8 +4,6 @@ import Image from 'next/image'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
-import { useTheme } from '@/lib/theme/ThemeContext'
-import { THEMES, THEME_LABELS, type Theme } from '@/lib/theme/themes'
 import MLBLogo from '@/components/ui/MLBLogo'
 import PartnerLogosBar, { LocationBadge, PromoMarquee, usePromotions } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
@@ -66,16 +64,11 @@ function StoreStatusStrip() {
 
 export default function Header() {
   const { t, locale, setLocale } = useLanguage()
-  const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
-  const [themeOpen, setThemeOpen] = useState(false)
   const [weCareOpen, setWeCareOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const langTriggerRef = useRef<HTMLButtonElement>(null)
   const langPanelRef = useRef<HTMLDivElement>(null)
-  const themeRef = useRef<HTMLDivElement>(null)
-  const themeTriggerRef = useRef<HTMLButtonElement>(null)
-  const themePanelRef = useRef<HTMLDivElement>(null)
   const weCareRef = useRef<HTMLDivElement>(null)
   const weCareTriggerRef = useRef<HTMLButtonElement>(null)
   const weCarePanelRef = useRef<HTMLDivElement>(null)
@@ -109,9 +102,6 @@ export default function Header() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
-      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
-        setThemeOpen(false)
-      }
       if (weCareRef.current && !weCareRef.current.contains(e.target as Node)) {
         setWeCareOpen(false)
       }
@@ -119,20 +109,17 @@ export default function Header() {
         setMobileMenuOpen(false)
       }
     }
-    if (open || themeOpen || weCareOpen || mobileMenuOpen) {
+    if (open || weCareOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open, themeOpen, weCareOpen, mobileMenuOpen])
+  }, [open, weCareOpen, mobileMenuOpen])
 
   // Anchors the language options panel to the trigger's real on-screen
   // position (fixed + viewport-clamped), matching the cart/favorites
   // dropdown fix — `absolute right-0` clips off-screen on mobile because
   // the trigger itself sits close to the viewport's right edge.
   const langPanelStyle = useDropdownPosition(open, langTriggerRef, langPanelRef)
-
-  // Same anchoring fix for the theme selector panel.
-  const themePanelStyle = useDropdownPosition(themeOpen, themeTriggerRef, themePanelRef)
 
   // Same fix for the "We Care" values popover (desktop/tablet) — anchors
   // to the trigger's real position instead of `absolute right-0` on its
@@ -284,70 +271,6 @@ export default function Header() {
                     }`}
                   >
                     {LOCALE_LABELS[loc]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Theme selector — same interaction pattern as the language
-              selector above (fixed-position panel via useDropdownPosition,
-              click-outside to close, native focusable buttons with visible
-              focus rings). Storefront only; absent from admin because
-              Header is not rendered in the admin layout tree. */}
-          <div className="relative" ref={themeRef}>
-            <button
-              ref={themeTriggerRef}
-              onClick={() => setThemeOpen((prev) => !prev)}
-              className="flex items-center gap-0.5 xs:gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-0 xs:px-1 sm:px-2.5 py-1.5 text-[11px] xs:text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
-              aria-haspopup="listbox"
-              aria-expanded={themeOpen}
-              aria-label="Select theme"
-            >
-              <span className="hidden sm:inline">{THEME_LABELS[theme]}</span>
-              <svg
-                className="sm:hidden w-3.5 h-3.5 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343" />
-              </svg>
-              <svg
-                className={`hidden min-[340px]:block w-2.5 h-2.5 xs:w-3 xs:h-3 shrink-0 transition-transform duration-150 ${themeOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {themeOpen && (
-              <div
-                ref={themePanelRef}
-                role="listbox"
-                aria-label="Theme"
-                style={themePanelStyle}
-                className="fixed w-44 bg-white shadow-lg rounded-lg border border-gray-100 py-1 z-50"
-              >
-                {THEMES.map((t) => (
-                  <button
-                    key={t}
-                    role="option"
-                    aria-selected={theme === t}
-                    onClick={() => { setTheme(t); setThemeOpen(false) }}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-jays-navy/40 ${
-                      theme === t
-                        ? 'bg-jays-navy text-white'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {THEME_LABELS[t]}
                   </button>
                 ))}
               </div>

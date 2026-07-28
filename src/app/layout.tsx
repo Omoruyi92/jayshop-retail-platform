@@ -4,8 +4,6 @@ import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { Toaster } from 'sonner'
 import DevServiceWorkerCleanup from '@/components/layout/DevServiceWorkerCleanup'
-import { ThemeProvider } from '@/lib/theme/ThemeContext'
-import { getThemeInitScript } from '@/lib/theme/themeInitScript'
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -62,11 +60,6 @@ export default function RootLayout({
     <html lang="en" className={cn(display.variable, inter.variable)}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        {/* Blocking (not deferred) so the theme class lands on <html> before
-            first paint — a flash of the default theme on reload is a defect,
-            not a cosmetic issue. Safe to run pre-hydration: never throws,
-            and :root already matches the default theme if it does. */}
-        <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
         {process.env.NODE_ENV !== 'production' && (
           // Runs synchronously during HTML parsing, before React hydrates and
           // before any stylesheet/script fetch has a chance to be intercepted.
@@ -100,10 +93,8 @@ export default function RootLayout({
       </head>
       <body className="font-sans bg-jays-ice text-gray-900 antialiased">
         <DevServiceWorkerCleanup />
-        <ThemeProvider>
-          {children}
-          <Toaster richColors position="top-center" />
-        </ThemeProvider>
+        {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   )

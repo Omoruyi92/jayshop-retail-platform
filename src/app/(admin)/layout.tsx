@@ -30,7 +30,7 @@ export default async function AdminLayout({
     <AdminSessionProvider session={session}>
       <DataProvider>
         <AdminInactivityGuard>
-          <div data-admin-root className="h-screen flex bg-jays-ice overflow-hidden">
+          <div className="h-screen flex bg-jays-ice overflow-hidden">
             <AdminSidebar />
             <div className="flex-1 min-w-0 overflow-y-auto h-full">
               <main className="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-14 lg:pt-8">
