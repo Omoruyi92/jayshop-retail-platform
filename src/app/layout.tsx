@@ -91,7 +91,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="font-sans bg-jays-ice text-gray-900 antialiased">
+      <body className="font-sans bg-white text-gray-900 antialiased">
         <DevServiceWorkerCleanup />
         {children}
         <Toaster richColors position="top-center" />

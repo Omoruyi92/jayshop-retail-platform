@@ -93,7 +93,7 @@ export default function HomePageClient({
   ]
 
   return (
-    <div className="bg-jays-ice">
+    <div className="bg-white">
       <HomeHero isGameDayToday={isGameDayToday} initialSlides={initialHeroSlides} />
 
       {/* ── Orientation hub — a slim, unboxed inline row just below the

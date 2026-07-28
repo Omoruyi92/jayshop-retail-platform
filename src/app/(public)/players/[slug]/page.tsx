@@ -123,9 +123,9 @@ export default async function PlayerDetailPage({ params }: { params: { slug: str
               <Link
                 key={g.linkId}
                 href={`/shop/${g.product.slug}`}
-                className="group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                className="group bg-white rounded-xl border border-gray-100 overflow-hidden transition-colors hover:border-gray-300"
               >
-                <div className="relative aspect-square bg-jays-ice">
+                <div className="relative aspect-square bg-white">
                   <Image
                     src={g.product.imageUrl}
                     alt={g.product.name}
@@ -137,7 +137,6 @@ export default async function PlayerDetailPage({ params }: { params: { slug: str
                 </div>
                 <div className="p-2">
                   <p className="text-xs font-semibold text-jays-navy truncate">{g.label || g.product.name}</p>
-                  <p className="text-xs font-bold text-jays-red">${(g.product.priceCents / 100).toFixed(2)}</p>
                 </div>
               </Link>
             ))}

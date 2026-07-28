@@ -69,8 +69,8 @@ export default function ProductCard({
       onClick={handleClick}
       className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jays-navy/40 ${isSoldOut ? 'opacity-50 grayscale pointer-events-none' : ''}`}
     >
-      <div className="group overflow-hidden bg-transparent transition-transform duration-300 ease-out hover:-translate-y-1">
-        <div className="relative aspect-[3/4] overflow-hidden" style={{ position: 'relative' }}>
+      <div className="group overflow-hidden bg-white rounded-2xl border border-gray-100 transition-all duration-300 ease-out hover:border-gray-300 hover:-translate-y-1">
+        <div className="relative aspect-[3/4] overflow-hidden bg-white" style={{ position: 'relative' }}>
           <Image
             src={product.imageUrl}
             alt={product.name}

@@ -18,9 +18,9 @@ export default function PlayerCard({ player, priority = false }: { player: Playe
   return (
     <Link
       href={`/players/${player.slug}`}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300"
+      className="group relative flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 hover:border-gray-300 hover:-translate-y-1"
     >
-      <div className="relative aspect-square w-full bg-jays-ice overflow-hidden">
+      <div className="relative aspect-square w-full bg-white overflow-hidden">
         <Image
           src={player.heroImageUrl}
           alt={player.name}
