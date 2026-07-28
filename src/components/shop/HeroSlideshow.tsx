@@ -48,16 +48,6 @@ interface HeroSlideshowProps {
    * dimensions — no CLS impact.
    */
   showControls?: boolean
-  /**
-   * Colour theme for the prev/pause/next control icons. 'light' (default)
-   * is the original ghosted-white styling, calibrated for hero sections
-   * that keep their bg-jays-navy fallback — white reads fine there whether
-   * the icon sits over photo content or the navy gutter. 'dark' renders the
-   * same original size/position/no-plate geometry but in jays-navy instead,
-   * for the one hero (Popular Players) whose section background is white,
-   * where white-on-white controls would be invisible.
-   */
-  controlsTheme?: 'light' | 'dark'
 }
 
 export default function HeroSlideshow({
@@ -69,7 +59,6 @@ export default function HeroSlideshow({
   overlay = true,
   transition = 'fade',
   showControls = true,
-  controlsTheme = 'light',
 }: HeroSlideshowProps) {
   const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
@@ -284,22 +273,14 @@ export default function HeroSlideshow({
 
       {hasControls && (
         /* [Prev] [Play/Pause] [Next] — bottom-center, no container bg.
-           Original geometry/spacing/no-plate design preserved exactly.
-           Icon colour is theme-driven: 'light' (default) keeps the
-           original ghosted-white styling used by every hero that still
-           has a navy fallback background; 'dark' (Popular Players only,
-           whose section is now white) swaps to jays-navy so the controls
-           stay legible, with no other layout change. */
+           Ghosted white icons + drop-shadow: readable on any hero image,
+           invisible until needed (Netflix/Apple TV+ style). */
         <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-4">
           <button
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className={
-              controlsTheme === 'dark'
-                ? 'flex h-8 w-8 items-center justify-center rounded-full text-jays-navy/50 transition-all duration-200 hover:bg-jays-navy/10 hover:text-jays-navy focus-visible:text-jays-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jays-navy active:scale-95 sm:h-9 sm:w-9'
-                : 'flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9'
-            }
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -309,11 +290,7 @@ export default function HeroSlideshow({
             onClick={togglePlaying}
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
             aria-pressed={isPlaying}
-            className={
-              controlsTheme === 'dark'
-                ? 'flex h-8 w-8 items-center justify-center rounded-full text-jays-navy/80 transition-all duration-200 hover:bg-jays-navy/10 hover:text-jays-navy focus-visible:text-jays-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jays-navy active:scale-95 sm:h-9 sm:w-9'
-                : 'flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9'
-            }
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4" aria-hidden="true" />
@@ -326,11 +303,7 @@ export default function HeroSlideshow({
             type="button"
             onClick={goNext}
             aria-label="Next slide"
-            className={
-              controlsTheme === 'dark'
-                ? 'flex h-8 w-8 items-center justify-center rounded-full text-jays-navy/50 transition-all duration-200 hover:bg-jays-navy/10 hover:text-jays-navy focus-visible:text-jays-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jays-navy active:scale-95 sm:h-9 sm:w-9'
-                : 'flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9'
-            }
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
