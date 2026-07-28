@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react'
 import Link from 'next/link'
 import AdminBackButton from '@/components/admin/AdminBackButton'
 import { TableWrapper } from '@/components/ui/TableWrapper'
@@ -143,6 +143,21 @@ export default function AdminAnalyticsPage() {
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null)
   const [productsPage, setProductsPage] = useState(1)
   const loadRef = useRef<(silent?: boolean) => void>(() => {})
+  const paginationRef = useRef<HTMLDivElement | null>(null)
+  const prevButtonRef = useRef<HTMLButtonElement | null>(null)
+  const nextButtonRef = useRef<HTMLButtonElement | null>(null)
+  const prePageChangeTopRef = useRef<number | null>(null)
+  const focusButtonOnUpdateRef = useRef<'prev' | 'next' | null>(null)
+  const isFirstProductsPageRenderRef = useRef(true)
+
+  // Record the pagination bar's on-screen position, and which button the
+  // user clicked (so we can re-focus its sibling if this one disables),
+  // right before a page change triggers a re-render with a different row count.
+  function handleProductsPageChange(next: number, clicked: 'prev' | 'next') {
+    prePageChangeTopRef.current = paginationRef.current?.getBoundingClientRect().top ?? null
+    focusButtonOnUpdateRef.current = clicked
+    setProductsPage(next)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -229,6 +244,46 @@ export default function AdminAnalyticsPage() {
     const start = (clampedProductsPage - 1) * PRODUCTS_PAGE_SIZE
     return data.byProduct.slice(start, start + PRODUCTS_PAGE_SIZE)
   }, [data, clampedProductsPage])
+
+  // Runs before paint after a page change re-renders the Products table with
+  // a different row count. Without this, the shrinking/growing table pushes
+  // everything below it (including this pagination bar) up or down the
+  // document, so the viewport ends up centered on unrelated content further
+  // down the page. We measure how far the bar moved and counter-scroll by
+  // that exact delta so it stays pinned under the cursor — no jump, and no
+  // "scroll to top of table" re-anchoring either.
+  useLayoutEffect(() => {
+    // Skip on initial mount — this must only correct for user-initiated page
+    // changes, never steal scroll position on first load.
+    if (isFirstProductsPageRenderRef.current) {
+      isFirstProductsPageRenderRef.current = false
+      return
+    }
+
+    const oldTop = prePageChangeTopRef.current
+    if (oldTop !== null && paginationRef.current) {
+      const newTop = paginationRef.current.getBoundingClientRect().top
+      const delta = newTop - oldTop
+      if (delta !== 0) {
+        window.scrollBy(0, delta)
+      }
+      prePageChangeTopRef.current = null
+    }
+
+    // Focus retention: if the button the user clicked became disabled as a
+    // result of landing on page 1 or the last page, move focus to its still-
+    // enabled sibling instead of letting the browser drop it to <body>.
+    const clicked = focusButtonOnUpdateRef.current
+    if (clicked) {
+      const clickedButton = clicked === 'prev' ? prevButtonRef.current : nextButtonRef.current
+      if (clickedButton && clickedButton.disabled) {
+        const sibling = clicked === 'prev' ? nextButtonRef.current : prevButtonRef.current
+        sibling?.focus()
+      }
+      focusButtonOnUpdateRef.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clampedProductsPage])
 
   if (loading || !data) {
     return (
@@ -422,23 +477,27 @@ export default function AdminAnalyticsPage() {
           </table>
         )}
         {totalProducts > PRODUCTS_PAGE_SIZE && (
-          <div className="px-5 py-3 border-t border-border flex items-center justify-between bg-jays-ice/30">
+          <div ref={paginationRef} className="px-5 py-3 border-t border-border flex items-center justify-between bg-jays-ice/30">
             <span className="text-xs text-jays-steel">
               Showing {(clampedProductsPage - 1) * PRODUCTS_PAGE_SIZE + 1}–
               {Math.min(clampedProductsPage * PRODUCTS_PAGE_SIZE, totalProducts)} of {totalProducts}
             </span>
             <div className="flex items-center gap-3">
               <button
+                ref={prevButtonRef}
+                type="button"
                 disabled={clampedProductsPage <= 1}
-                onClick={() => setProductsPage((p) => Math.max(1, p - 1))}
+                onClick={() => handleProductsPageChange(Math.max(1, clampedProductsPage - 1), 'prev')}
                 className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-jays-navy disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
               >
                 &larr; Previous
               </button>
               <span className="text-xs text-jays-steel">Page {clampedProductsPage} of {totalProductPages}</span>
               <button
+                ref={nextButtonRef}
+                type="button"
                 disabled={clampedProductsPage >= totalProductPages}
-                onClick={() => setProductsPage((p) => Math.min(totalProductPages, p + 1))}
+                onClick={() => handleProductsPageChange(Math.min(totalProductPages, clampedProductsPage + 1), 'next')}
                 className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-jays-navy disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
               >
                 Next &rarr;
