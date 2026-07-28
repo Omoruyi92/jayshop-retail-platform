@@ -218,10 +218,20 @@ export default function HeroSlideshow({
         const mediaSrc = fallbackSrcById[slide.id] ?? slide.url
         // Video slides: absolutely positioned to fill the slide container
         // (matching the Next/Image `fill` layout) so the video element
-        // never causes a reflow or CLS on load. will-change-transform
-        // promotes it to its own GPU compositing layer for jitter-free
-        // opacity cross-fades.
-        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} will-change-transform backface-hidden transition-opacity duration-500 ease-out ${
+        // never causes a reflow or CLS on load.
+        //
+        // NOTE: this element intentionally has NO `transform`/`will-change:
+        // transform` GPU-layer-promotion hint. WebKit (Safari/iOS) has a
+        // long-documented bug where combining `object-fit` with a transform
+        // (or a `will-change: transform` layer promotion) on an absolutely
+        // positioned <video> can make the video paint as fully invisible on
+        // load, especially on first paint — see e.g. the Safari 15 "video
+        // element position fixed not working on page load" reports. That
+        // combination was previously used here purely as a jitter-smoothing
+        // performance hack; it is not required for correctness, and its
+        // absence has no CLS/layout impact since the element is still
+        // absolutely positioned to fill its parent via inset-0/h-full/w-full.
+        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} backface-hidden transition-opacity duration-500 ease-out ${
           isFirstSlide || isReady ? 'opacity-100' : 'opacity-0'
         }`
         const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${
@@ -244,7 +254,6 @@ export default function HeroSlideshow({
                 disablePictureInPicture
                 loop={!!fallbackSrcById[slide.id]}
                 className={videoCls}
-                style={{ WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}
                 aria-label={slide.altText || `${scope} hero video`}
                 onLoadedData={() => markReady(slide.id)}
                 onError={() => setFallback(slide.id)}
