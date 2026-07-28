@@ -122,9 +122,6 @@ export default function RecentlyViewedPopup() {
                 <p className="text-xs font-medium text-jays-navy line-clamp-2 leading-snug">
                   {item.name}
                 </p>
-                <p className="text-xs text-jays-steel">
-                  ${(item.priceCents / 100).toFixed(2)}
-                </p>
               </Link>
             ))}
           </div>

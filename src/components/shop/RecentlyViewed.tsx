@@ -75,9 +75,6 @@ export default function RecentlyViewed() {
                     <p className="text-[9px] sm:text-[10px] font-semibold text-slate-200 uppercase leading-tight line-clamp-2 group-hover:text-white transition-colors">
                       {item.name}
                     </p>
-                    <p className="text-[11px] sm:text-xs font-bold text-white mt-1">
-                      ${(item.priceCents / 100).toFixed(2)}
-                    </p>
                   </div>
                 </div>
               </Link>
