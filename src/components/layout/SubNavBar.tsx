@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   Sparkles,
   PartyPopper,
+  Gift,
   Search,
   X,
 } from 'lucide-react'
@@ -33,6 +34,7 @@ const links = [
   { href: '/gallery',        label: 'Gallery',        icon: ImageIcon,  mobileHidden: false },
   { href: '/my-holds',       label: 'My Holds',       icon: Package,    mobileHidden: true },
   { href: 'https://www.mlb.com/bluejays/video', label: 'Fan Zone', icon: PartyPopper, mobileHidden: false, external: true },
+  { href: 'https://www.mlb.com/bluejays/tickets/gift-card-centre', label: 'E-Gift Card', icon: Gift, mobileHidden: false, external: true },
 ]
 
 export default function SubNavBar() {
@@ -128,6 +130,7 @@ export default function SubNavBar() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`${label} (opens in a new tab)`}
                     className={className}
                   >
                     <Icon size={13} strokeWidth={2.2} />
