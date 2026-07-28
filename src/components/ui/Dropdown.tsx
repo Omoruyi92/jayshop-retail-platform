@@ -97,7 +97,7 @@ export default function Dropdown({
         aria-label={ariaLabel}
         onClick={() => setIsOpen((v) => !v)}
         className={cn(
-          'flex items-center justify-between gap-2 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-left text-sm font-medium text-jays-navy shadow-sm transition-all hover:border-jays-navy/30 focus:outline-none focus:ring-2 focus:ring-jays-navy/20',
+          'flex items-center justify-between gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-left text-sm font-medium text-primary shadow-sm transition-all hover:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/20',
           buttonClassName
         )}
       >
@@ -106,7 +106,7 @@ export default function Dropdown({
             <span className="truncate">{activeLabel}</span>
             <svg
               className={cn(
-                'h-3.5 w-3.5 shrink-0 text-jays-steel transition-transform duration-200',
+                'h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200',
                 isOpen && 'rotate-180'
               )}
               fill="none"
@@ -131,7 +131,7 @@ export default function Dropdown({
             aria-labelledby={buttonId}
             style={panelStyle}
             className={cn(
-              'z-[60] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200',
+              'z-[60] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-border bg-card py-1 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200',
               panelClassName ?? 'w-56'
             )}
           >
@@ -150,10 +150,10 @@ export default function Dropdown({
                     }}
                     className={cn(
                       'flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition-colors focus:outline-none focus:bg-jays-ice',
-                      active ? 'bg-jays-navy font-semibold text-white' : 'text-jays-navy hover:bg-jays-ice/60'
+                      active ? 'bg-primary font-semibold text-primary-foreground' : 'text-primary hover:bg-jays-ice/60'
                     )}
                   >
-                    {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-jays-red" />}
+                    {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />}
                     <span className="break-words leading-snug">{option.label}</span>
                   </button>
                 )

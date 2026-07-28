@@ -106,7 +106,7 @@ export function DialogContent({ children, className = '' }: { children: React.Re
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className={`fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none ${className}`}
+        className={`fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-card p-6 shadow-xl focus:outline-none ${className}`}
       >
         {children}
       </div>
@@ -121,7 +121,7 @@ export function DialogHeader({ children }: { children: React.ReactNode }) {
 
 export function DialogTitle({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <h3 className={`font-display text-base font-bold uppercase text-jays-navy ${className}`}>
+    <h3 className={`font-display text-base font-bold uppercase text-primary ${className}`}>
       {children}
     </h3>
   )
