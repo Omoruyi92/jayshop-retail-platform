@@ -288,23 +288,20 @@ export default function SubNavBar() {
         </div>
       )}
 
-      {/* Mobile nav drawer — rendered outside the main row so it can be a
-          true full-height off-canvas panel, `fixed inset-y-0 left-0`,
-          instead of being constrained to the row's own layout. Slides from
-          the LEFT to match the hamburger trigger's left-aligned position
-          above. w-[85vw] max-w-sm is deliberately not full-bleed, leaving a
-          strip of tappable backdrop on the right. All 9 links plus the We
-          Care accordion fit without scrolling on common phone viewports;
-          overflow-y-auto remains only as a fallback for very short/
-          landscape viewports, not the primary layout. pb-safe (globals.css)
-          matches BottomNav's own safe-area convention so the last row
-          clears the home indicator.
-          z-50 on both the backdrop and the panel matches Dialog.tsx's
-          existing overlay convention (fixed inset-0 bg-black/50 + z-50) and
-          intentionally outranks BottomNav's z-40 (BottomNav.tsx) and this
-          bar's own z-30, so the drawer and its scrim fully occlude the
-          bottom tab bar rather than partially overlapping it while open. */}
-      {mobileNavOpen && (
+      {/* Mobile nav drawer — portaled to document.body (see below) rather
+          than rendered inline here. This `<nav>` has `backdrop-blur` on
+          itself (see className above), and `backdrop-filter` on an
+          ancestor establishes a containing block for `position: fixed`
+          descendants (same as `transform`/`filter`/`perspective`/
+          `will-change`/`contain: paint`) — a `fixed` child would anchor to
+          this nav's box instead of the viewport and lose full-height
+          coverage. `createPortal(..., document.body)` sidesteps that
+          entirely, matching the repo-wide convention for every other fixed
+          overlay (Dialog.tsx, Dropdown.tsx, HeaderActions.tsx,
+          NotificationBell.tsx, StickyShopCategoryNav.tsx,
+          HowOthersAreWearingIt.tsx all portal to document.body for the
+          same reason). */}
+      {mobileNavOpen && createPortal(
         <>
           {/* Backdrop — dims and covers the rest of the screen (including
               BottomNav), click to close. */}
@@ -313,6 +310,21 @@ export default function SubNavBar() {
             aria-hidden="true"
             onClick={closeMobileNav}
           />
+          {/* Slides from the LEFT to match the hamburger trigger's
+              left-aligned position above. w-[85vw] max-w-sm is
+              deliberately not full-bleed, leaving a strip of tappable
+              backdrop on the right. All 9 links plus the We Care accordion
+              fit without scrolling on common phone viewports;
+              overflow-y-auto remains only as a fallback for very short/
+              landscape viewports, not the primary layout. pb-safe
+              (globals.css) matches BottomNav's own safe-area convention so
+              the last row clears the home indicator.
+              z-50 on both the backdrop and the panel matches Dialog.tsx's
+              existing overlay convention (fixed inset-0 bg-black/50 +
+              z-50) and intentionally outranks BottomNav's z-40
+              (BottomNav.tsx) and this bar's own z-30, so the drawer and
+              its scrim fully occlude the bottom tab bar rather than
+              partially overlapping it while open. */}
           <div
             id="mobile-nav-panel"
             ref={mobileNavPanelRef}
@@ -385,7 +397,8 @@ export default function SubNavBar() {
               </div>
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       <style jsx>{`
