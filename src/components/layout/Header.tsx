@@ -73,11 +73,6 @@ export default function Header() {
   const weCareTriggerRef = useRef<HTMLButtonElement>(null)
   const weCarePanelRef = useRef<HTMLDivElement>(null)
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileWeCareOpen, setMobileWeCareOpen] = useState(false)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
-  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null)
-  const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
 
   // Publish the header's real rendered height as a CSS var so downstream
@@ -105,15 +100,12 @@ export default function Header() {
       if (weCareRef.current && !weCareRef.current.contains(e.target as Node)) {
         setWeCareOpen(false)
       }
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
-        setMobileMenuOpen(false)
-      }
     }
-    if (open || weCareOpen || mobileMenuOpen) {
+    if (open || weCareOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open, weCareOpen, mobileMenuOpen])
+  }, [open, weCareOpen])
 
   // Anchors the language options panel to the trigger's real on-screen
   // position (fixed + viewport-clamped), matching the cart/favorites
@@ -125,15 +117,6 @@ export default function Header() {
   // to the trigger's real position instead of `absolute right-0` on its
   // own narrow wrapper.
   const weCarePanelStyle = useDropdownPosition(weCareOpen, weCareTriggerRef, weCarePanelRef)
-
-  // The mobile hamburger menu panel was `absolute right-0` on its own
-  // wrapper, which sits flush against the header's right edge — but the
-  // header row's content (bell/heart/cart/lang pill/hamburger) overflows
-  // past the viewport on 375-414px screens and gets silently clipped by
-  // the header's `overflow-x-clip`. That pushed the whole mobile menu
-  // (including the "We Care" accordion) off-screen, appearing to overlap
-  // the sub-nav strip below. Anchor it the same way as the other panels.
-  const mobileMenuStyle = useDropdownPosition(mobileMenuOpen, mobileMenuTriggerRef, mobileMenuPanelRef)
 
   return (
     <header ref={headerRef} className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
@@ -288,57 +271,6 @@ export default function Header() {
             />
           </nav>
 
-          {/* Mobile hamburger menu */}
-          <div className="relative sm:hidden" ref={mobileMenuRef}>
-            <button
-              ref={mobileMenuTriggerRef}
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="flex items-center justify-center w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
-              aria-label="Open menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-
-            {mobileMenuOpen && (
-              <div
-                ref={mobileMenuPanelRef}
-                style={mobileMenuStyle}
-                className="fixed w-64 max-w-[calc(100vw-16px)] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
-              >
-                {/* We Care — expandable */}
-                <button
-                  onClick={() => setMobileWeCareOpen((prev) => !prev)}
-                  className="w-full flex items-center justify-between gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <svg className="w-4 h-4 text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                    We Care
-                  </span>
-                  <svg className={`w-3 h-3 text-gray-400 transition-transform duration-150 ${mobileWeCareOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {mobileWeCareOpen && (
-                  <div className="px-4 pb-2 pt-1 bg-jays-ice/50">
-                    {WE_CARE_VALUES.map((v, i) => (
-                      <div key={i} className="flex items-center gap-2.5 py-1.5">
-                        <span className="w-6 h-6 bg-gradient-to-br from-jays-red to-red-600 text-white rounded-md flex items-center justify-center font-display font-bold text-xs shrink-0">
-                          {v.letter}
-                        </span>
-                        <div>
-                          <p className="font-display font-semibold text-xs text-jays-navy leading-tight">{v.word}</p>
-                          <p className="text-[10px] text-jays-steel leading-tight">{v.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

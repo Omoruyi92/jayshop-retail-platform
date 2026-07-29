@@ -311,9 +311,18 @@ export default function SubNavBar() {
             onClick={closeMobileNav}
           />
           {/* Slides from the LEFT to match the hamburger trigger's
-              left-aligned position above. w-[85vw] max-w-sm is
+              left-aligned position above. w-[72vw] max-w-[288px] is
               deliberately not full-bleed, leaving a strip of tappable
-              backdrop on the right. All 9 links plus the We Care accordion
+              backdrop on the right — narrower than the original
+              w-[85vw] max-w-sm, which read too wide on a 390px iPhone
+              (~331px). min-w-[260px] is a hard floor: the We Care
+              accordion rows carry a title + description line (e.g.
+              "Welcoming / Every fan feels at home") that wraps badly
+              below ~260px. On a 320px iPhone SE, 72vw alone would be
+              ~230px (under the floor), so min-w clamps it back up to
+              260px there; on 390-414px phones, 72vw lands at 281-298px,
+              capped at 288px by max-w so it never grows past that even
+              on wider phones. All 9 links plus the We Care accordion
               fit without scrolling on common phone viewports;
               overflow-y-auto remains only as a fallback for very short/
               landscape viewports, not the primary layout. pb-safe
@@ -332,7 +341,7 @@ export default function SubNavBar() {
             aria-modal="true"
             aria-label="Site navigation"
             tabIndex={-1}
-            className="sm:hidden fixed inset-y-0 left-0 z-50 h-full w-[85vw] max-w-sm overflow-y-auto bg-white shadow-2xl py-2 pb-safe animate-in slide-in-from-left duration-200 focus:outline-none"
+            className="sm:hidden fixed inset-y-0 left-0 z-50 h-full w-[72vw] max-w-[288px] min-w-[260px] overflow-y-auto bg-white shadow-2xl py-2 pb-safe animate-in slide-in-from-left duration-200 focus:outline-none"
           >
             {/* Nav links — same source of truth as the pill row above */}
             <div className="py-1">
