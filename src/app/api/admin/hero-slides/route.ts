@@ -56,6 +56,10 @@ async function saveFile(file: File, scope: 'home' | 'shop' | 'style_landing' | '
 interface CreateSlideBody {
   scope: 'HOME' | 'SHOP' | 'STYLE_LANDING' | 'PLAYERS' | 'GALLERY'
   url: string
+  // Optional portrait/mobile source for VIDEO slides (see `HeroSlide.mobileUrl`
+  // in prisma/schema.prisma). `HeroSlideshow` prefers this over `url` when the
+  // viewport is portrait. Nullable so it can be explicitly cleared via PATCH.
+  mobileUrl?: string | null
   mediaType: 'IMAGE' | 'VIDEO'
   altText?: string
 }
@@ -69,7 +73,8 @@ function isValidCreateSlideBody(body: unknown): body is CreateSlideBody {
     typeof b.scope === 'string' && validScopes.includes(b.scope) &&
     typeof b.url === 'string' &&
     typeof b.mediaType === 'string' && validTypes.includes(b.mediaType) &&
-    (b.altText === undefined || typeof b.altText === 'string')
+    (b.altText === undefined || typeof b.altText === 'string') &&
+    (b.mobileUrl === undefined || b.mobileUrl === null || typeof b.mobileUrl === 'string')
   )
 }
 
@@ -120,6 +125,10 @@ export async function POST(req: Request) {
           scope: body.scope,
           mediaType: body.mediaType,
           url: body.url,
+          // Only meaningful for VIDEO slides (see `mobileUrl` doc comment on
+          // `CreateSlideBody`); stored as-is for IMAGE slides too since
+          // `HeroSlideshow` only reads it when `mediaType === 'VIDEO'`.
+          mobileUrl: body.mobileUrl || null,
           altText: body.altText ?? '',
           sortOrder: count,
           active: true,
@@ -186,8 +195,8 @@ export async function PATCH(req: Request) {
   if (error) return error
 
   try {
-    const body = await parseJsonBody<{ id?: string; active?: boolean; sortOrder?: number; altText?: string }>(req)
-    const { id, active, sortOrder, altText } = body
+    const body = await parseJsonBody<{ id?: string; active?: boolean; sortOrder?: number; altText?: string; mobileUrl?: string | null }>(req)
+    const { id, active, sortOrder, altText, mobileUrl } = body
 
     if (!id) {
       return badRequest('ID required')
@@ -197,6 +206,8 @@ export async function PATCH(req: Request) {
     if (typeof active === 'boolean') data.active = active
     if (typeof sortOrder === 'number') data.sortOrder = sortOrder
     if (typeof altText === 'string') data.altText = altText
+    // Empty string / null both clear the field; any non-empty string sets it.
+    if (typeof mobileUrl === 'string' || mobileUrl === null) data.mobileUrl = mobileUrl || null
 
     const slide = await prisma.heroSlide.update({ where: { id }, data })
 
