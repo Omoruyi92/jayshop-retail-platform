@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLayoutEffect, useEffect, useRef, useState, useCallback } from 'react'
@@ -343,6 +344,33 @@ export default function SubNavBar() {
             tabIndex={-1}
             className="sm:hidden fixed inset-y-0 left-0 z-50 h-full w-[72vw] max-w-[288px] min-w-[260px] overflow-y-auto bg-white shadow-2xl py-2 pb-safe animate-in slide-in-from-left duration-200 focus:outline-none"
           >
+            {/* Logo block — branding anchor at the top of the drawer, above
+                the link list. Same `/brand/logo.png` asset Header.tsx uses
+                top-left, so the drawer and header stay visually consistent.
+                px-5 matches the link rows' horizontal padding below so the
+                logo's left edge lines up with the link icons. Tapping it
+                navigates home; route-change already closes the drawer via
+                the `pathname` effect above, but a tap while already on `/`
+                doesn't change pathname, so onClick closes explicitly for
+                that same-route case. */}
+            <Link
+              href="/"
+              onClick={closeMobileNav}
+              aria-label="Jays Shop home"
+              className="flex items-center px-5 py-3"
+            >
+              <Image
+                src="/brand/logo.png"
+                alt="Blue Jays logo"
+                width={44}
+                height={44}
+                priority={false}
+                className="w-11 h-11 object-contain"
+              />
+            </Link>
+
+            <div className="border-t border-gray-100" aria-hidden="true" />
+
             {/* Nav links — same source of truth as the pill row above */}
             <div className="py-1">
               {links.map(({ href, label, icon: Icon, external }) => {
