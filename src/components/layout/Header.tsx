@@ -271,6 +271,16 @@ export default function Header() {
             />
           </nav>
 
+          {/* Landscape mobile flag — visible when a phone is rotated,
+              where the drawer logo area may scroll out of view. */}
+          <Image
+            src="/brand/canada-flag.png"
+            alt="Canada"
+            width={28}
+            height={28}
+            className="sm:hidden hidden landscape:block w-6 h-6 rounded-full object-contain drop-shadow-md shrink-0"
+          />
+
         </div>
       </div>
 
