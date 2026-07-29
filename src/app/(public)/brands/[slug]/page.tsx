@@ -17,11 +17,19 @@ function normalizeProductType(product: { productType?: string | null; subcategor
 }
 
 export async function generateStaticParams() {
-  const brands = await prisma.brand.findMany({
-    where: { status: 'ACTIVE' },
-    select: { slug: true },
-  })
-  return brands.map((brand) => ({ slug: brand.slug }))
+  try {
+    const brands = await prisma.brand.findMany({
+      where: { status: 'ACTIVE' },
+      select: { slug: true },
+    })
+    return brands.map((brand) => ({ slug: brand.slug }))
+  } catch (error) {
+    console.error(
+      '[generateStaticParams] /brands/[slug]: failed to fetch brands from DB, falling back to on-demand rendering (empty static params).',
+      error
+    )
+    return []
+  }
 }
 
 export default async function BrandPage({
