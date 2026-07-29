@@ -26,11 +26,31 @@ export default function GalleryHero({ initialSlides }: { initialSlides?: HeroSli
           uploaded storefront photo — e.g. signage — in frame instead of
           being center-cropped. HeroSlideshow's `imagePosition` prop already
           supports this per-scope; Home/Shop/Style/Players continue to pass
-          their own values (or default to "center") unaffected. */}
-      <HeroSlideshow scope="GALLERY" imagePosition="top" initialSlides={initialSlides} />
+          their own values (or default to "center") unaffected.
+          controlsAlign="corner" moves the prev/play-pause/next cluster to
+          the bottom-right — GALLERY-only, since this is the one hero that
+          also overlays its own bottom-anchored CTA link (below) and the two
+          must never share a band; the other heroes using HeroSlideshow keep
+          the default bottom-center placement. */}
+      <HeroSlideshow scope="GALLERY" imagePosition="top" initialSlides={initialSlides} controlsAlign="corner" />
 
       <div className="absolute inset-x-0 bottom-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10">
+        {/* Bottom padding on this wrapper reserves a dedicated vertical band
+            for HeroSlideshow's control cluster, which is a SIBLING overlay
+            (not a DOM child of this content block) absolutely positioned at
+            bottom-3 (mobile) up to bottom-4 (sm:+) with a fixed h-11
+            (2.75rem/44px) button height (44px is also the min accessible tap
+            target, so this value is shared/tied to that constraint, not
+            picked independently). Reserving control-bottom-offset (12-16px)
+            + control-height (44px) + an explicit clearance margin as this
+            wrapper's own pb-* means the CTA link below (the last item in
+            this block, so it sits at the very bottom of the reserved
+            content area) always finishes its own row above the controls'
+            top edge, at every viewport width — the two can never land on
+            the same horizontal band regardless of CTA text length, since
+            they're on structurally separate rows (content flow vs. reserved
+            padding gutter), not separated by a fixed px nudge. */}
+        <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-[4.5rem] lg:px-8 lg:pb-[4.5rem]">
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-3 transition-colors"
@@ -47,7 +67,7 @@ export default function GalleryHero({ initialSlides }: { initialSlides?: HeroSli
             href="https://www.google.com/maps/search/?api=1&query=Rogers+Centre+Toronto+Blue+Jays+Shop"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 mt-3 text-jays-red hover:text-white text-sm font-semibold transition-colors"
+            className="mt-4 flex items-center gap-2 text-jays-red hover:text-white text-sm font-semibold transition-colors w-fit"
           >
             <MapPin size={16} /> Find us at Rogers Centre
           </Link>

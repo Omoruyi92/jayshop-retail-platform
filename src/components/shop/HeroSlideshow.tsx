@@ -48,6 +48,16 @@ interface HeroSlideshowProps {
    * dimensions — no CLS impact.
    */
   showControls?: boolean
+  /**
+   * Where the control cluster is anchored within the hero.
+   * - 'center' (default): bottom-center, matching Home/Shop/Players/Styles.
+   * - 'corner': bottom-right, for heroes (e.g. Gallery) that also overlay
+   *   their own bottom-anchored text/CTA content and need the controls
+   *   moved out of that shared band entirely — a structural, corner-based
+   *   separation rather than a magic-number vertical offset, so it holds
+   *   at every viewport width.
+   */
+  controlsAlign?: 'center' | 'corner'
 }
 
 export default function HeroSlideshow({
@@ -59,6 +69,7 @@ export default function HeroSlideshow({
   overlay = true,
   transition = 'fade',
   showControls = true,
+  controlsAlign = 'center',
 }: HeroSlideshowProps) {
   const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
@@ -343,15 +354,25 @@ export default function HeroSlideshow({
       })}
 
       {hasControls && (
-        /* [Prev] [Play/Pause] [Next] — bottom-center, no container bg.
-           Ghosted white icons + drop-shadow: readable on any hero image,
-           invisible until needed (Netflix/Apple TV+ style). */
-        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-4">
+        /* [Prev] [Play/Pause] [Next] — no container bg. Ghosted white icons +
+           drop-shadow: readable on any hero image, invisible until needed
+           (Netflix/Apple TV+ style). Bottom-center by default; heroes that
+           also overlay their own bottom-anchored text (e.g. Gallery's CTA)
+           pass controlsAlign="corner" to move this cluster to the
+           bottom-right instead, so it occupies its own corner and can never
+           share a horizontal band with that overlaid text at any viewport. */
+        <div
+          className={
+            controlsAlign === 'corner'
+              ? 'absolute bottom-3 right-4 z-20 flex items-center gap-0.5 sm:bottom-4 sm:right-6 lg:right-8'
+              : 'absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-4'
+          }
+        >
           <button
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -361,7 +382,7 @@ export default function HeroSlideshow({
             onClick={togglePlaying}
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
             aria-pressed={isPlaying}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-white/70 drop-shadow-lg transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4" aria-hidden="true" />
@@ -374,7 +395,7 @@ export default function HeroSlideshow({
             type="button"
             onClick={goNext}
             aria-label="Next slide"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-white/40 drop-shadow-sm transition-all duration-200 hover:bg-white/10 hover:text-white/80 focus-visible:text-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
