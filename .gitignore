@@ -63,3 +63,7 @@ docs/jayshop-cloud-storage-reference.*
 
 # hero proof QA screenshots (regenerate via scripts/hero-proof-capture.mjs)
 docs/hero-proof/
+
+# ad-hoc verification scripts/screenshots (on-disk only, not tracked;
+# regenerate via docs/verification/*/verify-*.mjs)
+docs/verification/

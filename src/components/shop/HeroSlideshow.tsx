@@ -360,11 +360,23 @@ export default function HeroSlideshow({
            also overlay their own bottom-anchored text (e.g. Gallery's CTA)
            pass controlsAlign="corner" to move this cluster to the
            bottom-right instead, so it occupies its own corner and can never
-           share a horizontal band with that overlaid text at any viewport. */
+           share a horizontal band with that overlaid text at any viewport.
+           `corner` also reserves clearance from ChatFAB
+           (`src/components/chat/ChatFAB.tsx`), a viewport-fixed w-14 h-14
+           (56px) button at bottom-6 right-4 that only renders at `sm:` and
+           up (`hidden sm:flex`) — matching that same breakpoint. The
+           right offset below is ChatFAB's own right-4 (16px) + its width
+           (56px) + an explicit clearance gap, so this is derived from
+           ChatFAB's real footprint/tokens rather than a guessed number;
+           below `sm:` ChatFAB doesn't render, so no extra clearance is
+           needed there. FeedbackTab (`fixed right-0 top-1/2`, also
+           `sm:block`-only) is vertically centered in the viewport, not
+           bottom-anchored, so it does not compete for this bottom-right
+           corner at any tested viewport height. */
         <div
           className={
             controlsAlign === 'corner'
-              ? 'absolute bottom-3 right-4 z-20 flex items-center gap-0.5 sm:bottom-4 sm:right-6 lg:right-8'
+              ? 'absolute bottom-3 right-4 z-20 flex items-center gap-0.5 sm:bottom-6 sm:right-24 lg:right-28'
               : 'absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 sm:bottom-4'
           }
         >
