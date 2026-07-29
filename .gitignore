@@ -60,3 +60,6 @@ login_headers.txt
 
 # credential / infrastructure reference docs (never commit, see history: 36fd9c2)
 docs/jayshop-cloud-storage-reference.*
+
+# hero proof QA screenshots (regenerate via scripts/hero-proof-capture.mjs)
+docs/hero-proof/
