@@ -83,21 +83,42 @@ export default function HeroSlideshow({
   // isPlaying toggle while staying on the same video slide.
   const lastVideoIndexRef = useRef<number>(-1)
 
-  // Narrow/portrait viewport flag used to pick a VIDEO slide's `mobileUrl`
-  // over its default `url`, matching the Tailwind `lg:` breakpoint (1024px)
-  // used everywhere else in this component's layout. `matchMedia` (rather
-  // than a resize listener) is used so this only recomputes on an actual
-  // breakpoint crossing, not on every pixel of a window resize. Starts
-  // `false` so SSR/first paint matches the desktop `url` and there is no
-  // hydration mismatch; the effect corrects it immediately on mount if the
-  // client viewport is actually narrow.
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  // Container-aspect flag used to pick a VIDEO slide's `mobileUrl` (portrait,
+  // 1080x1440) over its default `url` (landscape, 1920x1080). This is
+  // deliberately measured from the hero container's actual rendered
+  // aspect ratio via `ResizeObserver`, NOT from viewport width. A viewport
+  // width breakpoint (e.g. `max-width: 1023px`) is the wrong predicate: at
+  // 768x1024 (tablet portrait) the *viewport* is narrow, but this
+  // slideshow's own container (which excludes the sticky header/bottom nav
+  // reserved space) renders landscape (~768x560, aspect ~1.37) — not
+  // portrait. Feeding a 0.75-aspect portrait video into a 1.37-aspect
+  // landscape box under `object-cover` center-crops away the top/bottom,
+  // discarding the merchandise that lives in the mobile still's lower
+  // third and leaving only the clean upper-half negative space on screen
+  // (an entirely empty-looking hero). Measuring the container itself
+  // instead of the window guarantees the video's own aspect ratio is
+  // matched to the box it will actually be cropped into.
+  //
+  // Starts `false` (landscape/`url`) so SSR/first paint has a deterministic
+  // value with no hydration mismatch; the ResizeObserver corrects it
+  // synchronously after mount once the container's real box is known.
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isPortraitContainer, setIsPortraitContainer] = useState(false)
   useEffect(() => {
-    const mql = window.matchMedia('(max-width: 1023px)')
-    setIsMobileViewport(mql.matches)
-    const onChange = (e: MediaQueryListEvent) => setIsMobileViewport(e.matches)
-    mql.addEventListener('change', onChange)
-    return () => mql.removeEventListener('change', onChange)
+    const el = containerRef.current
+    if (!el) return
+    const update = (width: number, height: number) => {
+      if (width > 0 && height > 0) setIsPortraitContainer(height > width)
+    }
+    update(el.clientWidth, el.clientHeight)
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+      const { width, height } = entry.contentRect
+      update(width, height)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
   const slideCount = slides.length
@@ -198,7 +219,7 @@ export default function HeroSlideshow({
     url.startsWith('/') ? url.replace(/\.mp4$/i, '-poster.jpg') : undefined
 
   return (
-    <div className={`absolute inset-0 overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`absolute inset-0 overflow-hidden ${className}`}>
       {slides.map((slide, i) => {
         let style: CSSProperties
         let cls: string
@@ -240,14 +261,19 @@ export default function HeroSlideshow({
         //    the nearest image slide's blurDataURL, the browser immediately paints
         //    the poster frame while autoPlay buffers — no black frame, no navy flash.
         const isFirstSlide = i === 0
-        // VIDEO slides: prefer `mobileUrl` on narrow/portrait viewports when
-        // one has been configured, so a hero video composed with its clean
-        // negative-space region on a different side/edge for mobile (e.g.
-        // upper half vs. left half on desktop) renders the correct source
-        // instead of `object-cover` cropping a desktop-framed video down to
-        // a portrait viewport. IMAGE slides are unaffected — `next/image`
-        // already handles responsive sizing via `sizes`.
-        const wantsMobileSrc = slide.mediaType === 'VIDEO' && isMobileViewport && !!slide.mobileUrl
+        // VIDEO slides: prefer `mobileUrl` (portrait) when the hero
+        // CONTAINER itself is portrait-ish, so a hero video composed with
+        // its clean negative-space region on a different side/edge for
+        // mobile (e.g. upper half vs. left half on desktop) renders the
+        // source whose own aspect ratio actually matches the box it will be
+        // `object-cover`-cropped into. Keyed off the measured container
+        // shape (see `isPortraitContainer` above), not viewport width —
+        // viewport width alone can't tell a portrait box (phone) apart from
+        // a landscape box (tablet in portrait orientation, whose *hero*
+        // region is still wide/short because of reserved header/nav space).
+        // IMAGE slides are unaffected — `next/image` already handles
+        // responsive sizing via `sizes`.
+        const wantsMobileSrc = slide.mediaType === 'VIDEO' && isPortraitContainer && !!slide.mobileUrl
         const baseSrc = wantsMobileSrc ? slide.mobileUrl! : slide.url
         const isRemoteBlob = isBlobUpload(baseSrc)
         const mediaSrc = fallbackSrcById[slide.id] ?? baseSrc
