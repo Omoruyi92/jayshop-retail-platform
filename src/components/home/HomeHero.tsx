@@ -28,7 +28,13 @@ export default function HomeHero({ isGameDayToday = false, initialSlides }: Home
 
   return (
     <section
-      className="relative isolate h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[calc(62vh+151px)] lg:max-h-[771px]"
+      // sm:min-h-[260px]: at sm+ the mobile 320px floor is dropped so short
+      // landscape viewports (e.g. 844x390) are not forced taller than the
+      // fold, but the hero still cannot shrink below its own overlay stack:
+      // top-anchored text (~176px to the paragraph's bottom edge at sm
+      // landscape widths) + >=24px clearance + the slideshow control band
+      // (bottom-4 16px + 44px buttons = 60px) = 260px.
+      className="relative isolate h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] sm:min-h-[260px] w-full overflow-hidden bg-jays-navy sm:h-[56vh] sm:max-h-[560px] lg:h-[calc(62vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {/* Full-bleed hero media, primary visual focus */}
