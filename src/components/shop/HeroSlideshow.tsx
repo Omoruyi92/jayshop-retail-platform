@@ -83,6 +83,23 @@ export default function HeroSlideshow({
   // isPlaying toggle while staying on the same video slide.
   const lastVideoIndexRef = useRef<number>(-1)
 
+  // Narrow/portrait viewport flag used to pick a VIDEO slide's `mobileUrl`
+  // over its default `url`, matching the Tailwind `lg:` breakpoint (1024px)
+  // used everywhere else in this component's layout. `matchMedia` (rather
+  // than a resize listener) is used so this only recomputes on an actual
+  // breakpoint crossing, not on every pixel of a window resize. Starts
+  // `false` so SSR/first paint matches the desktop `url` and there is no
+  // hydration mismatch; the effect corrects it immediately on mount if the
+  // client viewport is actually narrow.
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)')
+    setIsMobileViewport(mql.matches)
+    const onChange = (e: MediaQueryListEvent) => setIsMobileViewport(e.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
   const slideCount = slides.length
   const goTo = useCallback(
     (next: number) => {
@@ -171,6 +188,15 @@ export default function HeroSlideshow({
   const nearestBlurDataURL =
     slides.find((s) => s.mediaType === 'IMAGE' && !!s.blurDataURL)?.blurDataURL ?? undefined
 
+  // Per-video poster fallback: for a video-only hero (no IMAGE slide, so
+  // `nearestBlurDataURL` is undefined), fall back to a same-named `.jpg`
+  // sitting next to the `.mp4` (e.g. `home-desktop.mp4` →
+  // `home-desktop-poster.jpg`). Only applies to same-origin local uploads
+  // (`/hero-videos/...`), not remote blob URLs, since we can't assume a
+  // sibling poster exists for arbitrary uploaded video URLs.
+  const videoPosterFor = (url: string) =>
+    url.startsWith('/') ? url.replace(/\.mp4$/i, '-poster.jpg') : undefined
+
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
       {slides.map((slide, i) => {
@@ -214,8 +240,17 @@ export default function HeroSlideshow({
         //    the nearest image slide's blurDataURL, the browser immediately paints
         //    the poster frame while autoPlay buffers — no black frame, no navy flash.
         const isFirstSlide = i === 0
-        const isRemoteBlob = isBlobUpload(slide.url)
-        const mediaSrc = fallbackSrcById[slide.id] ?? slide.url
+        // VIDEO slides: prefer `mobileUrl` on narrow/portrait viewports when
+        // one has been configured, so a hero video composed with its clean
+        // negative-space region on a different side/edge for mobile (e.g.
+        // upper half vs. left half on desktop) renders the correct source
+        // instead of `object-cover` cropping a desktop-framed video down to
+        // a portrait viewport. IMAGE slides are unaffected — `next/image`
+        // already handles responsive sizing via `sizes`.
+        const wantsMobileSrc = slide.mediaType === 'VIDEO' && isMobileViewport && !!slide.mobileUrl
+        const baseSrc = wantsMobileSrc ? slide.mobileUrl! : slide.url
+        const isRemoteBlob = isBlobUpload(baseSrc)
+        const mediaSrc = fallbackSrcById[slide.id] ?? baseSrc
         // Video slides: absolutely positioned to fill the slide container
         // (matching the Next/Image `fill` layout) so the video element
         // never causes a reflow or CLS on load.
@@ -241,6 +276,7 @@ export default function HeroSlideshow({
           <div key={slide.id} className={cls} style={style}>
             {slide.mediaType === 'VIDEO' ? (
               <video
+                key={wantsMobileSrc ? 'mobile' : 'desktop'}
                 ref={(el) => {
                   if (el) videoRefs.current.set(slide.id, el)
                   else videoRefs.current.delete(slide.id)
@@ -250,7 +286,7 @@ export default function HeroSlideshow({
                 muted
                 playsInline
                 preload={isRemoteBlob ? 'metadata' : 'auto'}
-                poster={nearestBlurDataURL}
+                poster={nearestBlurDataURL ?? videoPosterFor(baseSrc)}
                 disablePictureInPicture
                 loop={!!fallbackSrcById[slide.id]}
                 className={videoCls}
