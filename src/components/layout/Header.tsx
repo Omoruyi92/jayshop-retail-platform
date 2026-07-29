@@ -278,7 +278,7 @@ export default function Header() {
             alt="Canada"
             width={28}
             height={28}
-            className="hidden [@media(orientation:landscape)_and_(max-width:639px)]:block w-6 h-6 rounded-full object-contain drop-shadow-md shrink-0"
+            className="hidden [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:block w-6 h-6 rounded-full object-contain drop-shadow-md shrink-0"
           />
 
         </div>
