@@ -16,7 +16,7 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
 
   return (
     <section
-      className="relative h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
+      className="relative h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] sm:min-h-0 w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {hasSlides ? (
@@ -37,7 +37,13 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
       )}
 
       <div className="absolute inset-x-0 bottom-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10">
+        {/* Bottom padding reserves the slideshow-control band so the text
+            block always ends above the controls, whatever the hero height:
+            controls sit at bottom-3 (12px) with 44px-tall buttons below sm
+            (56px footprint) and bottom-4 (16px) + 44px from sm up (60px
+            footprint). Reserve footprint + 16px clearance: 72px (4.5rem)
+            mobile, 76px (4.75rem) sm+. */}
+        <div className="mx-auto max-w-7xl px-4 pb-[4.5rem] sm:px-6 sm:pb-[4.75rem] lg:px-8">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-display font-semibold uppercase tracking-[0.15em] text-blue-100 backdrop-blur-sm">
             Curated Collections
           </span>
