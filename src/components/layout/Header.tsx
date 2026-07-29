@@ -327,16 +327,19 @@ export default function Header() {
           under the trigger's own wrapper) so it can be a true full-height
           off-canvas panel, `fixed inset-y-0 right-0`, instead of being
           clipped by the header's `overflow-x-clip` or constrained to an
-          anchored dropdown's max-h + internal scroll. All 9 links plus the
-          We Care accordion fit without scrolling on common phone
-          viewports; overflow-y-auto remains only as a fallback for very
-          short viewports.
-          z-50 on both the backdrop and the sheet intentionally outranks
-          BottomNav's z-40 (BottomNav.tsx) and the header's own z-40, so the
-          sheet and its scrim always render above the bottom tab bar and
-          header — simpler and more robust than reserving BottomNav's
-          height, and correct because this is a full-screen modal that
-          should eclipse every other fixed layer while open. */}
+          anchored dropdown's max-h + internal scroll. w-[85vw] max-w-sm is
+          deliberately not full-bleed, leaving a strip of tappable backdrop
+          on the left. All 9 links plus the We Care accordion fit without
+          scrolling on common phone viewports; overflow-y-auto remains only
+          as a fallback for very short/landscape viewports, not the primary
+          layout. pb-safe (globals.css) matches BottomNav's own safe-area
+          convention so the last row clears the home indicator.
+          z-50 on both the backdrop and the sheet matches Dialog.tsx's
+          existing overlay convention (fixed inset-0 bg-black/50 + z-50) and
+          intentionally outranks BottomNav's z-40 (BottomNav.tsx) and the
+          header's own z-40, so the sheet and its scrim fully occlude the
+          bottom tab bar and header rather than partially overlapping them
+          while open. */}
       {mobileMenuOpen && (
         <>
           {/* Backdrop — dims and covers the rest of the screen (including
@@ -353,7 +356,7 @@ export default function Header() {
             aria-modal="true"
             aria-label="Site navigation"
             tabIndex={-1}
-            className="sm:hidden fixed inset-y-0 right-0 z-50 h-full w-[85vw] max-w-sm overflow-y-auto bg-white shadow-2xl py-2 animate-in slide-in-from-right duration-200 focus:outline-none"
+            className="sm:hidden fixed inset-y-0 right-0 z-50 h-full w-[85vw] max-w-sm overflow-y-auto bg-white shadow-2xl py-2 pb-safe animate-in slide-in-from-right duration-200 focus:outline-none"
           >
             {/* Nav links — same source of truth as SubNavBar.tsx */}
             <div className="py-1">
