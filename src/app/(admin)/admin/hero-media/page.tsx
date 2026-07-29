@@ -127,7 +127,7 @@ export default function AdminHeroMediaPage() {
   )
 
   const patchMutation = useMutation(
-    async (payload: { id: string; active?: boolean; sortOrder?: number; altText?: string }) => {
+    async (payload: { id: string; active?: boolean; sortOrder?: number; altText?: string; mobileUrl?: string | null }) => {
       const res = await fetch('/api/admin/hero-slides', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -247,6 +247,7 @@ export default function AdminHeroMediaPage() {
               <th className="px-2 py-1.5 w-16">Preview</th>
               <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Type</th>
               <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Alt Text</th>
+              <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Mobile Video URL</th>
               <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Order</th>
               <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Status</th>
               <th className="px-2 py-1.5 font-medium text-jays-steel text-[10px] uppercase sm:text-xs">Actions</th>
@@ -254,9 +255,9 @@ export default function AdminHeroMediaPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
             ) : slideList.length === 0 ? (
-              <tr><td colSpan={6}><EmptyState title="No slides yet" body={`Upload the first ${scope === 'HOME' ? 'home' : scope === 'SHOP' ? 'shop' : scope === 'STYLE_LANDING' ? 'shop by style' : scope === 'PLAYERS' ? 'popular players' : 'gallery'} hero slide.`} /></td></tr>
+              <tr><td colSpan={7}><EmptyState title="No slides yet" body={`Upload the first ${scope === 'HOME' ? 'home' : scope === 'SHOP' ? 'shop' : scope === 'STYLE_LANDING' ? 'shop by style' : scope === 'PLAYERS' ? 'popular players' : 'gallery'} hero slide.`} /></td></tr>
             ) : slideList.map((slide, idx) => (
               <tr key={slide.id} className="hover:bg-jays-ice/50 transition-colors">
                 <td className="px-2 py-1.5">
@@ -282,6 +283,24 @@ export default function AdminHeroMediaPage() {
                     className={`${INPUT_CLS} max-w-[200px]`}
                     placeholder="Alt text"
                   />
+                </td>
+                <td className="px-2 py-1.5">
+                  {slide.mediaType === 'VIDEO' ? (
+                    <input
+                      type="text"
+                      defaultValue={slide.mobileUrl || ''}
+                      onBlur={(e) => {
+                        const value = e.target.value.trim()
+                        if (value !== (slide.mobileUrl || '')) {
+                          patchMutation.mutate({ id: slide.id, mobileUrl: value || null })
+                        }
+                      }}
+                      className={`${INPUT_CLS} max-w-[220px]`}
+                      placeholder="/hero-videos/home/home-mobile.mp4"
+                    />
+                  ) : (
+                    <span className="text-jays-steel">—</span>
+                  )}
                 </td>
                 <td className="px-2 py-1.5">
                   <div className="flex items-center gap-1">
