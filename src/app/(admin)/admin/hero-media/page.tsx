@@ -7,6 +7,7 @@ import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useFetch } from '@/components/sync/hooks/useFetch'
 import { useMutation } from '@/components/sync/hooks/useMutation'
+import { usesPresignedUpload } from '@/lib/media/upload'
 import { SlideScope, MediaType } from '@prisma/client'
 
 interface HeroSlide {
@@ -42,28 +43,46 @@ export default function AdminHeroMediaPage() {
 
   const uploadMutation = useMutation(
     async (file: File) => {
-      const isVideo = file.type === 'video/mp4' || file.type === 'video/webm'
-
-      if (isVideo) {
-        // Hero videos are too large for Vercel's serverless body limit, so we
+      if (usesPresignedUpload(file)) {
+        // Large hero videos exceed Vercel's serverless body limit, so we
         // upload directly from the browser to Cloudflare R2 via a presigned URL.
+        // This requires the R2 bucket's CORS policy to allow PUT from this
+        // origin (see docs/R2_CORS_SETUP.md); smaller files skip this path
+        // entirely and go through the server-side route below instead.
         const presignedRes = await fetch(
           `/api/admin/hero-slides/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}&size=${file.size}&scope=${encodeURIComponent(scope)}`,
           { method: 'GET' }
         )
         if (!presignedRes.ok) {
           const data = await presignedRes.json().catch(() => ({}))
-          throw new Error(data.error || 'Upload failed')
+          throw new Error(data.error || `Could not prepare upload (HTTP ${presignedRes.status})`)
         }
         const { presignedUrl, publicUrl } = await presignedRes.json()
 
-        const putRes = await fetch(presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
-        })
-        if (!putRes.ok) {
-          throw new Error('Upload to storage failed')
+        try {
+          const putRes = await fetch(presignedUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          })
+          if (!putRes.ok) {
+            throw new Error(`Storage rejected the upload (HTTP ${putRes.status})`)
+          }
+        } catch (err) {
+          // A network-level failure here (TypeError: Failed to fetch) almost
+          // always means the browser's CORS preflight to R2 was rejected, or
+          // the request never left the browser. Log the raw error so it is
+          // visible in devtools instead of just the generic message, and
+          // surface an actionable toast instead of the browser's own
+          // "Failed to fetch" text.
+          // eslint-disable-next-line no-console
+          console.error('[hero-media] presigned PUT to storage failed:', err)
+          if (err instanceof TypeError) {
+            throw new Error(
+              'Upload to storage was blocked (likely a CORS configuration issue on the storage bucket). See docs/R2_CORS_SETUP.md.'
+            )
+          }
+          throw err
         }
 
         const createRes = await fetch('/api/admin/hero-slides', {
@@ -78,7 +97,7 @@ export default function AdminHeroMediaPage() {
         })
         if (!createRes.ok) {
           const data = await createRes.json().catch(() => ({}))
-          throw new Error(data.error || 'Upload failed')
+          throw new Error(data.error || `Failed to save slide (HTTP ${createRes.status})`)
         }
         return createRes.json()
       }
@@ -86,10 +105,17 @@ export default function AdminHeroMediaPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('scope', scope)
-      const res = await fetch('/api/admin/hero-slides', { method: 'POST', body: formData })
+      let res: Response
+      try {
+        res = await fetch('/api/admin/hero-slides', { method: 'POST', body: formData })
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[hero-media] server-side upload request failed:', err)
+        throw new Error('Upload request failed to reach the server. Check your connection and try again.')
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || 'Upload failed')
+        throw new Error(data.error || `Upload failed (HTTP ${res.status})`)
       }
       return res.json()
     },
