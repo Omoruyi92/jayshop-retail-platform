@@ -11,10 +11,10 @@ const PREVIEW_COUNT = 5
  * Players admin form, see PlayerFormModal's `products` linking UI). This is
  * the same data the player detail page's "Featured Gear" rail is built from
  * (see /players/[slug]/page.tsx: `gear` from GET /api/players/[slug]).
- * The homepage teaser surfaces a sample of these player-linked products with
- * a "Shop {Player}" badge, deep-linking to the product's PDP. Read-only
- * preview; the underlying admin linking feature and player detail page are
- * untouched.
+ * The homepage teaser surfaces a sample of these player-linked products,
+ * labelled with the linked player's name and deep-linking to the product's
+ * PDP. Read-only preview; the underlying admin linking feature and player
+ * detail page are untouched.
  */
 export default async function LinkedGearPreview() {
   const links = await prisma.playerProduct.findMany({
@@ -74,13 +74,10 @@ export default async function LinkedGearPreview() {
                   sizes="(max-width: 640px) 42vw, (max-width: 1024px) 33vw, 22vw"
                   className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
                 />
-                <span className="absolute left-2 top-2 z-10 inline-flex items-center rounded-full bg-jays-navy/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
-                  {link.player.name}
-                </span>
               </div>
               <div className="pt-2.5">
                 <p className="truncate text-sm font-semibold text-jays-navy" title={link.product.name}>
-                  {link.label || link.product.name}
+                  {link.player.name.trim() || link.label || link.product.name}
                 </p>
               </div>
             </Link>
