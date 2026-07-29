@@ -62,6 +62,32 @@ export default function HeroSlideshow({
 }: HeroSlideshowProps) {
   const { slides, loaded } = useHeroMedia(scope, initialSlides)
   const [index, setIndex] = useState(0)
+  // Which mobile portrait variant (if any) the current viewport matches, per
+  // docs/MOBILE_HERO_VIDEO_SAFE_AREA_PLAN.md §5/§7. `null` means desktop/
+  // tablet/landscape — use the base `url`. These are re-evaluated on resize
+  // via matchMedia listeners so rotating a device updates source selection
+  // without a full remount.
+  const [mobileVariant, setMobileVariant] = useState<'short' | 'tall' | null>(null)
+  useEffect(() => {
+    const shortQuery = window.matchMedia(
+      '(max-width: 767px) and (orientation: portrait) and (max-height: 760px)'
+    )
+    const tallQuery = window.matchMedia(
+      '(max-width: 767px) and (orientation: portrait) and (min-height: 761px)'
+    )
+    const update = () => {
+      if (shortQuery.matches) setMobileVariant('short')
+      else if (tallQuery.matches) setMobileVariant('tall')
+      else setMobileVariant(null)
+    }
+    update()
+    shortQuery.addEventListener('change', update)
+    tallQuery.addEventListener('change', update)
+    return () => {
+      shortQuery.removeEventListener('change', update)
+      tallQuery.removeEventListener('change', update)
+    }
+  }, [])
   // Whether automatic rotation is currently running. Manual prev/next always
   // pauses it (a common, predictable carousel UX pattern — the user just
   // told the slideshow what they want to look at, so it shouldn't immediately
@@ -215,7 +241,21 @@ export default function HeroSlideshow({
         //    the poster frame while autoPlay buffers — no black frame, no navy flash.
         const isFirstSlide = i === 0
         const isRemoteBlob = isBlobUpload(slide.url)
-        const mediaSrc = fallbackSrcById[slide.id] ?? slide.url
+        // Source-selection precedence per
+        // docs/MOBILE_HERO_VIDEO_SAFE_AREA_PLAN.md §7:
+        //   short portrait: mobileUrl -> mobileTallUrl -> url
+        //   tall portrait:  mobileTallUrl -> mobileUrl -> url
+        //   desktop/tablet: url
+        // A null/missing mobileUrl or mobileTallUrl always falls through to
+        // the next entry in the chain, ending at `url`, so the hero never
+        // breaks for slides that only have the base asset.
+        let resolvedSrc = slide.url
+        if (mobileVariant === 'short') {
+          resolvedSrc = slide.mobileUrl || slide.mobileTallUrl || slide.url
+        } else if (mobileVariant === 'tall') {
+          resolvedSrc = slide.mobileTallUrl || slide.mobileUrl || slide.url
+        }
+        const mediaSrc = fallbackSrcById[slide.id] ?? resolvedSrc
         // Video slides: absolutely positioned to fill the slide container
         // (matching the Next/Image `fill` layout) so the video element
         // never causes a reflow or CLS on load.
@@ -241,6 +281,7 @@ export default function HeroSlideshow({
           <div key={slide.id} className={cls} style={style}>
             {slide.mediaType === 'VIDEO' ? (
               <video
+                key={mediaSrc}
                 ref={(el) => {
                   if (el) videoRefs.current.set(slide.id, el)
                   else videoRefs.current.delete(slide.id)

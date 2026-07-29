@@ -186,8 +186,15 @@ export async function PATCH(req: Request) {
   if (error) return error
 
   try {
-    const body = await parseJsonBody<{ id?: string; active?: boolean; sortOrder?: number; altText?: string }>(req)
-    const { id, active, sortOrder, altText } = body
+    const body = await parseJsonBody<{
+      id?: string
+      active?: boolean
+      sortOrder?: number
+      altText?: string
+      mobileUrl?: string | null
+      mobileTallUrl?: string | null
+    }>(req)
+    const { id, active, sortOrder, altText, mobileUrl, mobileTallUrl } = body
 
     if (!id) {
       return badRequest('ID required')
@@ -197,6 +204,12 @@ export async function PATCH(req: Request) {
     if (typeof active === 'boolean') data.active = active
     if (typeof sortOrder === 'number') data.sortOrder = sortOrder
     if (typeof altText === 'string') data.altText = altText
+    // mobileUrl/mobileTallUrl are the 3:4 / 9:16 portrait variant URLs (see
+    // docs/MOBILE_HERO_VIDEO_SAFE_AREA_PLAN.md §7). Both are nullable — an
+    // explicit `null` clears a previously-set variant back to "use the base
+    // url" per HeroSlideshow's fallback precedence.
+    if (mobileUrl === null || typeof mobileUrl === 'string') data.mobileUrl = mobileUrl
+    if (mobileTallUrl === null || typeof mobileTallUrl === 'string') data.mobileTallUrl = mobileTallUrl
 
     const slide = await prisma.heroSlide.update({ where: { id }, data })
 
@@ -223,6 +236,7 @@ export async function DELETE(req: Request) {
     if (slide) {
       await removeFile(slide.url)
       if (slide.mobileUrl) await removeFile(slide.mobileUrl)
+      if (slide.mobileTallUrl) await removeFile(slide.mobileTallUrl)
       await prisma.heroSlide.delete({ where: { id } })
       for (const path of scopeToPaths(slide.scope)) revalidatePath(path)
     }

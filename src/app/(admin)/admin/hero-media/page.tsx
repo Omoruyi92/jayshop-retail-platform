@@ -15,6 +15,7 @@ interface HeroSlide {
   mediaType: MediaType
   url: string
   mobileUrl: string | null
+  mobileTallUrl: string | null
   altText: string | null
   sortOrder: number
   active: boolean

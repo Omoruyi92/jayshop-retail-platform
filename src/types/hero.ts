@@ -11,6 +11,14 @@ export interface Slide {
   mediaType: 'IMAGE' | 'VIDEO'
   url: string
   mobileUrl: string | null
+  /**
+   * Tall portrait (9:16) mobile variant, preferred over `mobileUrl` on tall
+   * portrait viewports (see `HeroSlideshow`'s media-query selection).
+   * Nullable — most slides only have the 3:4 `mobileUrl` variant, and the
+   * selection logic falls back to `mobileUrl` then `url` when absent. See
+   * `docs/MOBILE_HERO_VIDEO_SAFE_AREA_PLAN.md` for the fallback precedence.
+   */
+  mobileTallUrl?: string | null
   altText: string | null
   sortOrder: number
   active: boolean

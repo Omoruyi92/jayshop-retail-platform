@@ -16,7 +16,7 @@ export default function StylesHero({ initialSlides }: { initialSlides?: HeroSlid
 
   return (
     <section
-      className="relative h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
+      className="relative aspect-[3/4] max-h-[calc(100svh-var(--header-height,5.75rem)-2.75rem-56px-env(safe-area-inset-bottom,0px))] min-h-[320px] w-full overflow-hidden bg-jays-navy sm:h-[60vh] sm:max-h-[560px] lg:h-[calc(64vh+151px)] lg:max-h-[771px]"
       style={heroFallbackStyle(initialSlides)}
     >
       {hasSlides ? (
