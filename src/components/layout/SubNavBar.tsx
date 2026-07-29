@@ -25,7 +25,7 @@ import { useSearch } from '@/lib/store/SearchContext'
 // `primary` links (Shop, Shop by Style, Shop by Player) are the main
 // shopping entry points — styled bolder/navy with a subtle pill so they
 // stand out from the rest of the nav (Home, Brands, Gallery, etc.).
-const links = [
+export const links = [
   { href: '/',               label: 'Home',           icon: Home,       mobileHidden: false },
   { href: '/shop',           label: 'Shop',           icon: ShoppingBag, mobileHidden: true,  primary: true },
   { href: '/shop-by-style',  label: 'Shop by Style',  icon: Sparkles,   mobileHidden: false, primary: true },
@@ -109,8 +109,11 @@ export default function SubNavBar() {
     >
       {/* Main row: scrollable nav links + search */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 h-11 flex items-center gap-1 sm:gap-2">
-        {/* Scrollable nav links — takes all available space, scrolls on mobile */}
-        <div className="flex-1 overflow-x-auto no-scrollbar min-w-0">
+        {/* Scrollable nav links — desktop/tablet only (sm+). On mobile, all
+            links live in the Header's hamburger drawer instead, since this
+            row's overflow-x-auto scroll had no visual affordance and hid
+            `Shop` (mobileHidden) entirely. */}
+        <div className="hidden sm:block flex-1 overflow-x-auto no-scrollbar min-w-0">
           <div className="flex items-center justify-start gap-1 sm:gap-2 h-11 w-max">
             {links.map(({ href, label, icon: Icon, mobileHidden, external, primary }) => {
               const active = !external && pathname === href
