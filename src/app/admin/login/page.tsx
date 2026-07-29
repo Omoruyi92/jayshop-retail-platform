@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import PasswordInput from '@/components/ui/PasswordInput'
 
@@ -49,8 +50,15 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <span className="font-display font-bold text-3xl text-white">J</span>
+          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 p-2">
+            <Image
+              src="/brand/logo.png"
+              alt="Blue Jays logo"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain"
+              priority
+            />
           </div>
           <h1 className="font-display text-2xl font-bold uppercase text-white tracking-wide">
             Staff Login
