@@ -1,16 +1,13 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
 import PartnerLogosBar, { LocationBadge, PromoMarquee, usePromotions } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 import { useDropdownPosition } from '@/hooks/useDropdownPosition'
-import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { links as navLinks } from '@/components/layout/SubNavBar'
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: 'English',
@@ -67,7 +64,6 @@ function StoreStatusStrip() {
 
 export default function Header() {
   const { t, locale, setLocale } = useLanguage()
-  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [weCareOpen, setWeCareOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -83,7 +79,6 @@ export default function Header() {
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null)
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
-  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), [])
 
   // Publish the header's real rendered height as a CSS var so downstream
   // sticky bars (SubNavBar, StickyShopCategoryNav) can stack under it without
@@ -120,11 +115,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open, weCareOpen, mobileMenuOpen])
 
-  // Close the mobile nav drawer on route change (e.g. tapping a link).
-  useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
-
   // Anchors the language options panel to the trigger's real on-screen
   // position (fixed + viewport-clamped), matching the cart/favorites
   // dropdown fix — `absolute right-0` clips off-screen on mobile because
@@ -136,17 +126,14 @@ export default function Header() {
   // own narrow wrapper.
   const weCarePanelStyle = useDropdownPosition(weCareOpen, weCareTriggerRef, weCarePanelRef)
 
-  // The mobile hamburger menu is a full-height off-canvas sheet (fixed
-  // inset-y-0 right-0), not a trigger-anchored popover, so it intentionally
-  // does NOT use useDropdownPosition — there's no viewport-clamped
-  // positioning math needed for a panel pinned to the full screen height.
-  //
-  // Full accessibility contract for the mobile nav sheet: traps Tab focus
-  // inside the panel, closes on Escape, locks background scroll while open,
-  // focuses the first link on open, and restores focus to the hamburger
-  // trigger on close. (The popover-style click-outside handling above still
-  // also applies, and is independent of this.)
-  useFocusTrap(mobileMenuOpen, mobileMenuPanelRef, closeMobileMenu)
+  // The mobile hamburger menu panel was `absolute right-0` on its own
+  // wrapper, which sits flush against the header's right edge — but the
+  // header row's content (bell/heart/cart/lang pill/hamburger) overflows
+  // past the viewport on 375-414px screens and gets silently clipped by
+  // the header's `overflow-x-clip`. That pushed the whole mobile menu
+  // (including the "We Care" accordion) off-screen, appearing to overlap
+  // the sub-nav strip below. Anchor it the same way as the other panels.
+  const mobileMenuStyle = useDropdownPosition(mobileMenuOpen, mobileMenuTriggerRef, mobileMenuPanelRef)
 
   return (
     <header ref={headerRef} className="bg-jays-navy text-white sticky top-0 z-40 shadow-md overflow-x-clip">
@@ -301,128 +288,59 @@ export default function Header() {
             />
           </nav>
 
-          {/* Mobile hamburger menu — the sole mobile nav entry point.
-              Renders as a full-height off-canvas sheet (see below, outside
-              this row) rather than an anchored dropdown. Contains all
-              SubNavBar links (SubNavBar's own scroll row is `hidden` below
-              `sm`) plus the We Care accordion. */}
-          <div className="sm:hidden" ref={mobileMenuRef}>
+          {/* Mobile hamburger menu */}
+          <div className="relative sm:hidden" ref={mobileMenuRef}>
             <button
               ref={mobileMenuTriggerRef}
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               className="flex items-center justify-center w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/40"
-              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-label="Open menu"
               aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-nav-panel"
             >
               <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Mobile nav sheet — rendered outside the header row (not nested
-          under the trigger's own wrapper) so it can be a true full-height
-          off-canvas panel, `fixed inset-y-0 right-0`, instead of being
-          clipped by the header's `overflow-x-clip` or constrained to an
-          anchored dropdown's max-h + internal scroll. w-[85vw] max-w-sm is
-          deliberately not full-bleed, leaving a strip of tappable backdrop
-          on the left. All 9 links plus the We Care accordion fit without
-          scrolling on common phone viewports; overflow-y-auto remains only
-          as a fallback for very short/landscape viewports, not the primary
-          layout. pb-safe (globals.css) matches BottomNav's own safe-area
-          convention so the last row clears the home indicator.
-          z-50 on both the backdrop and the sheet matches Dialog.tsx's
-          existing overlay convention (fixed inset-0 bg-black/50 + z-50) and
-          intentionally outranks BottomNav's z-40 (BottomNav.tsx) and the
-          header's own z-40, so the sheet and its scrim fully occlude the
-          bottom tab bar and header rather than partially overlapping them
-          while open. */}
-      {mobileMenuOpen && (
-        <>
-          {/* Backdrop — dims and covers the rest of the screen (including
-              BottomNav), click to close. */}
-          <div
-            className="sm:hidden fixed inset-0 z-50 bg-black/50 animate-in fade-in duration-200"
-            aria-hidden="true"
-            onClick={closeMobileMenu}
-          />
-          <div
-            id="mobile-nav-panel"
-            ref={mobileMenuPanelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Site navigation"
-            tabIndex={-1}
-            className="sm:hidden fixed inset-y-0 right-0 z-50 h-full w-[85vw] max-w-sm overflow-y-auto bg-white shadow-2xl py-2 pb-safe animate-in slide-in-from-right duration-200 focus:outline-none"
-          >
-            {/* Nav links — same source of truth as SubNavBar.tsx */}
-            <div className="py-1">
-              {navLinks.map(({ href, label, icon: Icon, external }) => {
-                const active = !external && pathname === href
-                const className = `flex items-center gap-3 px-5 py-3.5 text-base transition-colors ${
-                  active ? 'text-jays-navy font-semibold bg-jays-ice' : 'text-gray-700 hover:bg-jays-ice'
-                }`
-                if (external) {
-                  return (
-                    <a
-                      key={href}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${label} (opens in a new tab)`}
-                      className={className}
-                    >
-                      <Icon size={18} strokeWidth={2} className="shrink-0" />
-                      {label}
-                    </a>
-                  )
-                }
-                return (
-                  <Link key={href} href={href} className={className}>
-                    <Icon size={18} strokeWidth={2} className="shrink-0" />
-                    {label}
-                  </Link>
-                )
-              })}
-            </div>
-
-            <div className="my-1 border-t border-gray-100" aria-hidden="true" />
-
-            {/* We Care — expandable */}
-            <button
-              onClick={() => setMobileWeCareOpen((prev) => !prev)}
-              className="w-full flex items-center justify-between gap-3 px-5 py-3.5 text-base text-gray-700 hover:bg-jays-ice transition-colors"
-              aria-expanded={mobileWeCareOpen}
-            >
-              <span className="flex items-center gap-3">
-                <svg className="w-[18px] h-[18px] text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                We Care
-              </span>
-              <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${mobileWeCareOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {mobileWeCareOpen && (
-              <div className="px-5 pb-3 pt-1 bg-jays-ice/50">
-                {WE_CARE_VALUES.map((v, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2">
-                    <span className="w-7 h-7 bg-gradient-to-br from-jays-red to-red-600 text-white rounded-md flex items-center justify-center font-display font-bold text-xs shrink-0">
-                      {v.letter}
-                    </span>
-                    <div>
-                      <p className="font-display font-semibold text-sm text-jays-navy leading-tight">{v.word}</p>
-                      <p className="text-xs text-jays-steel leading-tight">{v.desc}</p>
-                    </div>
+            {mobileMenuOpen && (
+              <div
+                ref={mobileMenuPanelRef}
+                style={mobileMenuStyle}
+                className="fixed w-64 max-w-[calc(100vw-16px)] bg-white shadow-2xl rounded-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                {/* We Care — expandable */}
+                <button
+                  onClick={() => setMobileWeCareOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-jays-ice transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <svg className="w-4 h-4 text-jays-navy shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    We Care
+                  </span>
+                  <svg className={`w-3 h-3 text-gray-400 transition-transform duration-150 ${mobileWeCareOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {mobileWeCareOpen && (
+                  <div className="px-4 pb-2 pt-1 bg-jays-ice/50">
+                    {WE_CARE_VALUES.map((v, i) => (
+                      <div key={i} className="flex items-center gap-2.5 py-1.5">
+                        <span className="w-6 h-6 bg-gradient-to-br from-jays-red to-red-600 text-white rounded-md flex items-center justify-center font-display font-bold text-xs shrink-0">
+                          {v.letter}
+                        </span>
+                        <div>
+                          <p className="font-display font-semibold text-xs text-jays-navy leading-tight">{v.word}</p>
+                          <p className="text-[10px] text-jays-steel leading-tight">{v.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
       {/* Store status strip — ALWAYS visible on non-xl screens.
           LocationBadge is unconditional. PromoMarquee only appears
