@@ -24,10 +24,10 @@ export const metadata: Metadata = {
 /**
  * Fetches the same active-promotions set as `/api/promotions`, but directly
  * in the server component so `PromotionsProvider` can be seeded before first
- * paint — the shared promotions state consumed by the header's promo
- * marquee (`PartnerLogosBar`/`PromoMarqueeStrip`). Falls back to `[]` on DB
- * hiccups — identical to the API route's own fallback — rather than failing
- * the page.
+ * paint — the shared promotions state consumed by the dismissible
+ * `PromotionAlert` banner (rendered inside `SubNavBar`). Falls back to `[]`
+ * on DB hiccups — identical to the API route's own fallback — rather than
+ * failing the page.
  */
 async function getActivePromotions(): Promise<Promotion[]> {
   try {

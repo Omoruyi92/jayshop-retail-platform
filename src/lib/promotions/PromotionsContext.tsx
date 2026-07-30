@@ -13,8 +13,8 @@ const PromotionsContext = createContext<Promotion[]>([])
 
 /**
  * Seeded from a server-side Prisma fetch (see `(public)/layout.tsx`) so the
- * correct promotion set — and therefore Header's promo marquee correct
- * final height — is already known on first paint, eliminating the
+ * correct promotion set — and therefore `PromotionAlert`'s correct final
+ * height — is already known on first paint, eliminating the
  * client-only fetch-then-pop-in that was a major CLS contributor. The
  * client-side fetch below only *refreshes* the list after mount (keeps
  * long-lived sessions in sync with newly published/expired promotions) —
