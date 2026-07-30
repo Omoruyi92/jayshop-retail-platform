@@ -11,7 +11,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['list'], ['html', { outputFolder: 'docs/verification/promotion-alert/playwright-report' }]],
+  reporter: [['list'], ['html', { outputFolder: 'docs/verification/promotion-alert-v2/playwright-report', open: 'never' }]],
   use: {
     baseURL: process.env.BASE_URL || 'https://jayshop-retail-platform.vercel.app',
     trace: 'on-first-retry',
