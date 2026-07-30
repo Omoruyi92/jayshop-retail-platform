@@ -332,6 +332,8 @@ export default function Footer() {
               <span className="text-blue-700/60">|</span>
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <span className="text-blue-700/60">|</span>
+              <Link href="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link>
+              <span className="text-blue-700/60">|</span>
               <Link href="/style-submission-policy" className="hover:text-white transition-colors">Style Submission Policy</Link>
             </div>
             <p className="text-center text-[10px] text-blue-400">
