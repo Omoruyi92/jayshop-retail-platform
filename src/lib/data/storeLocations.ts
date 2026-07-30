@@ -28,7 +28,7 @@ export const storeLocations: StoreLocation[] = [
     addressLines: ["1 Blue Jays Way, Toronto, ON"],
     phone: "(416) 341-2904",
     hours: "Monday to Sunday 10:00 a.m. – 5:00 p.m.",
-    note: "Jays Shop at Gate 5 closes approximately 1 hour prior to gates on game days. Store hours are subject to change on both event days and non-event days.",
+    note: "Jays Shop at Gate 5 closes to the general public before gates open on game days — approximately 1 hour prior to gates on weekdays and 2 hours prior on weekends. Store hours are subject to change on both event days and non-event days.",
     verified: true
   },
 ];

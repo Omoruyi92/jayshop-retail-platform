@@ -7,6 +7,16 @@ export const STORE_TIMEZONE = 'America/Toronto'
 const OPEN_HOUR = 10 // 10:00 AM
 const CLOSE_HOUR = 17 // 5:00 PM
 
+// Game-day timing (all relative to first pitch, in minutes):
+// - Gates open a fixed 2 hours before first pitch.
+// - The store closes to the general public BEFORE gates open, with a lead
+//   time that depends on the day type of the GAME DATE:
+//     * Weekday (Mon–Fri): 1 hour before gates  → first pitch − 3h
+//     * Weekend (Sat–Sun): 2 hours before gates → first pitch − 4h
+const GATE_OPEN_BEFORE_FIRST_PITCH = 120 // gates always open 2h before first pitch
+const WEEKDAY_CLOSE_BEFORE_GATES = 60 // Mon–Fri: close 1h before gates
+const WEEKEND_CLOSE_BEFORE_GATES = 120 // Sat–Sun: close 2h before gates
+
 export type StoreStatusLabel = 'Open' | 'Closed' | 'Closed to the General Public'
 
 export interface StoreStatusResult {
@@ -15,9 +25,15 @@ export interface StoreStatusResult {
   nextChange: string
 }
 
-/** Minimal shape needed from a GameDay row to compute today's status. */
+/** Minimal shape needed from a GameDay row to compute today's status.
+ * `date` is the game's calendar date as stored on GameDay.date (a UTC
+ * calendar date, e.g. "2026-08-01T00:00:00.000Z"); when provided, the
+ * weekday/weekend decision is made from the GAME DATE itself rather than
+ * from "now", so the offset can never be skewed by server UTC vs
+ * America/Toronto drift around midnight. */
 export interface TodayGameInput {
   startTime: string | null | undefined
+  date?: string | Date | null
 }
 
 /**
@@ -56,6 +72,20 @@ function getStoreDayOfWeek(date: Date, timeZone: string = STORE_TIMEZONE): numbe
   return days.indexOf(weekdayStr)
 }
 
+/** Day-of-week for the game itself. GameDay.date is a pure UTC calendar
+ * date (Prisma `@db.Date`, midnight UTC) whose Y/M/D components ARE the
+ * Toronto calendar date of the game — so its weekday is read from the UTC
+ * components directly (formatting midnight-UTC in America/Toronto would
+ * shift it back one day). Falls back to "now" in the store timezone when
+ * the game date isn't supplied. */
+function getGameDayOfWeek(todayGame: TodayGameInput, now: Date): number {
+  if (todayGame.date) {
+    const d = typeof todayGame.date === 'string' ? new Date(todayGame.date) : todayGame.date
+    if (!isNaN(d.getTime())) return d.getUTCDay()
+  }
+  return getStoreDayOfWeek(now)
+}
+
 /** Parses a "HH:mm" 24-hour string (as stored on GameDay.startTime) into
  * minutes-since-midnight. Returns null when missing or malformed. */
 function parseStartTimeToMinutes(startTime: string | null | undefined): number | null {
@@ -82,38 +112,55 @@ function formatMinutesAsClock(totalMinutes: number): string {
  * scheduled game.
  *
  * Rules:
- * - Before 10:00 AM: Closed, "Opens at 10:00 AM" (game day or not).
  * - Non-game day (or game day with no usable startTime): standard
- *   10:00 AM–5:00 PM Open window.
- * - Game day with a valid startTime: Open from 10:00 AM until
- *   min(publicCloseTime, 5:00 PM). At/after that cutoff, if the cutoff was
- *   actually driven by the public close time (i.e. it closes to the public before the
- *   regular 5:00 PM close), status becomes "Closed to the General Public"
- *   instead of the regular "Closed". If public close is later than 5:00 PM
- *   (e.g. evening games), the regular 5:00 PM close wins and status is
- *   plain "Closed" afterward.
+ *   10:00 AM–5:00 PM Open window; before 10:00 AM it's Closed with
+ *   "Opens at 10:00 AM".
+ * - Game day with a valid startTime: gates open at first pitch − 2h, and
+ *   the store closes to the general public BEFORE gates open — 1h before
+ *   gates on weekdays (Mon–Fri), 2h before gates on weekends (Sat–Sun),
+ *   where the day type comes from the GAME DATE in America/Toronto.
+ *   Effective public close = first pitch − 3h (weekday) / − 4h (weekend).
+ *   The store is Open from 10:00 AM until min(publicClose, 5:00 PM); at or
+ *   after that cutoff, if the cutoff was driven by the public close time,
+ *   status is "Closed to the General Public" instead of plain "Closed".
+ *   If public close is later than 5:00 PM (evening games), the regular
+ *   5:00 PM close wins and status is plain "Closed" afterward.
+ * - Early-game edge case: if the computed public close lands at or before
+ *   the 10:00 AM opening, the store never opens to the general public that
+ *   day — status is "Closed to the General Public" for the whole day
+ *   (including before 10:00 AM, so we never promise "Opens at 10:00 AM"
+ *   on a day it won't).
  */
 export function getStoreStatus(now: Date, todayGame: TodayGameInput | null): StoreStatusResult {
   const nowMinutes = getStoreMinutes(now)
   const openMinutes = OPEN_HOUR * 60
   const closeMinutes = CLOSE_HOUR * 60
 
+  const firstPitchMinutes = todayGame ? parseStartTimeToMinutes(todayGame.startTime) : null
+
+  let publicCloseMinutes: number | null = null
+  if (todayGame && firstPitchMinutes !== null) {
+    const gameDow = getGameDayOfWeek(todayGame, now)
+    const isWeekendGame = gameDow === 0 || gameDow === 6
+    const closeBeforeGates = isWeekendGame ? WEEKEND_CLOSE_BEFORE_GATES : WEEKDAY_CLOSE_BEFORE_GATES
+    publicCloseMinutes = firstPitchMinutes - GATE_OPEN_BEFORE_FIRST_PITCH - closeBeforeGates
+  }
+
+  const closesEarlyToPublic = publicCloseMinutes !== null && publicCloseMinutes < closeMinutes
+
+  // Early-game edge case: public close at/before the 10:00 AM opening means
+  // the store never opens to the general public today.
+  if (closesEarlyToPublic && publicCloseMinutes! <= openMinutes) {
+    return { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' }
+  }
+
   if (nowMinutes < openMinutes) {
     return { isOpen: false, statusLabel: 'Closed', nextChange: 'Opens at 10:00 AM' }
   }
 
-  const firstPitchMinutes = todayGame ? parseStartTimeToMinutes(todayGame.startTime) : null
-  const isWeekend = getStoreDayOfWeek(now) === 0 || getStoreDayOfWeek(now) === 6
-  const gateOpenOffset = isWeekend ? 120 : 90 // 2h on weekends, 90m on weekdays
-  const publicCloseOffset = gateOpenOffset + 60 // Closes 1h prior to gates
-  const publicCloseMinutes = firstPitchMinutes !== null ? firstPitchMinutes - publicCloseOffset : null
-
   // Effective close is whichever comes first: public close time (if it's
   // actually before the regular close) or the regular 5:00 PM close.
-  // Clamp to openMinutes so an unusually early first pitch can't make the
-  // computed cutoff fall before the store's own opening time.
-  const closesEarlyToPublic = publicCloseMinutes !== null && publicCloseMinutes < closeMinutes
-  const cutoffMinutes = Math.max(closesEarlyToPublic ? publicCloseMinutes! : closeMinutes, openMinutes)
+  const cutoffMinutes = closesEarlyToPublic ? publicCloseMinutes! : closeMinutes
 
   if (nowMinutes < cutoffMinutes) {
     return { isOpen: true, statusLabel: 'Open', nextChange: `Closes at ${formatMinutesAsClock(cutoffMinutes)}` }

@@ -11,7 +11,7 @@ import { getStoreStatus, type StoreStatusResult } from '@/lib/store/getStoreStat
  * UTC calendar date, so "is this game today" is determined via UTC Y/M/D
  * comparison, matching the pattern used elsewhere in the codebase. Resolves
  * to `null` on any failure or when there is no game scheduled for today. */
-async function fetchTodayGame(): Promise<{ startTime: string | null } | null> {
+async function fetchTodayGame(): Promise<{ startTime: string | null; date: string } | null> {
   try {
     const res = await fetch('/api/game-days/next')
     if (!res.ok) return null
@@ -25,7 +25,10 @@ async function fetchTodayGame(): Promise<{ startTime: string | null } | null> {
     const gameDateUTC = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate())
 
     if (gameDateUTC !== today) return null
-    return { startTime: gameDay.startTime ?? null }
+    // `date` is forwarded so getStoreStatus derives the weekday/weekend
+    // closure offset from the GAME DATE itself (America/Toronto calendar
+    // date), not from the visitor's or server's notion of "now".
+    return { startTime: gameDay.startTime ?? null, date: gameDay.date }
   } catch {
     return null
   }
