@@ -7,7 +7,6 @@ import BottomNav from '@/components/layout/BottomNav'
 import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
-import PromotionAlert from '@/components/layout/PromotionAlert'
 import CookieConsentModal from '@/components/layout/CookieConsentModal'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
 import { SearchProvider } from '@/lib/store/SearchContext'
@@ -58,7 +57,6 @@ export default async function PublicLayout({ children }: { children: React.React
         <CartProvider>
           <PromotionsProvider initialPromotions={initialPromotions}>
             <div className="min-h-screen flex flex-col">
-              <PromotionAlert initialHasPromotions={initialPromotions.length > 0} />
               <Header />
               <SubNavBar />
               <main className="flex-1 pb-24 sm:pb-0">{children}</main>

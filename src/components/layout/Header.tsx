@@ -32,10 +32,14 @@ const WE_CARE_VALUES = [
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
 ]
 
-/* Always-visible store status strip for non-xl screens. */
+/* Store status strip for tablet-width screens (sm–xl) only. Below sm
+ * (mobile), the status badge now lives INSIDE the main nav bar
+ * (SubNavBar.tsx main row) for better visibility, so this strip is hidden
+ * there to avoid duplication. At xl+ the badge is inline in the header via
+ * PartnerLogosBar. */
 function StoreStatusStrip() {
   return (
-    <div className="xl:hidden bg-jays-royal/80 border-t border-white/5">
+    <div className="hidden sm:block xl:hidden bg-jays-royal/80 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3 min-w-0">
         <LocationBadge compact />
       </div>

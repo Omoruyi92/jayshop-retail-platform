@@ -102,7 +102,7 @@ export default function AdminPromotionsPage() {
       </div>
 
       <p className="text-sm text-jays-steel mt-1 mb-3">
-        Approved promotions appear as a dismissible alert banner at the top of the storefront.
+        Approved promotions appear as a dismissible alert banner attached to the storefront&apos;s main navigation bar.
       </p>
 
       <div className="flex flex-wrap gap-2 mb-3">
@@ -158,9 +158,13 @@ export default function AdminPromotionsPage() {
                     </button>
                   </td>
                   <td className="px-2 py-2 text-jays-steel text-[10px] sm:text-xs">
-                    {promo.startsAt ? new Date(promo.startsAt).toLocaleDateString() : 'Always'}
+                    {/* Show date AND time — the schedule uses datetime-local
+                        inputs, so a promotion can start mid-day. Date-only
+                        display previously hid the time component and made a
+                        "7/30 7:07 PM" start look already-live all day. */}
+                    {promo.startsAt ? new Date(promo.startsAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Always'}
                     {' · '}
-                    {promo.expiresAt ? new Date(promo.expiresAt).toLocaleDateString() : 'No expiry'}
+                    {promo.expiresAt ? new Date(promo.expiresAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'No expiry'}
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-2">

@@ -20,6 +20,8 @@ import {
 } from 'lucide-react'
 import { useSearch } from '@/lib/store/SearchContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import PromotionAlert from '@/components/layout/PromotionAlert'
+import { LocationBadge } from '@/components/ui/PartnerLogosBar'
 
 const WE_CARE_VALUES = [
   { letter: 'W', word: 'Welcoming', desc: 'Every fan feels at home' },
@@ -137,6 +139,14 @@ export default function SubNavBar() {
       style={{ top: 'var(--header-height, 3.5rem)' }}
       className="sticky z-30 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm"
     >
+      {/* Dismissible promotion alert — attached to the main nav bar.
+          Renders null when no active promotion, so no reserved space.
+          Living inside this <nav> means its height is captured by the
+          --subnav-height ResizeObserver above, keeping downstream sticky
+          bars (StickyShopCategoryNav) stacked correctly whether or not a
+          promotion is showing. */}
+      <PromotionAlert />
+
       {/* Main row: scrollable nav links + search */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 h-11 flex items-center gap-1 sm:gap-2">
         {/* Mobile nav hamburger — left-aligned trigger for the nav drawer.
@@ -157,10 +167,18 @@ export default function SubNavBar() {
           }
         </button>
 
-        {/* Spacer — pushes the search icon to the right edge on mobile,
-            where the pill row and desktop search are both hidden. No-op
-            at sm+ since the pill row already fills this space. */}
-        <div className="flex-1 sm:hidden" />
+        {/* Mobile Time Status — the store status badge lives IN the main
+            nav row on mobile (was previously its own strip under the
+            header, see Header.tsx StoreStatusStrip). Centered between the
+            hamburger and the search icon in a navy pill so the badge's
+            dark-background styling (white/blue text, status dot) stays
+            legible on this bar's white background. Replaces the plain
+            flex-1 spacer that used to sit here. */}
+        <div className="flex-1 sm:hidden flex justify-center min-w-0 px-1">
+          <div className="bg-jays-navy rounded-full px-3 py-1 min-w-0 overflow-hidden">
+            <LocationBadge compact />
+          </div>
+        </div>
 
         {/* Scrollable nav links — desktop/tablet only (sm+). On mobile, all
             links live in this bar's own hamburger drawer instead, since this
