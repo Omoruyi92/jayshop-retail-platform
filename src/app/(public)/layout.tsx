@@ -7,6 +7,7 @@ import BottomNav from '@/components/layout/BottomNav'
 import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
+import CookieConsentModal from '@/components/layout/CookieConsentModal'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
 import { SearchProvider } from '@/lib/store/SearchContext'
 import { PromotionsProvider, type Promotion } from '@/lib/promotions/PromotionsContext'
@@ -64,6 +65,7 @@ export default async function PublicLayout({ children }: { children: React.React
               <ChatFAB />
               <FeedbackTab />
               <RecentlyViewedPopup />
+              <CookieConsentModal />
             </div>
           </PromotionsProvider>
         </CartProvider>
