@@ -91,6 +91,8 @@ export function actionMinRole(action: string): AdminRole {
       return 'OWNER'
     case 'holds:clear-resolved':
       return 'OWNER'
+    case 'likes:clear':
+      return 'OWNER'
     default:
       return 'OWNER'
   }

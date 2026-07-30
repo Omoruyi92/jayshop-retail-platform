@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { toast } from 'sonner'
+import { ClearHistoryModal } from '@/components/admin/ClearHistoryModal'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 import {
   Star,
   TrendingUp,
@@ -128,12 +131,14 @@ const STATUS_STYLES: Record<ReviewStatus, string> = {
 }
 
 export default function ReviewsAnalyticsPage() {
+  const { can } = useCurrentAdmin()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [likesData, setLikesData] = useState<LikesData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'recent' | 'likes'>('overview')
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | 'ALL'>('ALL')
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  const [showClearLikes, setShowClearLikes] = useState(false)
 
   async function fetchData(silent = false) {
     if (!silent) setLoading(true)
@@ -240,13 +245,25 @@ export default function ReviewsAnalyticsPage() {
           </h1>
           <p className="text-sm text-jays-steel mt-0.5">Customer sentiment and product feedback analytics</p>
         </div>
-        <button
-          onClick={() => fetchData()}
-          className="flex items-center gap-1.5 text-sm text-jays-navy hover:text-jays-red transition-colors"
-        >
-          <RefreshCw size={14} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-4">
+          {activeTab === 'likes' && can('likes:clear') && (
+            <button
+              onClick={() => setShowClearLikes(true)}
+              className="flex items-center gap-1.5 text-sm text-jays-red hover:text-red-700 transition-colors"
+              data-testid="clear-likes-button"
+            >
+              <Trash2 size={14} />
+              Clear Likes
+            </button>
+          )}
+          <button
+            onClick={() => fetchData()}
+            className="flex items-center gap-1.5 text-sm text-jays-navy hover:text-jays-red transition-colors"
+          >
+            <RefreshCw size={14} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -688,6 +705,21 @@ export default function ReviewsAnalyticsPage() {
             )}
           </div>
         </div>
+      )}
+
+      {showClearLikes && (
+        <ClearHistoryModal
+          title="Clear Fan Likes"
+          itemLabel="fan likes"
+          endpoint="/api/admin/likes/clear"
+          confirmLabel="Clear Likes"
+          hasFilters={false}
+          onClose={() => setShowClearLikes(false)}
+          onCleared={(deleted) => {
+            toast.success(`Cleared ${deleted.toLocaleString('en-CA')} fan like${deleted !== 1 ? 's' : ''}`)
+            fetchData()
+          }}
+        />
       )}
     </div>
   )
