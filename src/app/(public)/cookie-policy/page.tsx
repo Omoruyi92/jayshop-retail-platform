@@ -1,18 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { Cookie, ChevronLeft } from 'lucide-react'
+import CookiePolicyContent, { CookiePolicyDownloadLink } from '@/components/policies/CookiePolicyContent'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export default function CookiePolicyPage() {
-  const items = [
-    'Jays Shop uses cookies and similar technologies (such as localStorage) to make our website work and to improve your experience.',
-    'Essential cookies are required for core functionality — keeping your cart, holds, language preference, and consent choice — and cannot be disabled.',
-    'A first-party consent cookie (jays_consent) records that you have accepted our policies so we do not ask you again on every visit. It expires after 12 months.',
-    'Performance cookies help us understand how visitors use the site (pages visited, load times) in aggregate, anonymized form so we can improve our services.',
-    'We do not use third-party advertising or cross-site tracking cookies. Your browsing on Jays Shop is not sold to or shared with advertisers.',
-    'Your language preference and recently viewed products are stored locally on your device to personalize your visit.',
-    'You can clear cookies and site data at any time through your browser settings. Doing so will reset your preferences and you will be asked to accept our policies again.',
-    'For questions about how we use cookies, contact us at Gate 5: 416.341.2904.',
-  ]
+  const { t } = useLanguage()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-jays-ice to-white">
@@ -33,14 +26,10 @@ export default function CookiePolicyPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 hover:shadow-md transition-shadow">
-          <ul className="space-y-3">
-            {items.map((item, i) => (
-              <li key={i} className="flex gap-2.5 text-sm text-gray-700 leading-relaxed">
-                <span className="text-jays-royal mt-1 shrink-0">•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
+          <CookiePolicyContent />
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            <CookiePolicyDownloadLink label={t.consent.download} />
+          </div>
         </div>
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-400">Last updated: July 2026</p>
