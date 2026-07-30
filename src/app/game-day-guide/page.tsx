@@ -89,7 +89,7 @@ export default function GameDayGuidePage() {
           <div className="border border-jays-ice bg-gray-50/50 p-6">
             <h3 className="text-lg font-bold text-jays-navy mb-2">Gate Opening Times</h3>
             <p className="text-gray-700 mb-2">
-              Gates typically open <strong>90 minutes</strong> prior to the scheduled first pitch on weekdays, and <strong>2 hours</strong> prior on weekends.
+              Gates open <strong>2 hours</strong> prior to the scheduled first pitch. Jays Shop locations close to the general public before gates open — <strong>1 hour</strong> before gates on weekdays and <strong>2 hours</strong> before gates on weekends.
             </p>
             <p className="text-gray-700 text-sm">Arrive early on giveaway days as items are distributed on a first-come, first-served basis.</p>
           </div>
@@ -133,7 +133,7 @@ export default function GameDayGuidePage() {
             <h3 className="text-lg font-bold text-jays-navy mb-2">What&apos;s Different on Game Days?</h3>
             <p className="text-gray-700">
               On game days, the Gate 1 and Gate 5 shops transition to serve ticketed guests. 
-              Non-ticketed fans should visit the shops prior to gate opening — typically 90 minutes before first pitch on weekdays and 2 hours on weekends. 
+              Non-ticketed fans should visit the shops before they close to the general public — 1 hour before gates open on weekdays and 2 hours before gates open on weekends (gates open 2 hours before first pitch). 
               Additional kiosks open throughout the concourse levels.
             </p>
           </div>

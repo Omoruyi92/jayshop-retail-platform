@@ -343,8 +343,8 @@ export const BIRDIE_KNOWLEDGE: KnowledgeEntry[] = [
   {
     keywords: /hours|open|close|when.*(open|close)|operating|schedule/i,
     responses: [
-      "Jays Shop locations inside Rogers Centre are open on game days! Stores typically open when the gates open (about 2 hours before first pitch) and close shortly after the game ends. For the latest hours, check the Blue Jays website or ask at the venue.",
-      "Our Rogers Centre locations operate on game days, opening with the gates and closing after the final out. The stores are busiest in the first few innings, so placing holds in advance helps you skip the rush!",
+      "Jays Shop at Gate 5 is open 10:00 AM – 5:00 PM. On game days the store closes to the general public before gates open (gates open 2 hours before first pitch) — about 1 hour before gates on weekdays and 2 hours before gates on weekends. After that, it serves ticketed fans only!",
+      "We're open 10:00 AM to 5:00 PM daily. Heads up for game days: the store closes to the general public ahead of gate opening — 1 hour before gates on weekdays, 2 hours before on weekends — so shop early or place a hold in advance to skip the rush!",
     ],
   },
 
@@ -481,7 +481,7 @@ export const BIRDIE_SYSTEM_CONTEXT = `STORE DETAILS:
 - Main store and priority pickup at Section 123
 - In-stadium pickup only — no shipping or delivery
 - Real-time inventory visibility across all locations
-- Open on game days (gates open ~2hrs before first pitch)
+- Open 10 AM – 5 PM; on game days, closes to the general public before gates open (gates open ~2hrs before first pitch): 1hr before gates on weekdays, 2hrs before on weekends
 
 HOW HOLDS WORK:
 - Holds are free — no payment or credit card required
