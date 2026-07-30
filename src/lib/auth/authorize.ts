@@ -83,6 +83,14 @@ export function actionMinRole(action: string): AdminRole {
       return 'OWNER'
     case 'tenant:manage':
       return 'OWNER'
+    case 'history:delete':
+      return 'OWNER'
+    case 'inventory-history:delete':
+      return 'OWNER'
+    case 'sales-history:delete':
+      return 'OWNER'
+    case 'holds:clear-resolved':
+      return 'OWNER'
     default:
       return 'OWNER'
   }
