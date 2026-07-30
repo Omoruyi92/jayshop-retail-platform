@@ -303,7 +303,15 @@ export default function HeroSlideshow({
         // performance hack; it is not required for correctness, and its
         // absence has no CLS/layout impact since the element is still
         // absolutely positioned to fill its parent via inset-0/h-full/w-full.
-        const videoCls = `absolute inset-0 h-full w-full object-cover object-${imagePosition} backface-hidden transition-opacity duration-500 ease-out ${
+        // `hero-video` is a global-CSS hook (see globals.css) that hides
+        // WebKit's built-in giant center start-playback overlay button.
+        // On iOS, when autoplay is denied (e.g. Low Power Mode), Safari
+        // paints that native ▶ dead-center over the video — duplicating
+        // this slideshow's own bottom prev/pause/next controls. Hiding it
+        // is safe here because the video always has a poster (the slide
+        // never renders as a black box when autoplay is blocked) and the
+        // slideshow's own controls remain the single way to drive playback.
+        const videoCls = `hero-video absolute inset-0 h-full w-full object-cover object-${imagePosition} backface-hidden transition-opacity duration-500 ease-out ${
           isFirstSlide || isReady ? 'opacity-100' : 'opacity-0'
         }`
         const mediaCls = `h-full w-full object-cover object-${imagePosition} transition-opacity duration-500 ease-out ${

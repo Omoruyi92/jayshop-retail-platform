@@ -95,3 +95,17 @@ html {
     display: none;
   }
 }
+
+/* ─── Hero video: suppress iOS-native center play overlay ──────────────────
+   When autoplay is denied (iOS Low Power Mode / data saver), WebKit paints
+   its own large semi-transparent ▶ button dead-center over inline videos —
+   duplicating the hero slideshow's existing bottom prev/pause/next controls.
+   Hide only that native start-playback affordance, scoped to hero slideshow
+   videos (.hero-video, set in HeroSlideshow.tsx). The slide stays fully
+   usable: the <video> always carries a poster (base64 blur or sibling .jpg),
+   so a blocked autoplay shows the poster frame instead of a black box, and
+   playback can still be driven via the slideshow's own controls. */
+.hero-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
