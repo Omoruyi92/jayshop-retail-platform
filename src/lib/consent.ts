@@ -64,6 +64,30 @@ export function hasConsent(): boolean {
   return record !== null && record.v >= CONSENT_VERSION
 }
 
+export const CONSENT_DISMISSED_KEY = 'jays-shop-consent-dismissed'
+
+/**
+ * Session-scoped dismissal: dismissing the (optional) consent modal hides it
+ * for the rest of the browsing session, but it reappears on the next visit
+ * until the user actually accepts.
+ */
+export function wasDismissedThisSession(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.sessionStorage.getItem(CONSENT_DISMISSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function markDismissedThisSession(): void {
+  try {
+    window.sessionStorage.setItem(CONSENT_DISMISSED_KEY, '1')
+  } catch {
+    // sessionStorage unavailable — worst case the modal shows again this session
+  }
+}
+
 /** Persist acceptance to both the cookie and localStorage. */
 export function saveConsent(): void {
   const record: ConsentRecord = { v: CONSENT_VERSION, acceptedAt: new Date().toISOString() }
