@@ -59,6 +59,7 @@ export type AuditAction =
   | 'inventory-history.cleared'
   | 'sales-history.cleared'
   | 'holds.resolved-cleared'
+  | 'likes.cleared'
 
 type AuditInput = {
   tx: Prisma.TransactionClient | PrismaClient

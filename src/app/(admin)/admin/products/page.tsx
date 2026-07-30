@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatCAD, cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Image from 'next/image'
@@ -82,6 +82,8 @@ function getStockBadgeStatus(p: Product): { status: 'IN_STOCK' | 'LOW_STOCK' | '
 
 const INPUT_CLS = 'w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jays-navy/40 placeholder:text-muted-foreground'
 
+const PAGE_SIZE = 50
+
 /**
  * Product.status is the authoritative AVAILABLE/SOLD signal computed from
  * live inventory (quantity - held - picked, see computeProductStatus). But
@@ -138,24 +140,28 @@ export default function AdminProductsPage() {
   const [catFilter, setCatFilter]     = useState('all')
   const [brandFilter, setBrandFilter] = useState('all')
 
-  const filteredProducts = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return products.filter((p) => {
-      const matchesQ = !q ||
-        p.name.toLowerCase().includes(q) ||
-        (p.brand ?? '').toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        (p.subcategory ?? '').toLowerCase().includes(q)
-      const matchesCat   = catFilter   === 'all' || p.category === catFilter
-      const matchesBrand = brandFilter === 'all' || p.brand    === brandFilter
-      return matchesQ && matchesCat && matchesBrand
-    })
-  }, [products, search, catFilter, brandFilter])
+  // Server-side pagination state. Filters (search/category/brand/archived)
+  // are sent to the API and any filter change resets to page 1.
+  const [page, setPage]   = useState(1)
+  const [total, setTotal] = useState(0)
+  const [serverBrands, setServerBrands] = useState<string[]>([])
 
-  const uniqueBrands = useMemo(
-    () => Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort(),
-    [products]
-  )
+  // Debounce the search box so we don't hit the API on every keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  // Reset to page 1 whenever any filter changes (skip the initial mount so
+  // we don't trigger a redundant duplicate fetch on load).
+  const filtersMounted = useRef(false)
+  useEffect(() => {
+    if (!filtersMounted.current) { filtersMounted.current = true; return }
+    setPage(1)
+  }, [debouncedSearch, catFilter, brandFilter, showArchived])
+
+  const uniqueBrands = serverBrands
 
   const hatStyleOptions = useMemo(
     () => Array.from(new Set([...HAT_STYLES, ...products.map((p) => p.hatStyle).filter(Boolean)])).sort(),
@@ -163,14 +169,33 @@ export default function AdminProductsPage() {
   )
 
   const load = useCallback(() => {
-    const url = showArchived ? '/api/products?includeArchived=true' : '/api/products'
-    fetch(url)
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('limit', String(PAGE_SIZE))
+    if (showArchived) params.set('includeArchived', 'true')
+    if (debouncedSearch) params.set('q', debouncedSearch)
+    if (catFilter !== 'all') params.set('category', catFilter)
+    if (brandFilter !== 'all') params.set('brand', brandFilter)
+    fetch(`/api/products?${params.toString()}`)
       .then((r) => r.json())
-      .then((d) => { setProducts(d.products ?? []); setLoading(false) })
+      .then((d) => {
+        setProducts(d.products ?? [])
+        setTotal(d.total ?? (d.products?.length ?? 0))
+        setServerBrands(d.brands ?? [])
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
-  }, [showArchived])
+  }, [page, showArchived, debouncedSearch, catFilter, brandFilter])
 
   useEffect(() => { load() }, [load])
+
+  // Clamp: if the current page becomes empty (e.g. the last product on the
+  // last page was deleted/archived), snap back to the last valid page.
+  useEffect(() => {
+    if (loading) return
+    const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
+    if (page > lastPage) setPage(lastPage)
+  }, [loading, total, page])
 
   // Keep the product list (and its Held/Sold badges + remaining counts) in
   // sync with the single source of truth in real time — reload whenever any
@@ -678,12 +703,12 @@ export default function AdminProductsPage() {
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr><td colSpan={9} className="px-3 py-8 text-center text-jays-steel">Loading…</td></tr>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr><td colSpan={9}><EmptyState
-                title={products.length === 0 ? "No products yet" : "No results"}
-                body={products.length === 0 ? "Click + Add Product to create your first item." : "Try adjusting your search or filters."}
+                title={total === 0 && !debouncedSearch && catFilter === 'all' && brandFilter === 'all' ? "No products yet" : "No results"}
+                body={total === 0 && !debouncedSearch && catFilter === 'all' && brandFilter === 'all' ? "Click + Add Product to create your first item." : "Try adjusting your search or filters."}
               /></td></tr>
-            ) : filteredProducts.map((p) => {
+            ) : products.map((p) => {
               const remaining = p.remaining
               const isArchived = p.status === 'ARCHIVED'
               return (
@@ -807,6 +832,32 @@ export default function AdminProductsPage() {
             })}
           </tbody>
         </table>
+        {!loading && total > 0 && (
+          <div className="px-3 py-2 border-t border-border flex items-center justify-between gap-3 flex-wrap" data-testid="products-pagination">
+            <p className="text-xs text-jays-steel">
+              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-border hover:bg-jays-ice transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-jays-steel whitespace-nowrap">
+                Page {page} of {Math.max(1, Math.ceil(total / PAGE_SIZE))}
+              </span>
+              <button
+                onClick={() => setPage((p) => (p * PAGE_SIZE < total ? p + 1 : p))}
+                disabled={page * PAGE_SIZE >= total}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-border hover:bg-jays-ice transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </TableWrapper>
 
       <EditProductModal

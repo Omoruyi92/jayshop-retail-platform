@@ -20,28 +20,39 @@ export async function GET(request: Request) {
   const idsParam = searchParams.get('ids')
   const ids = idsParam ? idsParam.split(',').map((s) => s.trim()).filter(Boolean) : null
 
+  // Opt-in server-side pagination: only active when a `page` param is
+  // present, so existing callers (shop, POS simulator, players admin) that
+  // expect the full catalog keep their behavior unchanged.
+  const pageParam = searchParams.get('page')
+  const paginated = pageParam !== null
+  const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
+  const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10) || 50))
+
+  const where = {
+    ...(!includeArchived && { status: { not: 'ARCHIVED' as const } }),
+    ...(ids && { id: { in: ids } }),
+    ...(category && category !== 'all' && { category }),
+    ...(brand && { brand }),
+    ...(subcategory && { subcategory }),
+    ...(productType && { productType }),
+    ...(audience && { audience }),
+    ...(ageGroup && { ageGroup }),
+    ...(hatStyle && { hatStyle }),
+    ...(slug && { slug }),
+    ...(q && {
+      OR: [
+        { name: { contains: q, mode: 'insensitive' as const } },
+        { brand: { contains: q, mode: 'insensitive' as const } },
+        { description: { contains: q, mode: 'insensitive' as const } },
+        { category: { contains: q, mode: 'insensitive' as const } },
+        { subcategory: { contains: q, mode: 'insensitive' as const } },
+      ],
+    }),
+  }
+
   const products = await prisma.product.findMany({
-    where: {
-      ...(!includeArchived && { status: { not: 'ARCHIVED' } }),
-      ...(ids && { id: { in: ids } }),
-      ...(category && category !== 'all' && { category }),
-      ...(brand && { brand }),
-      ...(subcategory && { subcategory }),
-      ...(productType && { productType }),
-      ...(audience && { audience }),
-      ...(ageGroup && { ageGroup }),
-      ...(hatStyle && { hatStyle }),
-      ...(slug && { slug }),
-      ...(q && {
-        OR: [
-          { name: { contains: q } },
-          { brand: { contains: q } },
-          { description: { contains: q } },
-          { category: { contains: q } },
-          { subcategory: { contains: q } },
-        ],
-      }),
-    },
+    where,
+    ...(paginated && { skip: (page - 1) * limit, take: limit }),
     orderBy: [
       { likes: { _count: 'desc' } },
       { sku: { sort: 'asc', nulls: 'last' } },
@@ -111,6 +122,29 @@ export async function GET(request: Request) {
     ...p,
     availability: availabilityMap[p.id],
   }))
+
+  if (paginated) {
+    // Total count for the current filter set + a distinct brand facet.
+    // The facet intentionally drops the `brand` filter itself so the brand
+    // dropdown keeps listing every brand even while one is selected.
+    const { brand: _brandFilter, ...whereSansBrand } = where
+    const [total, brandRows] = await Promise.all([
+      prisma.product.count({ where }),
+      prisma.product.findMany({
+        where: whereSansBrand,
+        select: { brand: true },
+        distinct: ['brand'],
+        orderBy: { brand: 'asc' },
+      }),
+    ])
+    return NextResponse.json({
+      products: productsWithAvailability,
+      total,
+      page,
+      limit,
+      brands: brandRows.map((b) => b.brand).filter(Boolean),
+    })
+  }
 
   return NextResponse.json({ products: productsWithAvailability })
 }
