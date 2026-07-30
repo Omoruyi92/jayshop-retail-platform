@@ -1,8 +1,7 @@
-// PartnerLogosBar.tsx — inline banner with location status + promotion marquee
+// PartnerLogosBar.tsx — inline store status badge for the header
 'use client'
-import Link from 'next/link'
+
 import { useState, useEffect } from 'react'
-import { usePromotions } from '@/lib/promotions/PromotionsContext'
 import { getStoreStatus, type StoreStatusResult } from '@/lib/store/getStoreStatus'
 
 /* Fetches today's scheduled game (if any) from the existing public
@@ -124,79 +123,10 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
   )
 }
 
-interface Promotion {
-  id: string
-  text: string
-  link: string | null
-}
-
-export { usePromotions }
-
-/* Duplicated promo set for seamless marquee loop */
-function PromoStrip({ promotions }: { promotions: Promotion[] }) {
-  return (
-    <>
-      {promotions.map((p, i) => {
-        const content = (
-          <span className="flex items-center gap-1.5 shrink-0 rounded-full bg-white/10 px-3 py-1 whitespace-nowrap hover:bg-white/15 transition-colors">
-            <span className="h-1.5 w-1.5 rounded-full bg-jays-red animate-pulse" />
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{p.text}</span>
-          </span>
-        )
-        return p.link ? (
-          <Link key={`${p.id}-${i}`} href={p.link} className="shrink-0">
-            {content}
-          </Link>
-        ) : (
-          <div key={`${p.id}-${i}`} className="shrink-0">{content}</div>
-        )
-      })}
-    </>
-  )
-}
-
-/**
- * Marquee that only renders while there is at least one active admin-published
- * promotion. Renders nothing otherwise — there is no "partners" fallback
- * marquee anymore; the scrolling logo strip was removed from the header.
- * Shared between the desktop pill (PartnerLogosBar) and the mobile strip
- * (Header's secondary row) so both stay in sync with the same promotions.
- */
-export function PromoMarquee({ compact = false }: { compact?: boolean }) {
-  const promotions = usePromotions()
-  if (promotions.length === 0) return null
-
-  return (
-    <div className="flex items-center gap-1 overflow-hidden flex-1 min-w-0">
-      <span className={`text-blue-300/40 uppercase tracking-[0.12em] font-display shrink-0 mr-1 ${compact ? 'text-[6px]' : 'text-[7px]'}`}>
-        Deals
-      </span>
-      <div className="group/promo overflow-hidden flex-1 min-w-0 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="animate-marquee flex items-center gap-2 w-max group-hover/promo:[animation-play-state:paused]">
-          <PromoStrip promotions={promotions} />
-          {/* Duplicate for seamless loop */}
-          <PromoStrip promotions={promotions} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function PartnerLogosBar() {
-  const promotions = usePromotions()
-  const hasPromotions = promotions.length > 0
-
   return (
-    <div className={`flex items-center bg-white/[0.06] rounded-full px-3 py-1 border border-white/10 gap-2 ${hasPromotions ? 'justify-between' : ''}`}>
-      {/* Location + Status */}
+    <div className="flex items-center bg-white/[0.06] rounded-full px-3 py-1 border border-white/10 gap-2">
       <LocationBadge />
-
-      {hasPromotions && (
-        <>
-          <span className="w-px h-6 bg-white/10 shrink-0" aria-hidden="true" />
-          <PromoMarquee />
-        </>
-      )}
     </div>
   )
 }

@@ -102,7 +102,7 @@ export default function AdminPromotionsPage() {
       </div>
 
       <p className="text-sm text-jays-steel mt-1 mb-3">
-        Approved promotions scroll in the customer-facing header announcement banner.
+        Approved promotions appear as a dismissible alert banner at the top of the storefront.
       </p>
 
       <div className="flex flex-wrap gap-2 mb-3">

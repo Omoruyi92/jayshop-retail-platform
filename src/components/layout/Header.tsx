@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
-import PartnerLogosBar, { LocationBadge, PromoMarquee, usePromotions } from '@/components/ui/PartnerLogosBar'
+import PartnerLogosBar, { LocationBadge } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
@@ -32,31 +32,12 @@ const WE_CARE_VALUES = [
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
 ]
 
-/* Conditionally renders the promotion marquee only when promotions exist.
-   Rendered INSIDE StoreStatusStrip, alongside the always-visible LocationBadge. */
-function PromoMarqueeIfActive() {
-  const promotions = usePromotions()
-  if (promotions.length === 0) return null
-  return (
-    <>
-      <span className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
-      <PromoMarquee compact />
-    </>
-  )
-}
-
-/* Always-visible store status strip for non-xl screens.
-   This strip ALWAYS renders — it is never conditional.
-   LocationBadge (store status) is ALWAYS shown.
-   PromoMarquee is added alongside only when active promotions exist.
-   This ensures 'JAYS SHOP · Toronto · Closed · Opens at 10:00 AM'
-   is permanently visible on mobile/tablet regardless of promo state. */
+/* Always-visible store status strip for non-xl screens. */
 function StoreStatusStrip() {
   return (
     <div className="xl:hidden bg-jays-royal/80 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3 min-w-0">
         <LocationBadge compact />
-        <PromoMarqueeIfActive />
       </div>
     </div>
   )
@@ -284,9 +265,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Store status strip — ALWAYS visible on non-xl screens.
-          LocationBadge is unconditional. PromoMarquee only appears
-          alongside it when active promotions exist. */}
+      {/* Store status strip — ALWAYS visible on non-xl screens. */}
       <StoreStatusStrip />
     </header>
   )

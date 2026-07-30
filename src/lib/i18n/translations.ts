@@ -34,6 +34,10 @@ export const translations = {
       download: 'Download Cookie Policy',
       close: 'Close',
     },
+    banner: {
+      close: 'Close promotion',
+      newPromotion: 'New promotion',
+    },
     shop: {
       title: 'Blue Jays Shop',
       subtitle: 'Rogers Centre',
@@ -237,6 +241,10 @@ export const translations = {
       download: 'T\u00e9l\u00e9charger la politique relative aux t\u00e9moins',
       close: 'Fermer',
     },
+    banner: {
+      close: 'Fermer la promotion',
+      newPromotion: 'Nouvelle promotion',
+    },
     shop: {
       title: 'Boutique Blue Jays',
       subtitle: 'R\u00e9servez gratuitement \u2014 ramassage en magasin sous 48 heures.',
@@ -439,6 +447,10 @@ export const translations = {
       back: 'Volver',
       download: 'Descargar la Pol\u00edtica de cookies',
       close: 'Cerrar',
+    },
+    banner: {
+      close: 'Cerrar promoci\u00f3n',
+      newPromotion: 'Nueva promoci\u00f3n',
     },
     shop: {
       title: 'Tienda Blue Jays',
