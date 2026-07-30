@@ -712,6 +712,7 @@ export default function ReviewsAnalyticsPage() {
           title="Clear Fan Likes"
           itemLabel="fan likes"
           endpoint="/api/admin/likes/clear"
+          confirmLabel="Clear Likes"
           hasFilters={false}
           onClose={() => setShowClearLikes(false)}
           onCleared={(deleted) => {

@@ -18,6 +18,8 @@ interface ClearHistoryModalProps {
   hasFilters: boolean
   /** Human-readable summary of the active filters, shown next to the "filtered" option. */
   filterSummary?: string
+  /** Confirm-button label, e.g. "Clear Likes". Defaults to "Clear History". */
+  confirmLabel?: string
   onClose: () => void
   onCleared: (deletedCount: number) => void
 }
@@ -35,6 +37,7 @@ export function ClearHistoryModal({
   filteredParams,
   hasFilters,
   filterSummary,
+  confirmLabel = 'Clear History',
   onClose,
   onCleared,
 }: ClearHistoryModalProps) {
@@ -180,7 +183,7 @@ export function ClearHistoryModal({
             disabled={confirmDisabled}
             className="flex-1 bg-jays-red text-white px-4 py-3 min-h-[44px] rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {submitting ? 'Clearing…' : 'Clear History'}
+            {submitting ? 'Clearing…' : confirmLabel}
           </button>
         </div>
       </div>
