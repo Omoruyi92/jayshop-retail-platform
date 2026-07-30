@@ -32,6 +32,7 @@ function formatStartTime(startTime: string | null): string | null {
 export default function GameDaysPage() {
   const [gameDays, setGameDays] = useState<GameDay[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
@@ -40,11 +41,16 @@ export default function GameDaysPage() {
 
   async function load() {
     setLoading(true)
+    setLoadError(false)
     try {
       const res = await fetch('/api/admin/game-days')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       setGameDays(data.gameDays ?? [])
     } catch {
+      // A failed fetch must NOT render as "No game days scheduled" — rows may
+      // exist (POST 409s would still fire) while the list silently looks empty.
+      setLoadError(true)
       toast.error('Failed to load game days')
     } finally {
       setLoading(false)
@@ -187,6 +193,16 @@ export default function GameDaysPage() {
         </div>
         {loading ? (
           <p className="p-6 text-sm text-jays-steel">Loading…</p>
+        ) : loadError ? (
+          <div className="p-6 text-sm">
+            <p className="text-red-600 font-medium">Couldn&apos;t load game days — the list below may be incomplete.</p>
+            <button
+              onClick={load}
+              className="mt-2 inline-flex items-center rounded-xl border border-border px-4 py-2 text-xs font-semibold text-jays-navy hover:bg-gray-50"
+            >
+              Retry
+            </button>
+          </div>
         ) : gameDays.length === 0 ? (
           <p className="p-6 text-sm text-jays-steel">No game days scheduled.</p>
         ) : (
