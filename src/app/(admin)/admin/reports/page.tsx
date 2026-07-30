@@ -1,11 +1,14 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { Download } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Download, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatCAD } from '@/lib/utils'
 import AdminBackButton from '@/components/admin/AdminBackButton'
+import { ClearHistoryModal } from '@/components/admin/ClearHistoryModal'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 
 interface ReportData {
   period: string
@@ -28,11 +31,13 @@ const PERIODS = [
 ]
 
 export default function AdminReportsPage() {
+  const { can } = useCurrentAdmin()
   const [period, setPeriod] = useState('30d')
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showClearModal, setShowClearModal] = useState(false)
 
-  useEffect(() => {
+  const loadReports = useCallback(() => {
     setLoading(true)
     fetch(`/api/admin/reports?period=${period}`)
       .then((r) => r.json())
@@ -40,13 +45,32 @@ export default function AdminReportsPage() {
       .catch(() => setLoading(false))
   }, [period])
 
+  useEffect(() => { loadReports() }, [loadReports])
+
   function handleExport() {
     window.location.href = `/api/admin/reports/export?period=${period}`
   }
 
+  const periodLabel = PERIODS.find((p) => p.value === period)?.label ?? period
+
   return (
     <div>
       <AdminBackButton />
+      {showClearModal && (
+        <ClearHistoryModal
+          title="Clear Sales History"
+          itemLabel="sales history records"
+          endpoint="/api/admin/reports/sales-history/clear"
+          filteredParams={{ period }}
+          hasFilters
+          filterSummary={`Period: ${periodLabel}`}
+          onClose={() => setShowClearModal(false)}
+          onCleared={(deleted) => {
+            toast.success(`Cleared ${deleted} sales history record${deleted === 1 ? '' : 's'}`)
+            loadReports()
+          }}
+        />
+      )}
       {/* Header */}
       <div className="page-header">
         <div>
@@ -77,6 +101,15 @@ export default function AdminReportsPage() {
             <Download size={16} />
             Export CSV
           </button>
+          {can('sales-history:delete') && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="flex items-center gap-2 border border-jays-red text-jays-red px-4 py-2 rounded-xl text-sm font-semibold hover:bg-jays-red/5 transition-colors"
+            >
+              <Trash2 size={16} />
+              Clear Sales History
+            </button>
+          )}
         </div>
       </div>
 

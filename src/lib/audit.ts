@@ -55,6 +55,10 @@ export type AuditAction =
   | 'style-category.deleted'
   | 'style-category.product-assigned'
   | 'style-category.product-unassigned'
+  | 'history.cleared'
+  | 'inventory-history.cleared'
+  | 'sales-history.cleared'
+  | 'holds.resolved-cleared'
 
 type AuditInput = {
   tx: Prisma.TransactionClient | PrismaClient

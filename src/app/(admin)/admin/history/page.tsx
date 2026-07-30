@@ -1,10 +1,13 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { formatCAD } from '@/lib/utils'
-import { Download } from 'lucide-react'
+import { Download, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { ClearHistoryModal } from '@/components/admin/ClearHistoryModal'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 
 interface HistoryRow {
   id: string
@@ -26,10 +29,12 @@ interface HistoryRow {
 const FINAL_STATUSES = ['', 'PICKED_UP', 'RELEASED', 'EXPIRED']
 
 export default function AdminHistoryPage() {
+  const { can } = useCurrentAdmin()
   const [rows, setRows] = useState<HistoryRow[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
+  const [showClearModal, setShowClearModal] = useState(false)
 
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -69,20 +74,61 @@ export default function AdminHistoryPage() {
 
   const totalPages = Math.ceil(total / 50)
 
+  const clearParams = (() => {
+    const p = buildParams()
+    p.delete('page'); p.delete('limit')
+    return Object.fromEntries(p)
+  })()
+  const hasActiveFilters = Object.keys(clearParams).length > 0
+  const filterSummaryParts: string[] = []
+  if (dateFrom) filterSummaryParts.push(`From ${dateFrom}`)
+  if (dateTo) filterSummaryParts.push(`To ${dateTo}`)
+  if (finalStatus) filterSummaryParts.push(`Status: ${finalStatus}`)
+  if (phone) filterSummaryParts.push(`Phone: ${phone}`)
+  if (product) filterSummaryParts.push(`Product: ${product}`)
+  if (showArchived) filterSummaryParts.push('Including archived')
+
   return (
     <div>
+      {showClearModal && (
+        <ClearHistoryModal
+          title="Clear Hold History"
+          itemLabel="Hold History records"
+          endpoint="/api/admin/history/clear"
+          filteredParams={clearParams}
+          hasFilters={hasActiveFilters}
+          filterSummary={filterSummaryParts.join(' · ')}
+          onClose={() => setShowClearModal(false)}
+          onCleared={(deleted) => {
+            toast.success(`Cleared ${deleted} hold history record${deleted === 1 ? '' : 's'}`)
+            setPage(1)
+            load()
+          }}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1 className="font-display text-2xl font-bold uppercase text-jays-navy">Hold History</h1>
           <p className="text-jays-steel text-sm mt-1">Immutable record of every completed hold — snapshots preserved</p>
         </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-jays-navy text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-jays-royal transition-colors"
-        >
-          <Download size={16} />
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-jays-navy text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-jays-royal transition-colors"
+          >
+            <Download size={16} />
+            Export CSV
+          </button>
+          {can('history:delete') && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="flex items-center gap-2 border border-jays-red text-jays-red px-4 py-2 rounded-xl text-sm font-semibold hover:bg-jays-red/5 transition-colors"
+            >
+              <Trash2 size={16} />
+              Clear History
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

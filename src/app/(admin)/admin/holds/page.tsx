@@ -3,10 +3,13 @@ import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { formatCAD } from '@/lib/utils'
 import { toast } from 'sonner'
+import { Trash2 } from 'lucide-react'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { ClearHistoryModal } from '@/components/admin/ClearHistoryModal'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 
 interface Hold {
   id: string
@@ -126,6 +129,7 @@ function AdminHoldsInner() {
   const searchParams = useSearchParams()
   const codeParam = searchParams.get('code') ?? ''
   const autoOpen = searchParams.get('autoOpen') === 'true'
+  const { can } = useCurrentAdmin()
 
   const [holds, setHolds] = useState<Hold[]>([])
   const [loading, setLoading] = useState(true)
@@ -139,6 +143,7 @@ function AdminHoldsInner() {
   const [pickupModal, setPickupModal] = useState<Hold | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [expiringOverdue, setExpiringOverdue] = useState(false)
+  const [showClearModal, setShowClearModal] = useState(false)
 
   const isStadiumTab = activeTab === 'stadium'
 
@@ -254,6 +259,18 @@ function AdminHoldsInner() {
     window.open(`/admin/holds/${hold.id}/print?format=${format}`, '_blank')
   }
 
+  const clearParams: Record<string, string> = {}
+  if (phone) clearParams.phone = phone
+  if (codeFilter) clearParams.code = codeFilter
+  if (dateFrom) clearParams.dateFrom = dateFrom
+  if (dateTo) clearParams.dateTo = dateTo
+  const hasActiveClearFilters = Object.keys(clearParams).length > 0
+  const clearFilterSummaryParts: string[] = []
+  if (phone) clearFilterSummaryParts.push(`Phone: ${phone}`)
+  if (codeFilter) clearFilterSummaryParts.push(`Code: ${codeFilter}`)
+  if (dateFrom) clearFilterSummaryParts.push(`From ${dateFrom}`)
+  if (dateTo) clearFilterSummaryParts.push(`To ${dateTo}`)
+
   return (
     <div>
       {pickupModal && (
@@ -265,16 +282,43 @@ function AdminHoldsInner() {
         />
       )}
 
+      {showClearModal && (
+        <ClearHistoryModal
+          title="Clear Resolved Holds"
+          itemLabel="resolved holds"
+          endpoint="/api/admin/holds/clear-resolved"
+          filteredParams={clearParams}
+          hasFilters={hasActiveClearFilters}
+          filterSummary={clearFilterSummaryParts.join(' · ')}
+          onClose={() => setShowClearModal(false)}
+          onCleared={(deleted) => {
+            toast.success(`Cleared ${deleted} resolved hold${deleted === 1 ? '' : 's'}`)
+            load()
+          }}
+        />
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="font-display text-2xl font-bold uppercase text-jays-navy">All Holds</h1>
         {!isStadiumTab && (
-          <button
-            onClick={handleExpireOverdue}
-            disabled={expiringOverdue}
-            className="text-xs border border-gray-200 text-gray-600 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            {expiringOverdue ? 'Running…' : 'Expire Overdue'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExpireOverdue}
+              disabled={expiringOverdue}
+              className="text-xs border border-gray-200 text-gray-600 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {expiringOverdue ? 'Running…' : 'Expire Overdue'}
+            </button>
+            {can('holds:clear-resolved') && (
+              <button
+                onClick={() => setShowClearModal(true)}
+                className="flex items-center gap-1.5 text-xs border border-jays-red text-jays-red px-3 py-2 rounded-xl hover:bg-jays-red/5 transition-colors font-medium"
+              >
+                <Trash2 size={14} />
+                Clear Resolved Holds
+              </button>
+            )}
+          </div>
         )}
       </div>
 

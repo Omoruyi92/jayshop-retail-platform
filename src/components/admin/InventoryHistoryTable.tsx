@@ -1,9 +1,13 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { TableWrapper } from '@/components/ui/TableWrapper'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { cn } from '@/lib/utils'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
+import { ClearHistoryModal } from '@/components/admin/ClearHistoryModal'
+import { useCurrentAdmin } from '@/hooks/useCurrentAdmin'
 
 export interface InventoryHistoryRow {
   id: string
@@ -47,12 +51,14 @@ interface InventoryHistoryTableProps {
 }
 
 export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: InventoryHistoryTableProps) {
+  const { can } = useCurrentAdmin()
   const [rows, setRows] = useState<InventoryHistoryRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([null])
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [showClearModal, setShowClearModal] = useState(false)
 
   const [productId, setProductId] = useState(fixedProductId ?? '')
   const [locationId, setLocationId] = useState('')
@@ -147,8 +153,37 @@ export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: Inv
     load(newStack[newStack.length - 1])
   }
 
+  const clearParams = (() => {
+    const p = buildParams(null)
+    p.delete('limit'); p.delete('cursor')
+    return Object.fromEntries(p)
+  })()
+  const hasActiveFilters = Object.keys(clearParams).length > 0
+  const filterSummaryParts: string[] = []
+  if (productId) filterSummaryParts.push(`Product: ${productId}`)
+  if (locationId) filterSummaryParts.push(`Location: ${locationId}`)
+  if (selectedTypes.length > 0) filterSummaryParts.push(`Types: ${selectedTypes.join(', ')}`)
+  if (from) filterSummaryParts.push(`From ${from}`)
+  if (to) filterSummaryParts.push(`To ${to}`)
+
   return (
     <div>
+      {showClearModal && (
+        <ClearHistoryModal
+          title="Clear Inventory History"
+          itemLabel="inventory transaction records"
+          endpoint="/api/admin/inventory/history/clear"
+          filteredParams={clearParams}
+          hasFilters={hasActiveFilters}
+          filterSummary={filterSummaryParts.join(' · ')}
+          onClose={() => setShowClearModal(false)}
+          onCleared={(deleted) => {
+            toast.success(`Cleared ${deleted} inventory transaction${deleted === 1 ? '' : 's'}`)
+            setCursorStack([null])
+            load(null)
+          }}
+        />
+      )}
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-border p-4 mb-5 overflow-x-auto">
         <div className="flex flex-wrap gap-3 items-end min-w-max sm:min-w-0">
@@ -211,6 +246,18 @@ export function InventoryHistoryTable({ fixedProductId, fixedProductLabel }: Inv
               ))}
             </div>
           </div>
+          {!fixedProductId && can('inventory-history:delete') && (
+            <div className="ml-auto">
+              <button
+                type="button"
+                onClick={() => setShowClearModal(true)}
+                className="flex items-center gap-2 border border-jays-red text-jays-red px-4 py-2 rounded-xl text-sm font-semibold hover:bg-jays-red/5 transition-colors"
+              >
+                <Trash2 size={16} />
+                Clear History
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
