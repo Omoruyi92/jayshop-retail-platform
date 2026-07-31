@@ -21,7 +21,6 @@ import {
 import { useSearch } from '@/lib/store/SearchContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import PromotionAlert from '@/components/layout/PromotionAlert'
-import { LocationBadge } from '@/components/ui/PartnerLogosBar'
 
 const WE_CARE_VALUES = [
   { letter: 'W', word: 'Welcoming', desc: 'Every fan feels at home' },
@@ -166,18 +165,6 @@ export default function SubNavBar() {
             : <Menu size={15} strokeWidth={2.2} />
           }
         </button>
-
-        {/* Non-desktop Time Status — the store status badge lives IN the main
-            nav row on every viewport below xl (mobile + tablet). Centered
-            between the hamburger and the search icon on mobile; on tablet it
-            sits just left of the scrollable links. This replaces the
-            standalone StoreStatusStrip that used to render under the header
-            on sm–xl, removing duplication and noise. */}
-        <div className="xl:hidden flex justify-center min-w-0 px-1 sm:shrink-0">
-          <div className="bg-jays-navy rounded-full px-3 py-1 min-w-0 overflow-hidden">
-            <LocationBadge compact />
-          </div>
-        </div>
 
         {/* Scrollable nav links — desktop/tablet only (sm+). On mobile, all
             links live in this bar's own hamburger drawer instead, since this

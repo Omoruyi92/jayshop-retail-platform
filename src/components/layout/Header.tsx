@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
-import PartnerLogosBar from '@/components/ui/PartnerLogosBar'
+import PartnerLogosBar, { LocationBadge } from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
@@ -123,8 +123,14 @@ export default function Header() {
           <PartnerLogosBar />
         </div>
 
-        {/* Spacer on non-xl screens — store status lives in StoreStatusStrip below */}
-        <div className="flex-1 xl:hidden" />
+        {/* Mobile/Tablet Time Status pill — sits in the blue header row
+            between the logo and the action icons (bell/heart/cart/lang).
+            Hidden at xl+ where PartnerLogosBar already embeds the badge. */}
+        <div className="xl:hidden flex-1 flex justify-center min-w-0 px-1">
+          <div className="bg-white/10 backdrop-blur rounded-full px-2.5 py-1 min-w-0 overflow-hidden border border-white/5">
+            <LocationBadge compact />
+          </div>
+        </div>
 
         {/* Right: We Care, Language, Nav */}
         <div className="flex items-center gap-0 xs:gap-0.5 sm:gap-2 shrink-0">
