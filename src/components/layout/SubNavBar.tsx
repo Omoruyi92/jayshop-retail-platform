@@ -167,14 +167,13 @@ export default function SubNavBar() {
           }
         </button>
 
-        {/* Mobile Time Status — the store status badge lives IN the main
-            nav row on mobile (was previously its own strip under the
-            header, see Header.tsx StoreStatusStrip). Centered between the
-            hamburger and the search icon in a navy pill so the badge's
-            dark-background styling (white/blue text, status dot) stays
-            legible on this bar's white background. Replaces the plain
-            flex-1 spacer that used to sit here. */}
-        <div className="flex-1 sm:hidden flex justify-center min-w-0 px-1">
+        {/* Non-desktop Time Status — the store status badge lives IN the main
+            nav row on every viewport below xl (mobile + tablet). Centered
+            between the hamburger and the search icon on mobile; on tablet it
+            sits just left of the scrollable links. This replaces the
+            standalone StoreStatusStrip that used to render under the header
+            on sm–xl, removing duplication and noise. */}
+        <div className="xl:hidden flex justify-center min-w-0 px-1 sm:shrink-0">
           <div className="bg-jays-navy rounded-full px-3 py-1 min-w-0 overflow-hidden">
             <LocationBadge compact />
           </div>

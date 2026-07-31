@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Locale } from '@/lib/i18n/translations'
 import MLBLogo from '@/components/ui/MLBLogo'
-import PartnerLogosBar, { LocationBadge } from '@/components/ui/PartnerLogosBar'
+import PartnerLogosBar from '@/components/ui/PartnerLogosBar'
 import HeaderActions from '@/components/layout/HeaderActions'
 import { useDropdownPosition } from '@/hooks/useDropdownPosition'
 
@@ -32,20 +32,6 @@ const WE_CARE_VALUES = [
   { letter: 'E', word: 'Experience', desc: 'Memorable every visit' },
 ]
 
-/* Store status strip for tablet-width screens (sm–xl) only. Below sm
- * (mobile), the status badge now lives INSIDE the main nav bar
- * (SubNavBar.tsx main row) for better visibility, so this strip is hidden
- * there to avoid duplication. At xl+ the badge is inline in the header via
- * PartnerLogosBar. */
-function StoreStatusStrip() {
-  return (
-    <div className="hidden sm:block xl:hidden bg-jays-royal/80 border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-3 min-w-0">
-        <LocationBadge compact />
-      </div>
-    </div>
-  )
-}
 
 export default function Header() {
   const { t, locale, setLocale } = useLanguage()
@@ -269,8 +255,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Store status strip — ALWAYS visible on non-xl screens. */}
-      <StoreStatusStrip />
     </header>
   )
 }
