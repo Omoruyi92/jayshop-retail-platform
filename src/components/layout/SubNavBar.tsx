@@ -245,12 +245,13 @@ export default function SubNavBar() {
           )}
         </div>
 
-        {/* Mobile search icon — hidden on desktop */}
+        {/* Mobile search icon — hidden on desktop, pinned to the far right
+            of the white SubNavBar row on mobile/tablet. */}
         <button
           type="button"
           aria-label={mobileSearchOpen ? 'Close search' : 'Open search'}
           onClick={handleMobileSearchToggle}
-          className="sm:hidden flex items-center justify-center w-8 h-8 shrink-0 rounded-full text-jays-steel hover:text-jays-navy hover:bg-jays-ice/70 transition-colors"
+          className="sm:hidden flex items-center justify-center w-8 h-8 shrink-0 rounded-full text-jays-steel hover:text-jays-navy hover:bg-jays-ice/70 transition-colors ml-auto"
         >
           {mobileSearchOpen
             ? <X size={15} strokeWidth={2.2} />
