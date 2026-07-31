@@ -18,6 +18,15 @@ const MOCK_PROMOTION = {
   priority: 1,
 }
 
+type MockPromotion = {
+  id: string
+  text: string
+  link: string
+  priority: number
+  startsAt?: string
+  expiresAt?: string
+}
+
 function projectName(page: Page): string {
   const size = page.viewportSize()
   return size && size.width <= 500 ? 'mobile' : 'desktop'
@@ -31,7 +40,7 @@ async function acceptCookies(page: Page) {
   }
 }
 
-async function routeMockPromotions(page: Page, promotions = [MOCK_PROMOTION]) {
+async function routeMockPromotions(page: Page, promotions: MockPromotion[] = [MOCK_PROMOTION]) {
   await page.route('**/api/promotions', async (route) => {
     await route.fulfill({
       status: 200,
@@ -67,6 +76,19 @@ test.describe('promotion alert banner (v2 — attached to main nav)', () => {
     await page.goto('/shop')
     await acceptCookies(page)
     await expect(banner).toBeVisible()
+  })
+
+  test('approved promotion with a future start date still displays', async ({ page }) => {
+    const future = new Date()
+    future.setFullYear(future.getFullYear() + 1)
+    await routeMockPromotions(page, [{ ...MOCK_PROMOTION, startsAt: future.toISOString() }])
+    await page.goto('/')
+    await acceptCookies(page)
+
+    const banner = page.locator(alertSelector)
+    await expect(banner).toBeVisible()
+    await expect(banner).toContainText(MOCK_PROMOTION.text)
+    await page.screenshot({ path: screenshotPath(`future-approved-${projectName(page)}.png`), fullPage: false })
   })
 
   test('dismisses via X, stays dismissed across client navigation, reappears after refresh', async ({ page }) => {

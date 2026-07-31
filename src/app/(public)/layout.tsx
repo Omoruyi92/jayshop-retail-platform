@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 /**
- * Fetches the same active-promotions set as `/api/promotions`, but directly
+ * Fetches the same APPROVED-promotions set as `/api/promotions`, but directly
  * in the server component so `PromotionsProvider` can be seeded before first
  * paint — the shared promotions state consumed by the dismissible
  * `PromotionAlert` banner (rendered inside `SubNavBar`). Falls back to `[]`
@@ -31,12 +31,9 @@ export const metadata: Metadata = {
  */
 async function getActivePromotions(): Promise<Promotion[]> {
   try {
-    const now = new Date()
     return await prisma.promotionMessage.findMany({
       where: {
         status: 'APPROVED',
-        OR: [{ startsAt: null }, { startsAt: { lte: now } }],
-        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] }],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
       select: { id: true, text: true, link: true, priority: true },
