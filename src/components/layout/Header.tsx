@@ -134,9 +134,15 @@ export default function Header() {
             In mobile landscape the wordmark/MLB badge are removed (above),
             freeing enough width for the pill's two designed rows to render
             without mid-row wrapping — white-space is inherited, so nowrap
-            on this wrapper covers every span inside LocationBadge. */}
+            on this wrapper covers every span inside LocationBadge.
+            NOTE: no backdrop-blur here — backdrop-filter inside this sticky
+            header is re-rasterized on every momentum-scroll frame on iOS
+            Safari, which made the pill visibly vibrate/wobble while
+            scrolling. The header bg is opaque navy, so the blur was a
+            visual no-op anyway (blurring a solid color yields the same
+            solid color). */}
         <div className="xl:hidden flex-1 flex justify-center min-w-0 px-1">
-          <div className="bg-white/10 backdrop-blur rounded-full px-2.5 py-1 min-w-0 overflow-hidden border border-white/5 [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:whitespace-nowrap">
+          <div className="bg-white/10 rounded-full px-2.5 py-1 min-w-0 overflow-hidden border border-white/5 [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:whitespace-nowrap">
             <LocationBadge compact />
           </div>
         </div>
@@ -201,7 +207,7 @@ export default function Header() {
             <button
               ref={langTriggerRef}
               onClick={() => setOpen((prev) => !prev)}
-              className="flex items-center gap-0.5 xs:gap-1 bg-white/10 backdrop-blur text-white rounded-lg px-0 xs:px-1 sm:px-2.5 py-1.5 text-[11px] xs:text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
+              className="flex items-center gap-0.5 xs:gap-1 bg-white/10 text-white rounded-lg px-0 xs:px-1 sm:px-2.5 py-1.5 text-[11px] xs:text-xs font-medium transition-colors duration-150 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 whitespace-nowrap"
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-label="Select language"
