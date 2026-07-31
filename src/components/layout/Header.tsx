@@ -104,7 +104,11 @@ export default function Header() {
               className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
               priority
             />
-            <span className="hidden sm:flex flex-col leading-none">
+            {/* Wordmark + subtitle: hidden in mobile landscape (same arbitrary
+                variant as the landscape flag below) to declutter the short
+                rotated-phone header row. !hidden beats sm:flex regardless of
+                generated CSS order. */}
+            <span className="hidden sm:flex flex-col leading-none [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:!hidden">
               <span className="font-display font-bold text-xl uppercase tracking-wider leading-none text-center">
                 <span className="text-jays-red">JAYS</span>
                 <span className="text-white"> SHOP</span>
@@ -114,8 +118,9 @@ export default function Header() {
               </span>
             </span>
           </Link>
-          <span className="hidden sm:block w-px h-5 bg-white/20 mx-0.5" aria-hidden="true" />
-          <MLBLogo size={44} className="hidden sm:block opacity-80 shrink-0" />
+          {/* Divider + MLB badge: also hidden in mobile landscape */}
+          <span className="hidden sm:block w-px h-5 bg-white/20 mx-0.5 [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:!hidden" aria-hidden="true" />
+          <MLBLogo size={44} className="hidden sm:block opacity-80 shrink-0 [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:!hidden" />
         </div>
 
         {/* Center: Partner logos banner — only on xl+ to avoid overflow */}
@@ -125,9 +130,13 @@ export default function Header() {
 
         {/* Mobile/Tablet Time Status pill — sits in the blue header row
             between the logo and the action icons (bell/heart/cart/lang).
-            Hidden at xl+ where PartnerLogosBar already embeds the badge. */}
+            Hidden at xl+ where PartnerLogosBar already embeds the badge.
+            In mobile landscape the wordmark/MLB badge are removed (above),
+            freeing enough width for the pill's two designed rows to render
+            without mid-row wrapping — white-space is inherited, so nowrap
+            on this wrapper covers every span inside LocationBadge. */}
         <div className="xl:hidden flex-1 flex justify-center min-w-0 px-1">
-          <div className="bg-white/10 backdrop-blur rounded-full px-2.5 py-1 min-w-0 overflow-hidden border border-white/5">
+          <div className="bg-white/10 backdrop-blur rounded-full px-2.5 py-1 min-w-0 overflow-hidden border border-white/5 [@media(orientation:landscape)_and_(max-height:500px)_and_(max-width:1023px)]:whitespace-nowrap">
             <LocationBadge compact />
           </div>
         </div>
