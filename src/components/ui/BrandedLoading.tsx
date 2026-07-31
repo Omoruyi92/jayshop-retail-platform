@@ -10,7 +10,7 @@ export default function BrandedLoading() {
     <div
       role="status"
       aria-label="Loading"
-      className="relative flex min-h-[70vh] w-full flex-1 items-center justify-center overflow-hidden bg-jays-navy"
+      className="relative flex min-h-[calc(100svh-var(--header-height,3.5rem)-var(--subnav-height,2.75rem))] w-full flex-1 items-center justify-center overflow-hidden bg-jays-navy"
     >
       {/* Watermark: same roundel asset the site header uses (/brand/logo.png).
           Static opacity lives on the outer div; the pulse animation runs on the

@@ -27,22 +27,14 @@
   --radius: 0.5rem;
 
   /* Sticky-nav stacking heights, kept in sync at runtime by Header.tsx and
-     SubNavBar.tsx (ResizeObserver). Fallbacks below match the xl-breakpoint
-     header (no secondary status strip) so the very first paint stays close.
-     Below xl, Header renders an extra secondary strip (location/store-status
-     badge), making it taller — see the media query below, which
-     keeps the *very first* (pre-hydration) paint already correct so
-     SubNavBar/StickyShopCategoryNav never visibly jump when the JS
-     ResizeObserver corrects the var a moment later. */
+     SubNavBar.tsx (ResizeObserver). The header is a single h-14 (3.5rem) row
+     at EVERY breakpoint — the old secondary status strip below xl was removed
+     (the Time Status pill now lives inside the main row), so the fallback
+     must be 3.5rem everywhere. A stale 5.625rem below-xl fallback here caused
+     a 34px hero/content jump on hard refresh when the ResizeObserver
+     corrected the var post-hydration. */
   --header-height: 3.5rem;
   --subnav-height: 2.75rem;
-}
-
-@media (max-width: 1279.98px) {
-  :root {
-    /* h-14 main row (3.5rem) + secondary location/status strip (~2.125rem) */
-    --header-height: 5.625rem;
-  }
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */

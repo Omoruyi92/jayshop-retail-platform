@@ -71,10 +71,14 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
   // server and client — identical output, so no hydration mismatch is
   // possible. The dot/label/nextChange placeholders below are sized and
   // styled the same as the real content to avoid any layout shift (CLS)
-  // when the real value swaps in post-mount.
+  // when the real value swaps in post-mount. While pending, the placeholders
+  // use the WIDEST realistic strings ("Closed" / "Opens at 10:00 AM") rendered
+  // transparent — this reserves the pill's final footprint on the very first
+  // paint (the old \u00A0 placeholder was ~2px wide, so the pill visibly grew
+  // and re-centered when the real status arrived — a measurable CLS source).
   const isOpen = status?.isOpen ?? false
-  const statusLabel = status?.statusLabel ?? '\u00A0'
-  const nextChange = status?.nextChange ?? '\u00A0'
+  const statusLabel = status?.statusLabel ?? 'Closed'
+  const nextChange = status?.nextChange ?? 'Opens at 10:00 AM'
   const isPending = status === null
   // Game-day-only state: store is open to ticketed fans inside the stadium,
   // but locked out for the general public — distinct amber treatment so it
@@ -90,7 +94,7 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
         : 'bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.5)]'
 
   const labelClass = isPending
-    ? 'text-blue-200/40'
+    ? 'text-transparent'
     : isOpen
       ? 'text-emerald-300'
       : isRestrictedPublic
@@ -116,7 +120,7 @@ export function LocationBadge({ compact = false }: { compact?: boolean }) {
             {statusLabel}
           </span>
           <span className="text-blue-300/30 text-[8px]">·</span>
-          <span className="text-blue-200/50 text-[8px]">{nextChange}</span>
+          <span className={`text-[8px] ${isPending ? 'text-transparent' : 'text-blue-200/50'}`}>{nextChange}</span>
         </div>
       </div>
     </div>

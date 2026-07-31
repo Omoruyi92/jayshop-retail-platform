@@ -8,6 +8,7 @@ import ChatFAB from '@/components/chat/ChatFAB'
 import FeedbackTab from '@/components/feedback/FeedbackTab'
 import RecentlyViewedPopup from '@/components/shop/RecentlyViewedPopup'
 import CookieConsentModal from '@/components/layout/CookieConsentModal'
+import InitialLoadOverlay from '@/components/ui/InitialLoadOverlay'
 import { CartProvider, FavoritesProvider } from '@/lib/store'
 import { SearchProvider } from '@/lib/store/SearchContext'
 import { PromotionsProvider, type Promotion } from '@/lib/promotions/PromotionsContext'
@@ -53,6 +54,11 @@ export default async function PublicLayout({ children }: { children: React.React
       <FavoritesProvider>
         <CartProvider>
           <PromotionsProvider initialPromotions={initialPromotions}>
+            {/* Full-viewport branded overlay for hard refresh / first visit:
+                covers first-paint churn (font swap, image decode, hydration)
+                then crossfades out. Client-side navs never remount this
+                layout, so it runs once per full document load. */}
+            <InitialLoadOverlay />
             <div className="min-h-screen flex flex-col">
               <Header />
               <SubNavBar />
