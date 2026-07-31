@@ -42,6 +42,12 @@ check('Weekday game: 12:06 PM → still Open', edt('2026-08-05', 12, 6), wedGame
   { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 12:07 PM' })
 check('Weekday game: 12:07 PM → Closed to the General Public', edt('2026-08-05', 12, 7), wedGame,
   { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+// Explicit 61-vs-59-minutes-before-gates boundary (gates 13:07, weekday
+// offset = 60 min before gates → switch at 12:07):
+check('Weekday boundary: 61 min before gates (12:06) → Open', edt('2026-08-05', 12, 6), wedGame,
+  { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 12:07 PM' })
+check('Weekday boundary: 59 min before gates (12:08) → Closed to the General Public', edt('2026-08-05', 12, 8), wedGame,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
 check('Weekday game: before 10 AM → Closed, opens 10 AM', edt('2026-08-05', 9, 30), wedGame,
   { isOpen: false, statusLabel: 'Closed', nextChange: 'Opens at 10:00 AM' })
 
@@ -78,16 +84,40 @@ check('Weekday 13:00 game (close == 10 AM open): 10:30 AM → Closed to the Gene
   edt('2026-08-05', 10, 30), game('2026-08-05', '13:00'),
   { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
 
-// ─── Evening game: public close after 5 PM → regular hours win ───
-// Wed 19:07 first pitch → gates 17:07 → public close 16:07 (< 17:00) → closes 4:07 PM
+// ─── Evening game: ticketed-only start after 5 PM → normal 5 PM close first,
+// then the ticketed-only override kicks in at its start time and WINS over
+// the plain after-hours "Closed". ───
+// Wed 19:07 first pitch → gates 17:07 → ticketed start 16:07 (< 17:00) → closes 4:07 PM
 check('Weekday evening 19:07 game: 3:00 PM → Open, closes 4:07 PM', edt('2026-08-05', 15, 0), game('2026-08-05', '19:07'),
   { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 4:07 PM' })
-// Sat 22:00 first pitch → gates 20:00 → public close 18:00 (> 17:00) → regular 5 PM close, plain Closed
+// Sat 22:00 first pitch → gates 20:00 → ticketed start 18:00 (> 17:00):
+// regular 5 PM close first, plain Closed 5–6 PM, then ticketed-only from 6 PM.
 const lateSat = game('2026-08-01', '22:00')
 check('Weekend late 22:00 game: 4:00 PM → Open, closes 5:00 PM (regular close wins)', edt('2026-08-01', 16, 0), lateSat,
   { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 5:00 PM' })
-check('Weekend late 22:00 game: 5:30 PM → plain Closed', edt('2026-08-01', 17, 30), lateSat,
+check('Weekend late 22:00 game: 5:30 PM → plain Closed (before ticketed window)', edt('2026-08-01', 17, 30), lateSat,
   { isOpen: false, statusLabel: 'Closed', nextChange: 'Opens at 10:00 AM' })
+check('Weekend late 22:00 game: 6:00 PM → ticketed-only override (2h before gates)', edt('2026-08-01', 18, 0), lateSat,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+check('Weekend late 22:00 game: 7:30 PM → still ticketed-only', edt('2026-08-01', 19, 30), lateSat,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+// Weekday 19:07 game (Jul 31 2026-style Fri counts as weekday): gates 17:07,
+// ticketed start 16:07 → override even though normally still Open at 4:30 PM.
+const friEvening = game('2026-07-31', '19:07')
+check('Weekday Fri 19:07 game: 4:06 PM (61 min before gates) → still Open', edt('2026-07-31', 16, 6), friEvening,
+  { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 4:07 PM' })
+check('Weekday Fri 19:07 game: 4:08 PM (59 min before gates) → ticketed-only overrides Open hours', edt('2026-07-31', 16, 8), friEvening,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+check('Weekday Fri 19:07 game: 6:00 PM (after 5 PM close) → ticketed-only overrides plain Closed', edt('2026-07-31', 18, 0), friEvening,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+// Weekend 19:07 game: gates 17:07, ticketed start 15:07 (2h before gates).
+const satEvening = game('2026-08-08', '19:07')
+check('Weekend Sat 19:07 game: 3:06 PM (121 min before gates) → still Open', edt('2026-08-08', 15, 6), satEvening,
+  { isOpen: true, statusLabel: 'Open', nextChange: 'Closes at 3:07 PM' })
+check('Weekend Sat 19:07 game: 3:08 PM (119 min before gates) → ticketed-only', edt('2026-08-08', 15, 8), satEvening,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
+check('Weekend Sat 19:07 game: 6:00 PM → ticketed-only overrides after-hours Closed', edt('2026-08-08', 18, 0), satEvening,
+  { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' })
 
 // ─── Doubleheader: GameDay.date is @unique — one row per date; startTime is
 // the earliest first pitch by construction. Sat 13:37 earliest pitch →

@@ -116,16 +116,18 @@ function formatMinutesAsClock(totalMinutes: number): string {
  *   10:00 AM–5:00 PM Open window; before 10:00 AM it's Closed with
  *   "Opens at 10:00 AM".
  * - Game day with a valid startTime: gates open at first pitch − 2h, and
- *   the store closes to the general public BEFORE gates open — 1h before
- *   gates on weekdays (Mon–Fri), 2h before gates on weekends (Sat–Sun),
- *   where the day type comes from the GAME DATE in America/Toronto.
- *   Effective public close = first pitch − 3h (weekday) / − 4h (weekend).
- *   The store is Open from 10:00 AM until min(publicClose, 5:00 PM); at or
- *   after that cutoff, if the cutoff was driven by the public close time,
- *   status is "Closed to the General Public" instead of plain "Closed".
- *   If public close is later than 5:00 PM (evening games), the regular
- *   5:00 PM close wins and status is plain "Closed" afterward.
- * - Early-game edge case: if the computed public close lands at or before
+ *   the ticketed-only window starts BEFORE gates open — 1h before gates on
+ *   weekdays (Mon–Fri), 2h before gates on weekends (Sat–Sun), where the
+ *   day type comes from the GAME DATE in America/Toronto.
+ *   Ticketed-only start = first pitch − 3h (weekday) / − 4h (weekend).
+ *   From that instant until end of day, status is "Closed to the General
+ *   Public", OVERRIDING whatever the normal hours-based status would be —
+ *   including a plain "Closed" after the regular 5:00 PM close (evening
+ *   games) and any "Open" state.
+ * - Before the ticketed-only start, normal hours apply: Open from 10:00 AM
+ *   until min(ticketedStart, 5:00 PM); an after-5 PM gap before a late
+ *   ticketed window shows plain "Closed".
+ * - Early-game edge case: if the ticketed-only start lands at or before
  *   the 10:00 AM opening, the store never opens to the general public that
  *   day — status is "Closed to the General Public" for the whole day
  *   (including before 10:00 AM, so we never promise "Opens at 10:00 AM"
@@ -138,19 +140,24 @@ export function getStoreStatus(now: Date, todayGame: TodayGameInput | null): Sto
 
   const firstPitchMinutes = todayGame ? parseStartTimeToMinutes(todayGame.startTime) : null
 
-  let publicCloseMinutes: number | null = null
+  let ticketedStartMinutes: number | null = null
   if (todayGame && firstPitchMinutes !== null) {
     const gameDow = getGameDayOfWeek(todayGame, now)
     const isWeekendGame = gameDow === 0 || gameDow === 6
     const closeBeforeGates = isWeekendGame ? WEEKEND_CLOSE_BEFORE_GATES : WEEKDAY_CLOSE_BEFORE_GATES
-    publicCloseMinutes = firstPitchMinutes - GATE_OPEN_BEFORE_FIRST_PITCH - closeBeforeGates
+    ticketedStartMinutes = firstPitchMinutes - GATE_OPEN_BEFORE_FIRST_PITCH - closeBeforeGates
   }
 
-  const closesEarlyToPublic = publicCloseMinutes !== null && publicCloseMinutes < closeMinutes
+  // Ticketed-only override: from the ticketed-only start until end of day,
+  // this state wins over any hours-based Open/Closed status.
+  if (ticketedStartMinutes !== null && nowMinutes >= ticketedStartMinutes) {
+    return { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' }
+  }
 
-  // Early-game edge case: public close at/before the 10:00 AM opening means
-  // the store never opens to the general public today.
-  if (closesEarlyToPublic && publicCloseMinutes! <= openMinutes) {
+  // Early-game edge case: ticketed-only start at/before the 10:00 AM opening
+  // means the store never opens to the general public today — show the
+  // restricted label all day rather than promising "Opens at 10:00 AM".
+  if (ticketedStartMinutes !== null && ticketedStartMinutes <= openMinutes) {
     return { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' }
   }
 
@@ -158,17 +165,16 @@ export function getStoreStatus(now: Date, todayGame: TodayGameInput | null): Sto
     return { isOpen: false, statusLabel: 'Closed', nextChange: 'Opens at 10:00 AM' }
   }
 
-  // Effective close is whichever comes first: public close time (if it's
-  // actually before the regular close) or the regular 5:00 PM close.
-  const cutoffMinutes = closesEarlyToPublic ? publicCloseMinutes! : closeMinutes
+  // Effective close is whichever comes first: the ticketed-only start (if
+  // it's before the regular close) or the regular 5:00 PM close.
+  const cutoffMinutes =
+    ticketedStartMinutes !== null && ticketedStartMinutes < closeMinutes ? ticketedStartMinutes : closeMinutes
 
   if (nowMinutes < cutoffMinutes) {
     return { isOpen: true, statusLabel: 'Open', nextChange: `Closes at ${formatMinutesAsClock(cutoffMinutes)}` }
   }
 
-  if (closesEarlyToPublic) {
-    return { isOpen: false, statusLabel: 'Closed to the General Public', nextChange: 'Ticketed fans only' }
-  }
-
+  // Past the regular 5:00 PM close but before a late ticketed-only window
+  // (or no game at all): plain Closed.
   return { isOpen: false, statusLabel: 'Closed', nextChange: 'Opens at 10:00 AM' }
 }
