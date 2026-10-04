@@ -102,14 +102,20 @@ npx prisma db push
 npx prisma generate
 ```
 
-### 6. Seed products and create an admin user
+### 6. Seed the demo data and create admin users
 
 ```bash
-SEED_ADMIN_PASSWORD=your-local-password npm run db:seed
+SEED_ADMIN_PASSWORD=your-local-password npx prisma db seed
 ```
 
-This seeds the Blue Jays product catalog and creates the initial admin account.
-The password you pass is bcrypt-hashed before storage and is never committed.
+(`npm run db:seed` runs the same script.)
+
+This seeds the full demo dataset — the Blue Jays product catalog (65 products
+with per-size inventory), 12 store locations, hero-carousel slides, store
+settings — and creates the initial admin accounts (`admin@jays.shop` / OWNER
+and `staff@jays.shop` / STAFF). The password you pass is bcrypt-hashed before
+storage and is never committed. The seed is idempotent, so you can safely
+re-run it any time to restore the demo data.
 
 ### 7. Start the dev server
 
@@ -126,7 +132,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | | |
 |---|---|
 | URL | [http://localhost:3000/admin](http://localhost:3000/admin) |
-| Email | `admin@jays.shop` |
+| Email | `admin@jays.shop` (OWNER) or `staff@jays.shop` (STAFF) |
 | Password | the `SEED_ADMIN_PASSWORD` you used in step 6 |
 
 Additional staff accounts can be created from the admin dashboard.
@@ -143,7 +149,7 @@ Additional staff accounts can be created from the admin dashboard.
 | `npm run typecheck` | TypeScript type-check (no emit) |
 | `npm run lint` | ESLint check |
 | `npm run db:push` | Apply Prisma schema to the database |
-| `npm run db:seed` | Seed products + initial admin (requires `SEED_ADMIN_PASSWORD`) |
+| `npm run db:seed` | Seed full demo data + admin users (requires `SEED_ADMIN_PASSWORD`) |
 | `npm run db:studio` | Open Prisma Studio |
 
 ---

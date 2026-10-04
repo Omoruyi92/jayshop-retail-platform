@@ -21,6 +21,9 @@
     "media:cleanup": "tsx scripts/media-audit.ts --execute",
     "r2:configure-cors": "tsx scripts/configure-r2-cors.ts"
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1095.0",
     "@aws-sdk/s3-request-presigner": "^3.1095.0",
