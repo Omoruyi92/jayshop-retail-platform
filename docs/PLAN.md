@@ -99,10 +99,10 @@ CSV export of all report data.
 ```mermaid
 graph TD
   Browser["Browser / PWA"] -->|HTTPS| Vercel["Vercel Edge (Next.js 14)"]
-  Vercel -->|Prisma ORM| DB[(Supabase PostgreSQL)]
-  Vercel -->|Realtime WS| Realtime["Supabase Realtime"]
+  Vercel -->|Prisma ORM| DB[(Neon PostgreSQL (prod) / Docker Postgres (local))]
+  Vercel -->|LISTEN/NOTIFY| Realtime["Postgres LISTEN/NOTIFY + SSE"]
   Vercel -->|Webhook| Slack["Slack Block Kit"]
-  Vercel -->|Upload widget| Cloudinary["Cloudinary CDN"]
+  Vercel -->|Upload + optimize| Media["Local filesystem + sharp; optional Cloudflare R2"]
   Vercel -->|API call| OpenAI["OpenAI gpt-4o-mini"]
   Vercel -->|Cron /15min| Cron["Vercel Cron → expire-holds"]
   Realtime -->|Live updates| AdminDash["Admin Dashboard"]
@@ -113,15 +113,15 @@ graph TD
 | **Framework** | Next.js 14 App Router + TypeScript | ISR for catalog pages, Server Actions for mutations, single deploy |
 | **Styling** | Tailwind CSS + shadcn/ui | Utility-first, no runtime CSS-in-JS, shadcn gives accessible unstyled components |
 | **PWA** | next-pwa (Workbox) | Service worker auto-generated; manifest drives install prompt; offline catalog cache |
-| **Database** | Supabase PostgreSQL + Prisma | Managed Postgres with free tier; Prisma gives type-safe queries and migration tooling |
+| **Database** | Neon PostgreSQL (prod) / Docker Postgres (local) + Prisma | Docker Postgres keeps local dev self-contained; Neon provides managed production Postgres; Prisma gives type-safe queries and migration tooling |
 | **Auth** | Phone + name only (no OTP in v1) | Zero cost, zero friction; phone is the identity key; OTP via Twilio Verify can be added in v2 for ~$0.05/verification |
-| **Real-time** | Supabase Realtime | Already provisioned with Supabase; no extra vendor; subscribe to `holds` table INSERT/UPDATE |
+| **Real-time** | Postgres LISTEN/NOTIFY + Server-Sent Events | Postgres-native push avoids a separate real-time vendor; SSE streams updates to the browser with low overhead |
 | **Slack** | Incoming Webhook + Block Kit | Free; interactive buttons call back to `/api/slack/interactive` for pickup/release without opening dashboard |
-| **Images** | Cloudinary (unsigned upload preset) | Free tier 25 GB; admin upload widget; auto-optimised delivery |
+| **Images** | Local filesystem + sharp; optional Cloudflare R2 | In-process sharp optimization avoids external dependencies in dev; optional R2 backend for serverless production storage |
 | **QR code** | qrcode.react (client-side) | Zero server cost; renders instantly; works offline |
 | **Chatbot** | OpenAI gpt-4o-mini | $0.15/1M input + $0.60/1M output tokens ≈ **$0.08–$0.40 per 1,000 chats**; cost-controlled via `max_tokens: 300` |
 | **Hosting** | Vercel Hobby (free) | Zero-config Next.js deploy; cron jobs included |
-| **Cron** | Vercel Cron (`vercel.json`) | Free on Hobby; runs every 15 min; simpler than Supabase scheduled functions (no PL/pgSQL required) |
+| **Cron** | Vercel Cron (`vercel.json`) | Free on Hobby; runs every 15 min; simpler than database scheduled functions (no PL/pgSQL required) |
 | **Currency** | `Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' })` | Native browser API, always correct CAD formatting |
 | **React Native path** | Clean REST/JSON API surface | Every `/api/*` route returns JSON; a future React Native app reuses the same endpoints |
 
@@ -129,7 +129,7 @@ graph TD
 
 - `public/manifest.json`: `display: standalone`, theme `#134A8E`, icons at 192×192 and 512×512
 - `next-pwa` with `disable: process.env.NODE_ENV === 'development'` to avoid SW noise in dev
-- Workbox `StaleWhileRevalidate` for Cloudinary images (7-day cache, max 100 entries)
+- Workbox `StaleWhileRevalidate` for uploaded product images (7-day cache, max 100 entries)
 - Offline fallback: cached catalog renders from service worker; hold creation queues error message when offline
 
 ---
@@ -786,4 +786,4 @@ Blue Jays fans are loyal, mobile-first, and ready to buy — they just need a re
 
 *Plan version: 2.0 — History & Accountability integrated*
 *Generated for Jays Shop, Toronto Blue Jays merchandise store*
-*Stack: Next.js 14 · TypeScript · Tailwind · Supabase · Prisma · Vercel · Slack · Cloudinary · OpenAI*
+*Stack: Next.js 14 · TypeScript · Tailwind · PostgreSQL (Neon/Docker) · Prisma · Vercel · Slack · OpenAI*
