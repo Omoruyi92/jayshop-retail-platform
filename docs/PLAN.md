@@ -99,7 +99,7 @@ CSV export of all report data.
 ```mermaid
 graph TD
   Browser["Browser / PWA"] -->|HTTPS| Vercel["Vercel Edge (Next.js 14)"]
-  Vercel -->|Prisma ORM| DB[(Neon PostgreSQL (prod) / Docker Postgres (local))]
+  Vercel -->|Prisma ORM| DB[("Neon PostgreSQL (prod) / Docker Postgres (local)")]
   Vercel -->|LISTEN/NOTIFY| Realtime["Postgres LISTEN/NOTIFY + SSE"]
   Vercel -->|Webhook| Slack["Slack Block Kit"]
   Vercel -->|Upload + optimize| Media["Local filesystem + sharp; optional Cloudflare R2"]
