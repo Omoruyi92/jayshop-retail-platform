@@ -196,3 +196,17 @@ prisma/
 
 - `.env`, `.env.local`, and all local env files are gitignored — never commit real secrets.
 - The full architecture and build plan lives in [`docs/PLAN.md`](docs/PLAN.md).
+
+---
+
+## Admin Dashboard Access
+
+Use these credentials to log into the admin dashboard for employer review or demo purposes.
+
+| | |
+|---|---|
+| Login URL | `/admin/login` (relative to the deployed app URL) |
+| Email | `admin@jays.shop` |
+| Password | `BlueJays2026*` |
+
+> These credentials are intended for employer review/demo use only.
