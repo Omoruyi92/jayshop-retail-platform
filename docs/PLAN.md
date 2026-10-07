@@ -6,21 +6,13 @@
 ## 1. Elevator Pitch
 
 Jays Shop lets Blue Jays fans browse your full merchandise catalog online, place a free 48-hour hold on any item, and walk into the store to pay and pick it up — no credit card, no app download required.
-For the store, every hold is a warm lead with a name and phone number attached: you see reservations in real time on a staff dashboard and get a Slack ping the moment a hold is placed.
+Mobile browsing is already part of the fan experience, and Jays Shop turns that attention into a planned store visit. The model mirrors the click-and-collect programs major retailers are expanding: a free, no-commitment hold captures existing intent, guarantees foot traffic, and gives staff a real-time pickup list with a Slack alert the moment a reservation is placed. Each hold also captures a name and phone number, creating an owned customer list for follow-up offers and event-driven marketing.
 Compared to "call us and hope," this turns intent into a guaranteed foot-traffic visit, captures inventory demand data, and builds a loyal customer list — all before a single dollar changes hands.
 It's a modern reservation experience that meets fans where they are: on their phone.
 
 ---
 
-## 2. Problem & Value Proposition
-
-### The Status Quo Is Broken
-
-| Scenario | Customer Pain | Store Pain |
-|---|---|---|
-| Call-ahead hold | Phone tag, no confirmation, staff reliant on memory | Untracked, no-shows go unlogged |
-| First-come first-served | Drive in to find item gone | Lost sale, frustrated fan |
-| No reservation option | Fans buy from MLB Shop instead | Zero capture of online demand |
+## 2. Value Proposition
 
 ### Why No-Payment Holds Win
 
@@ -28,6 +20,12 @@ It's a modern reservation experience that meets fans where they are: on their ph
 - **Guaranteed foot traffic** — A confirmed hold is a committed visit within 48 hours.
 - **Inventory intelligence** — Every hold tells you which items are in demand before they sell out. Staff can reorder confidently.
 - **Customer data capture** — Phone number = a real person the store can reconnect with.
+
+### What Fans & the Store Get
+
+- **Tracked, time-limited reservations** — Call-ahead holds become real records with an expiry, QR code, and automatic staff notification instead of memory-based phone tags.
+- **Confidence for fans** — A confirmed hold guarantees the item is reserved and ready for pickup within 48 hours.
+- **Captured demand** — Fans who would otherwise default to MLB Shop now have a direct, store-owned path to buy.
 
 ### Quantified Hypothesis
 
